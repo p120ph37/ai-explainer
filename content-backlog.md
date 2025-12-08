@@ -14,14 +14,6 @@ Cursor Agent: Only work on checked items. Add new suggestions as unchecked items
 
 Check a box to approve a topic. Cursor Agent will work through these.
 
-- [x] **tokens**: What are tokens?
-  - Scope: Tokenization, why models use tokens not words, vocabulary, text-to-numbers
-  - From: what-is-llm → leads to: context-window
-
-- [x] **why-large**: Why does scale matter?
-  - Scope: Emergent capabilities, scaling laws, size-capability relationship
-  - From: what-is-llm → leads to: training, parameters
-
 - [ ] **context-window**: The context window
   - Scope: What context is, why limited, conversation "memory"
   - From: tokens → leads to: attention
@@ -56,11 +48,21 @@ Cursor Agent adds suggestions here. Check to approve.
   - Scope: Why prompts matter, techniques, pitfalls
   - Rationale: Practical application of LLM understanding
 
+- [ ] **parameters**: What are parameters?
+  - Scope: Neural network weights, what they encode, why billions are needed
+  - Rationale: Referenced in why-large as child node; explains the "large" in LLM
+
+- [ ] **embeddings**: How do tokens become numbers?
+  - Scope: Vector representations, semantic similarity, embedding space
+  - Rationale: Referenced in tokens as related; bridges tokenization to neural network processing
+
 ---
 
 ## Completed
 
 - [x] **what-is-llm**: What is an LLM? *(2024-12-08)*
+- [x] **tokens**: What are tokens? *(2024-12-08)*
+- [x] **why-large**: Why does scale matter? *(2024-12-08)*
 
 ---
 

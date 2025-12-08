@@ -1,0 +1,96 @@
+---
+id: tokens
+title: "What are tokens?"
+summary: LLMs read tokens, not letters or words. Tokens are chunks of text that the model has learned to recognize.
+prerequisites:
+  - intro
+children:
+  - context-window
+related:
+  - embeddings
+keywords:
+  - tokenization
+  - BPE
+  - vocabulary
+  - subword
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**When you type "Hello, how are you?" what does the model actually see?**
+
+Not letters. Not words, exactly. The model sees **tokens**: chunks of text that might be whole words, parts of words, or individual characters.
+
+Before your message reaches the neural network, it gets chopped up by a **tokenizer**. "Hello" might become one token. "Tokenization" might become "Token" + "ization". An unusual word like "cryptographic" might become "crypt" + "ographic" or even smaller pieces.
+
+This chunking is crucial. Neural networks work with numbers, not text. Each token maps to a number (its ID in the vocabulary), and that number is what the model actually processes.
+
+<Recognition>
+
+Ever noticed that AI chatbots struggle with tasks involving individual letters? Ask one to count the r's in "strawberry" and it often gets it wrong. Now you know why: it doesn't see "s-t-r-a-w-b-e-r-r-y." It might see "straw" + "berry" as two tokens. The letter-level information is hidden from it.
+
+</Recognition>
+
+**Why not just use words?**
+
+Words seem like the obvious choice, but they create problems. English alone has hundreds of thousands of words. Add names, technical terms, foreign words, typos, and internet slang, and you'd need millions of entries.
+
+Worse: any word not in your vocabulary becomes impossible to process. The model would choke on "ChatGPT" if it was trained before that word existed.
+
+Tokens solve this elegantly. A typical vocabulary has 50,000-100,000 tokens. Common words like "the" and "and" get their own tokens. Rare or new words get assembled from pieces. "ChatGPT" might become "Chat" + "G" + "PT". The model never encounters a word it can't represent.
+
+<Question title="How does the model decide where to split?">
+
+The most common approach is called **byte-pair encoding** (BPE). The algorithm starts with individual characters and repeatedly merges the most frequent pairs.
+
+Starting with "the the the cat", it might first merge "t" and "h" into "th", then "th" and "e" into "the". Over many iterations across a massive text corpus, common patterns become single tokens while rare combinations stay split.
+
+The result: a vocabulary that efficiently compresses common language while remaining flexible enough to handle anything.
+
+→ [How BPE builds a vocabulary](#/bpe-algorithm)
+
+</Question>
+
+<TryThis>
+
+Visit [tiktokenizer.vercel.app](https://tiktokenizer.vercel.app) and experiment. Type your name, then try common words, then technical jargon. Notice how frequent words are single tokens while unusual ones get fragmented. Try "antidisestablishmentarianism" and watch it shatter into pieces.
+
+</TryThis>
+
+**What does this mean for how the model thinks?**
+
+Tokenization shapes what the model can easily perceive. Common English words are single tokens. Each token carries rich meaning learned during training. But split a word into pieces and the model must reconstruct its meaning from fragments.
+
+This is why LLMs are better with common vocabulary than rare terms. It's why they struggle with letter-counting, word games, and invented words. It's also why non-English languages sometimes work less well: they may be over-fragmented, each word split into many pieces.
+
+<Metaphor title="A vocabulary built from LEGO">
+
+A token vocabulary is like having a box of LEGO pieces. Some pieces are large, pre-assembled: common words like "the" or "and" are single, chunky blocks. Others are small studs: individual letters or character fragments.
+
+When you give the model a sentence, it reaches into the box and finds the largest pieces that fit. "Hello" might be one big block. "Cryptocurrency" might need several smaller ones snapped together.
+
+The model thinks in these pieces. Asking it to count letters is like asking someone to count the bumps on a LEGO structure when they can only see the assembled blocks.
+
+</Metaphor>
+
+**How many tokens is my conversation?**
+
+A rough rule: one token averages about 4 characters in English, or roughly 3/4 of a word. A 100-word paragraph is typically 70-80 tokens. A 1,000-word essay might be 750-800 tokens.
+
+This matters because LLMs have a **context window**: a maximum number of tokens they can consider at once. Exceed it and older content gets forgotten. Token efficiency directly affects how much context the model can use.
+
+<Expandable title="Tokens and pricing">
+
+API-based LLMs typically charge per token. Understanding tokenization helps you understand costs.
+
+Verbose prompts cost more. A carefully worded 50-token prompt and a rambling 200-token one might get similar results, but the latter costs four times as much. Multi-turn conversations accumulate tokens: each exchange adds to the total.
+
+Some providers charge differently for input and output tokens. Images and special formats have their own token costs. The tokenizer's efficiency directly impacts your bill.
+
+</Expandable>
+
+<Sources>
+<Citation type="video" title="Let's build the GPT Tokenizer" source="Andrej Karpathy" url="https://www.youtube.com/watch?v=zduSFxRajkE" year={2024} />
+<Citation type="article" title="Tiktoken: OpenAI's tokenizer library" source="OpenAI" url="https://github.com/openai/tiktoken" />
+<Citation type="paper" title="Neural Machine Translation of Rare Words with Subword Units" authors="Sennrich et al." url="https://arxiv.org/abs/1508.07909" year={2016} />
+</Sources>
