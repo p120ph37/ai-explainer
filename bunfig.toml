@@ -1,0 +1,6 @@
+# Bun configuration
+
+[serve.static]
+# Plugins for the dev server's HTML bundling
+plugins = ["./src/plugins/mdx-plugin.ts"]
+

@@ -1,0 +1,63 @@
+---
+description: Project structure and organization conventions
+globs: "*"
+alwaysApply: false
+---
+
+# Project Structure
+
+## Directory Layout
+
+```
+src/
+├── server.ts         # Dev server (Bun.serve)
+├── preview.ts        # Preview built output
+├── index.html        # Entry point
+├── app/
+│   ├── main.ts       # App bootstrap
+│   ├── router.ts     # Navigation/routing logic
+│   ├── state.ts      # Minimal state management
+│   └── components/   # Reusable UI components
+├── content/
+│   ├── _graph.ts     # Navigation graph
+│   ├── _types.ts     # Content type definitions
+│   └── [topic]/      # Topic-grouped content nodes
+└── styles/
+    ├── base.css      # Reset, typography, variables
+    ├── components.css # Component styles
+    └── themes.css    # Light/dark theme definitions
+
+docs/
+├── DESIGN.md         # Design philosophy
+├── CONTENT-GUIDE.md  # How to author content
+
+dist/                 # Built output (gitignored)
+```
+
+## Import Conventions
+
+Use path aliases defined in tsconfig.json:
+- `@/*` → `src/*`
+- `@content/*` → `src/content/*`
+- `@components/*` → `src/app/components/*`
+
+## Content Organization
+
+- Group content by topic area (foundations, training, ecosystem, etc.)
+- Each `.tsx` file is one content node
+- Node file name matches node `id`
+- Keep interactive components co-located or in shared components
+
+## Styling
+
+- Use CSS custom properties for all colors, spacing, typography
+- Mobile-first responsive design
+- Component styles scoped via CSS layers or naming convention
+- No CSS-in-JS; keep styles in `.css` files
+
+## Build Output
+
+- Code-split by content node (dynamic imports)
+- Prefetch likely next nodes
+- Static output suitable for GitHub Pages
+- No server-side logic in production

@@ -1,0 +1,93 @@
+---
+id: intro
+title: What is an LLM?
+summary: Large Language Models are AI systems that have learned to predict and generate text by studying vast amounts of human writing.
+prerequisites: []
+children:
+  - tokens
+  - why-large
+  - what-ai-is
+related:
+  - how-different-from-search
+keywords:
+  - LLM
+  - large language model
+  - AI
+  - ChatGPT
+  - Claude
+---
+
+import { Expandable, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+When you chat with ChatGPT, Claude, or similar AI assistants, you're interacting with a **Large Language Model** (LLM). But what does that actually mean?
+
+At its heart, an LLM is a sophisticated pattern-matching system. It has studied enormous amounts of text—books, articles, websites, conversations—and learned the patterns of how humans use language. When you give it a prompt, it predicts what text would naturally come next, one piece at a time.
+
+This sounds simple, but the results are remarkable. By learning the patterns deeply enough, LLMs can write essays, explain concepts, write code, and engage in conversations that feel genuinely intelligent. They're not just copying text they've seen—they're combining patterns in new ways to generate responses they've never produced before.
+
+<Expandable title="Wait, it's just predicting the next word?">
+
+Yes—and this is one of the most surprising things about LLMs. The core task is deceptively simple: given some text, predict what comes next.
+
+But to do this well across all the diverse text humans write, the model must develop something like "understanding." To predict that a story about a dog should end with the dog coming home, the model needs to grasp narrative structure. To continue a math proof, it needs to follow logical steps.
+
+The magic is that by training on prediction at massive scale, useful capabilities emerge as side effects. The model wasn't explicitly taught to summarize or translate—it learned these abilities because they help predict text better.
+
+</Expandable>
+
+<Expandable title="How is this different from earlier AI?">
+
+Earlier language systems (like the autocomplete on your phone, or voice assistants from a few years ago) used simpler statistical methods or hand-crafted rules. They could handle specific tasks but couldn't generalize.
+
+LLMs differ in two key ways:
+
+- **Scale:** They've learned from far more text than any human could read in a lifetime, using neural networks with billions of parameters.
+- **Architecture:** The "Transformer" architecture (invented in 2017) allows them to consider the entire context of what they're reading, not just the most recent words.
+
+</Expandable>
+
+<Recognition>
+
+When you start typing a text message and your phone suggests words to complete your sentence, that's a simple form of "predict the next word." LLMs are doing the same thing, just at a much deeper level with much more context.
+
+</Recognition>
+
+<TryThis>
+
+Open ChatGPT or Claude and type: "Once upon a time, in a kingdom far away, there lived a brave" and let it complete the sentence. Then try "The chemical formula for water is H" — notice how it predicts differently based on context?
+
+</TryThis>
+
+<Expandable title="What does 'Large' actually mean?" level="advanced">
+
+"Large" refers to the number of *parameters* in the model—adjustable numbers that the model learns during training. Modern LLMs have billions to trillions of parameters.
+
+GPT-3 (2020) had 175 billion parameters. GPT-4 is rumored to be significantly larger. Claude, Llama, and other models range from 7 billion to hundreds of billions.
+
+More parameters generally means the model can capture more subtle patterns and store more knowledge—but it also requires more computing power to train and run.
+
+</Expandable>
+
+<Sources>
+  <Citation
+    type="video"
+    title="But what is a GPT? Visual intro to transformers"
+    source="3Blue1Brown"
+    url="https://www.youtube.com/watch?v=wjZofJX0v4M"
+    year={2024}
+  />
+  <Citation
+    type="paper"
+    title="Attention Is All You Need"
+    authors="Vaswani et al."
+    url="https://arxiv.org/abs/1706.03762"
+    year={2017}
+  />
+  <Citation
+    type="article"
+    title="What are large language models (LLMs)?"
+    source="Anthropic"
+    url="https://www.anthropic.com/news/what-are-large-language-models"
+  />
+</Sources>
+

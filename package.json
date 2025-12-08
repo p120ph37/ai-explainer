@@ -1,0 +1,27 @@
+{
+  "name": "frontier-ai-explainer",
+  "version": "0.1.0",
+  "description": "An interactive learning tool for understanding frontier AI technology",
+  "module": "src/server.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "proto run bun -- --hot src/server.ts",
+    "build": "proto run bun -- build src/index.html --outdir=dist --minify --splitting",
+    "preview": "proto run bun -- src/preview.ts",
+    "test": "proto run bun -- test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@mdx-js/esbuild": "^3.1.1",
+    "@preact/signals": "^2.5.1",
+    "preact": "^10.28.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-mdx-frontmatter": "^5.2.0"
+  }
+}

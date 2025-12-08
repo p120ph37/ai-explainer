@@ -1,0 +1,52 @@
+---
+description: Rules for authoring content nodes in the AI explainer
+globs: "src/content/**/*.tsx, src/content/**/*.ts"
+alwaysApply: true
+---
+
+# Content Authoring Rules
+
+## The Optionally Opaque Rule
+
+When mentioning a concept not yet explained in the prerequisite path:
+- The surrounding text MUST make sense without understanding the new term
+- New terms should be hyperlinked using `<Term id="concept-id">` component
+- Avoid definitions that require understanding other undefined terms
+
+**Good:** "The model uses *attention* (a way of focusing on relevant parts) to process your input."
+**Bad:** "The model uses attention to compute weighted query-key dot products."
+
+## Cognitive Load Limits
+
+- Each content node's core explanation: 2-4 paragraphs max
+- One main concept per node
+- Use `<Expandable>` for deeper detail, not inline complexity
+- If a paragraph requires more than 2 new terms, split it up
+
+## Prerequisites
+
+Every content node must declare its prerequisites in `meta.prerequisites`.
+The content may ONLY use concepts explained in those prerequisite nodes.
+Before using any technical term, verify it's defined in a prerequisite.
+
+## Recognition Hooks Required
+
+Every content node MUST include at least one of:
+- `<Recognition>` block connecting to user's existing experience
+- `<TryThis>` block with a concrete action they can take
+- Real-world example from familiar AI tools (ChatGPT, Claude, etc.)
+
+## Citations
+
+Factual claims about AI capabilities, limitations, or architecture must be cited.
+Use `<Citation>` component with appropriate `type`:
+- `paper` for research papers (mark as technical)
+- `video` for video explainers (mark as accessible)
+- `docs` for official documentation
+- `article` for blog posts and articles
+
+## File Naming
+
+- Use kebab-case: `what-is-llm.tsx` not `whatIsLlm.tsx`
+- Name should match the node's `id` in the navigation graph
+- Group related nodes in subdirectories by topic area

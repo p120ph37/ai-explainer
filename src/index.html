@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="An interactive guide to understanding how frontier AI actually works—the mechanics, the architecture, and the why behind the what.">
+  
+  <title>Understanding Frontier AI</title>
+  
+  <!-- Preload critical fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/components.css">
+  <link rel="stylesheet" href="./styles/themes.css">
+</head>
+<body>
+  <div id="app">
+    <!-- App mounts here -->
+    <noscript>
+      <div class="no-js-message">
+        <h1>Understanding Frontier AI</h1>
+        <p>This interactive explainer requires JavaScript to function.</p>
+        <p>Please enable JavaScript in your browser settings to continue.</p>
+      </div>
+    </noscript>
+    
+    <!-- Loading state while JS initializes -->
+    <div class="loading-state" aria-hidden="true">
+      <div class="loading-spinner"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+  
+  <script type="module" src="./app/main.tsx"></script>
+</body>
+</html>
+

@@ -1,0 +1,48 @@
+---
+description: Principles for managing user cognitive load throughout the explainer
+globs: "src/**/*.tsx, src/**/*.ts, docs/**/*.md"
+alwaysApply: true
+---
+
+# Cognitive Load Management
+
+## Core Principle
+
+Users may be encountering AI concepts entirely de novo. Every design decision should minimize unnecessary cognitive burden while maximizing learning.
+
+## Content Chunking
+
+- Break complex ideas into digestible pieces
+- Each piece should be satisfying on its own (not cliffhangers)
+- Leave just enough curiosity to encourage continued exploration
+- Never overwhelm with too many new terms at once
+
+## Navigation Clarity
+
+- User should always know where they are in the concept hierarchy
+- Clear visual indication of "depth" level
+- Easy to go up (to context), down (to detail), or sideways (to related)
+- Breadcrumbs or similar for path awareness
+
+## Progressive Disclosure
+
+- Default view shows high-level explanation
+- Detail is hidden but accessible (expandable sections)
+- Visual hierarchy: summary > explanation > deep dive
+- Interactive elements enhance but aren't required
+
+## The Satisfaction Balance
+
+Each node must balance:
+1. **Completeness**: User feels they learned something real
+2. **Curiosity**: User wants to explore further
+3. **Confidence**: User feels capable of understanding more
+
+## Anti-Patterns to Avoid
+
+- Jargon without explanation
+- Assuming background knowledge not established
+- Dense technical paragraphs
+- Too many hyperlinks competing for attention
+- Required interaction to understand content
+- Forward references ("as we'll see later" without context)
