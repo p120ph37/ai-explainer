@@ -30,6 +30,8 @@ const moduleCache = new Map<string, ContentModule>();
 const contentImports: Record<string, () => Promise<ContentModule>> = {
   // MDX content - loaded directly, no compilation needed
   'intro': () => import('./intro/what-is-llm.mdx') as Promise<ContentModule>,
+  'tokens': () => import('./foundations/tokens.mdx') as Promise<ContentModule>,
+  'why-large': () => import('./foundations/why-large.mdx') as Promise<ContentModule>,
   
   // TSX content example (for interactive visualizations):
   // 'tokenizer-demo': () => import('./interactive/tokenizer-demo.tsx'),
