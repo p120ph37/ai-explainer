@@ -1,0 +1,233 @@
+# Writing Style Guide
+
+## Primary Style: Curiosity-Driven Exploration
+
+All main content should follow a question-led exploration pattern. Each section opens with a question the reader might naturally ask; answers lead to new questions. Socratic in spirit.
+
+### Voice Characteristics
+
+- **Assume a consumer-tech-literate layperson.** The reader uses ChatGPT, has a smartphone, probably codes a little or works with people who do. They are not an idiot, not a neophyte, but not a specialist.
+- **Present ideas gently but clearly.** Don't condescend, don't over-simplify, but don't assume domain expertise.
+- **Tie to contemporary experience.** Connect abstract concepts to things the reader has actually encountered (using ChatGPT, seeing AI in the news, autocomplete on their phone).
+- **Maintain genuine intellectual curiosity.** Write as someone fascinated by the subject, not someone performing enthusiasm or lecturing.
+
+### Structural Patterns
+
+1. **Question-led sections**: Each major section opens with a bold question the reader might naturally ask
+2. **Direct answers first**: Don't build up—answer the question, then elaborate
+3. **Cascading questions**: Good answers raise new questions naturally
+4. **One concept per section**: Don't cram multiple ideas together
+
+### What to Avoid
+
+- **"AI-slop" patterns**: The conversational-but-hollow tone that saturates LLM-generated content (see specific phrases below)
+- **Excessive hedging**: Don't qualify every statement into meaninglessness
+- **Jargon without grounding**: Technical terms are fine when needed, but ground them in experience
+- **Wikipedia-style history lessons**: Don't recite development timelines or research paper histories
+- **False minimalism**: Trying to be "sparse and direct" but producing choppy, semi-redundant fragments each straining to justify its existence
+- **Excessive confidence**: Don't speak in absolutes where uncertainty genuinely exists
+
+### AI-Slop Phrases to Avoid
+
+These specific phrases and patterns have become markers of low-quality LLM-generated content. They trigger an immediate "tuning out" response in readers who have encountered the deluge of AI-generated text:
+
+**Faux-enthusiasm openers:**
+- "Let's dive in!"
+- "Let's explore..."
+- "Let's break this down..."
+- "Let's unpack this..."
+
+**Hollow connectives:**
+- "Here's the thing:"
+- "Here's the deal:"
+- "The thing is..."
+- "It's actually quite fascinating!"
+- "Interestingly enough..."
+
+**Performative significance:**
+- "Why does this matter?" / "Why this matters"
+- "This is important because..."
+- "The key takeaway here is..."
+- "What's really interesting is..."
+
+**False intimacy:**
+- "Think of it this way..."
+- "Picture this:"
+- "Imagine if..."
+- "You might be wondering..."
+
+**Padding phrases:**
+- "In other words..."
+- "Simply put..."
+- "At its core..."
+- "At the end of the day..."
+- "When it comes to..."
+- "In the world of..."
+
+**Excessive qualifiers:**
+- "It's worth noting that..."
+- "It's important to understand that..."
+- "It should be mentioned that..."
+
+If you find yourself reaching for one of these phrases, pause and ask: what am I actually trying to say? Usually the phrase can be deleted entirely, or replaced with direct statement of the content.
+
+### Punctuation: The Em-Dash Problem
+
+LLM-generated text is saturated with em-dashes. They become a crutch for cramming in asides, parentheticals, and dramatic pauses. Be very sparing with em-dash usage — if you use it at all.
+
+**If you do use an em-dash:**
+- Separate it from surrounding text with spaces: `word — word` not `word—word`
+- The tight spacing looks like an overweight compound-word hyphenation
+- Spaced em-dashes read more clearly and feel less frantic
+
+**Better alternatives:**
+- Use a period and start a new sentence
+- Use parentheses for genuine parentheticals
+- Use a colon to introduce elaboration
+- Restructure to eliminate the need for the aside entirely
+
+One em-dash per page is plenty. If you find yourself reaching for a second, reconsider.
+
+### Example: Good Opening
+
+```
+**What actually happens when you talk to ChatGPT?**
+
+When you type a message and hit send, the system receives your text and does something that sounds almost disappointingly simple: it predicts what text should come next.
+
+That's it. That's the core of what a **Large Language Model** does. Given some text, predict what text would naturally follow.
+
+**But wait—if it's just predicting text, why does it seem to understand things?**
+```
+
+Notice: Bold question, direct answer, acknowledgment that the simple answer raises a new question.
+
+### Example: Good Recognition Hook
+
+```
+<Recognition>
+
+**You've experienced something like this.** After reading dozens of mystery novels, you start predicting plot twists—not because you memorized them, but because you've internalized patterns. LLMs have done this with far more text than any human could read in a lifetime.
+
+</Recognition>
+```
+
+Notice: Connects to genuine reader experience, draws the parallel without over-explaining.
+
+---
+
+## Special Use: Metaphorical Expandables
+
+For certain concepts, a vivid metaphor can illuminate what dry explanation cannot. These should appear in **expandable side-notes**, not in main content flow—available for readers who think in images.
+
+### The Nature of Good Metaphor
+
+A good metaphor is somewhat like a taoist riddle: it provides a path to understanding without outlining that path in flashing neon signs. It should be:
+
+- **Visually generative**: Creates imagery that continues to unfold in the reader's mind
+- **Conceptually accurate**: The structure of the metaphor maps to the structure of the concept
+- **Connected to existing mental models**: Ideally evokes something the reader has seen or experienced (games, nature, familiar systems)
+- **Semi-unbounded**: Allows the reader to draw their own connections rather than spelling out every mapping
+
+Don't over-fit metaphors onto technical explanations. A metaphor that merely restates the dry explanation in slightly more colorful language has lost all its power. The metaphor should provide a *different route* to understanding—one that bypasses the need for technical vocabulary entirely.
+
+### Example: Good Metaphor
+
+```
+<Expandable title="The map that draws itself">
+
+You type a message, and the model sees your words as a coastline—the beginning of a territory. Its job is to continue the map. "If this is the shore we're starting from, what landscape extends inland?"
+
+It draws the next bit of terrain, considers what that implies, draws more. Word by word, your conversation extends into territory that, until that moment, didn't exist.
+
+</Expandable>
+```
+
+This works because:
+- **Visually rich**: The reader can picture a map being drawn, coastlines extending
+- **Conceptually accurate**: Generation really is sequential, each token conditioning the next
+- **Connected**: Evokes procedural generation (Minecraft terrain, map-drawing games)
+- **Semi-unbounded**: The reader can explore the metaphor further without being told exactly what to think
+
+### Building Synergy Across Metaphor Notes
+
+Readers who engage with one metaphorical note will likely explore others on the same page. Where possible, build on shared imagery:
+
+- If one note establishes a "terrain" metaphor, later notes might reference landscapes, exploration, mapping
+- Consistent imagery compounds understanding rather than requiring new mental setup each time
+- This creates a parallel "visual layer" that runs alongside the main technical content
+
+Don't force synergy where it doesn't fit naturally, but look for opportunities to let metaphors reinforce each other.
+
+### External Touchstones
+
+When a metaphor connects to something concrete the reader might already know, consider linking to it:
+- Procedural terrain generation → Minecraft world generation
+- Training/learning → familiar learning processes
+- Attention/focus → visual or cognitive phenomena
+
+These external touchstones can appear as footnotes or "see also" links within the metaphor expandable, giving curious readers a pathway to deepen their understanding of the metaphor itself.
+
+### What to Avoid
+
+- **Over-fitted metaphors**: Restating the technical explanation with a thin metaphorical costume (e.g., "attention is like spotlights shining on words" followed by technical details—this adds nothing)
+- **Metaphors requiring the reader to track too many moving parts**
+- **Purely decorative imagery** that sounds nice but doesn't map to the mechanism
+- **Explicit mapping at every step**: If you need to explain what each part of the metaphor represents, the metaphor isn't working
+- **Using metaphor to avoid explaining**: The main content should stand alone; metaphors supplement for visual thinkers
+- **Referencing aside imagery from main content**: The main content flow must make complete sense to readers who never open the margin notes. Don't say "watch the map being drawn" in a TryThis block if "the map" is only explained in a Metaphor aside. Asides can reference each other; main content cannot reference asides.
+
+---
+
+## Component Usage
+
+### Margin Asides as Exploration Bridges
+
+Question and Metaphor asides serve a dual purpose: they satisfy immediate curiosity while offering pathways to deeper exploration.
+
+**Structure of an aside:**
+1. **Clear, digestible answer**: The reader should feel their question was addressed
+2. **Open door**: Leave the concept slightly unfinished, inviting further exploration
+3. **Navigation link**: End with a link to a deeper node for readers who want more
+
+**Example pattern:**
+```
+<Question title="Why add randomness?">
+
+[2-3 paragraphs that answer the immediate question]
+
+This controlled randomness is one of many ways LLMs balance predictability with creativity. → [How sampling works](/sampling)
+
+</Question>
+```
+
+The aside should satisfy a reader who only wants a quick answer, while providing a clear on-ramp for readers whose curiosity was piqued. The linked node becomes the next step in that particular line of exploration.
+
+### Recognition Blocks
+
+Connect the concept to something the reader has already experienced. Must be:
+- A genuine common experience, not a contrived example
+- Directly relevant to the concept just explained
+- Brief: one short paragraph
+
+### TryThis Blocks
+
+Offer a concrete action the reader can take immediately. Must be:
+- Actually doable (ideally with whatever AI tool they have open)
+- Illustrative of the concept, not just busy work
+- Specific enough to follow without additional instructions
+
+### Inline Expandables
+
+For content that's valuable but not essential to the main thread, and doesn't warrant a margin position:
+- Deeper technical detail for curious readers
+- Answers to anticipated objections or edge cases
+- Quantitative specifics (parameter counts, dates, etc.)
+
+These remain inline (not in margins) and don't typically link to other nodes.
+
+### Sources
+
+Cite sources that a reader might actually want to explore:
+- Prioritize accessible explanations (good videos, well-written articles) over papers
+- Mark technical sources clearly so readers know what they're getting into

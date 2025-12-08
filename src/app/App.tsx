@@ -8,12 +8,16 @@ import { currentRoute, initRouter } from './router.ts';
 import { toggleTheme, getEffectiveTheme } from './theme.ts';
 import { markVisited } from './state.ts';
 import { ContentView } from './components/ContentView.tsx';
+import { MarginDeoverlap } from './components/MarginDeoverlap.tsx';
 
 export function App() {
   const theme = useSignal(getEffectiveTheme());
   
   useEffect(() => {
     initRouter();
+    
+    // Apply the main visual theme
+    document.documentElement.setAttribute('data-visual-theme', 'main');
   }, []);
   
   // Mark nodes as visited when viewed
@@ -47,6 +51,7 @@ export function App() {
       
       <main className="app-main">
         <ContentView />
+        <MarginDeoverlap />
       </main>
       
       <footer className="app-footer">

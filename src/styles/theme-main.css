@@ -1,0 +1,227 @@
+/**
+ * Main Theme: Inter + Lora
+ * 
+ * Typography:
+ * - Headings/UI: Inter (clean geometric sans-serif)
+ * - Body: Lora (elegant serif with calligraphic curves)
+ * - Code: JetBrains Mono
+ * 
+ * Visual styling:
+ * - Summary: larger italic, subtle grey
+ * - Blockquotes: italic with grey left bar
+ * - Expandables: uniform border, square corners
+ * - Recognition/TryThis: left accent bar with background
+ */
+
+:root[data-visual-theme="main"] {
+  /* Typography */
+  --font-body: 'Lora', 'Georgia', serif;
+  --font-heading: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  
+  --line-height-base: 1.7;
+  --line-height-relaxed: 1.85;
+  
+  /* Sharp corners */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.125rem;
+  --radius-lg: 0.25rem;
+  
+  --space-md: 1.25rem;
+  --space-lg: 1.75rem;
+}
+
+/* Light mode colors */
+:root[data-visual-theme="main"][data-theme="light"],
+:root[data-visual-theme="main"]:not([data-theme="dark"]) {
+  --color-bg: #fafbfc;
+  --color-bg-subtle: #f3f4f6;
+  --color-bg-muted: #e5e7eb;
+  
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  
+  --color-text: #24292f;
+  --color-text-heading: #1b1f24;
+  --color-text-muted: #57606a;
+  --color-text-subtle: #8b949e;
+  
+  --color-border: #d0d7de;
+  --color-border-subtle: #e5e7eb;
+  --color-border-accent: #0969da;
+  
+  --color-accent: #0969da;
+  --color-accent-hover: #0550ae;
+  --color-accent-subtle: #ddf4ff;
+  
+  --color-highlight: #bf5700;
+  --color-highlight-subtle: #fff8f0;
+  
+  --color-link: #0969da;
+  --color-link-hover: #0550ae;
+  
+  --color-code-bg: #f6f8fa;
+  --color-code-text: #24292f;
+  
+  --color-cite-paper: #8250df;
+  --color-cite-video: #bf3989;
+  --color-cite-docs: #0969da;
+  --color-cite-article: #1a7f37;
+  
+  /* Metaphor notes - violet/imagination color */
+  --color-metaphor: #7c3aed;
+  --color-metaphor-subtle: #f5f3ff;
+}
+
+/* Dark mode colors */
+:root[data-visual-theme="main"][data-theme="dark"] {
+  --color-bg: #0d1117;
+  --color-bg-subtle: #161b22;
+  --color-bg-muted: #21262d;
+  
+  --color-surface: #161b22;
+  --color-surface-raised: #21262d;
+  
+  --color-text: #c9d1d9;
+  --color-text-heading: #f0f6fc;
+  --color-text-muted: #8b949e;
+  --color-text-subtle: #6e7681;
+  
+  --color-border: #30363d;
+  --color-border-subtle: #21262d;
+  --color-border-accent: #58a6ff;
+  
+  --color-accent: #58a6ff;
+  --color-accent-hover: #79c0ff;
+  --color-accent-subtle: #0d2240;
+  
+  --color-highlight: #d29922;
+  --color-highlight-subtle: #2a1f0a;
+  
+  --color-link: #58a6ff;
+  --color-link-hover: #79c0ff;
+  
+  --color-code-bg: #161b22;
+  --color-code-text: #c9d1d9;
+  
+  /* Metaphor notes - violet/imagination color */
+  --color-metaphor: #a78bfa;
+  --color-metaphor-subtle: #1e1b2e;
+}
+
+/* Component overrides */
+:root[data-visual-theme="main"] .app-header {
+  border-bottom-width: 1px;
+}
+
+:root[data-visual-theme="main"] .app-logo {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  letter-spacing: -0.01em;
+}
+
+:root[data-visual-theme="main"] .content-node__title {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+:root[data-visual-theme="main"] .content-node__summary {
+  font-style: italic;
+  font-weight: normal;
+  font-size: var(--font-size-md);
+  border-left: none;
+  padding-left: 0;
+  margin-left: 0;
+  color: var(--color-text-subtle);
+}
+
+/* Expandable Q/A blocks */
+:root[data-visual-theme="main"] .expandable {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+:root[data-visual-theme="main"] .expandable__trigger {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+:root[data-visual-theme="main"] .recognition__label,
+:root[data-visual-theme="main"] .try-this__label,
+:root[data-visual-theme="main"] .nav-links__label,
+:root[data-visual-theme="main"] .sources__title {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:root[data-visual-theme="main"] .recognition,
+:root[data-visual-theme="main"] .try-this {
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+}
+
+:root[data-visual-theme="main"] .recognition {
+  border-left-color: var(--color-highlight);
+  background: var(--color-highlight-subtle);
+}
+
+:root[data-visual-theme="main"] .try-this {
+  border-left-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+:root[data-visual-theme="main"] .nav-link {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+}
+
+:root[data-visual-theme="main"] blockquote {
+  font-style: italic;
+  background: transparent;
+  padding: 0;
+  padding-left: var(--space-sm);
+  border-radius: 0;
+  border: none;
+  border-left: 2px solid var(--color-text-subtle);
+  color: var(--color-text-subtle);
+}
+
+/* Metaphor margin notes */
+:root[data-visual-theme="main"] .metaphor__trigger {
+  font-family: var(--font-ui);
+  border-color: var(--color-metaphor);
+  border-style: dashed;
+}
+
+:root[data-visual-theme="main"] .metaphor__trigger:hover {
+  border-color: var(--color-metaphor);
+  color: var(--color-metaphor);
+  background: var(--color-metaphor-subtle);
+}
+
+:root[data-visual-theme="main"] .metaphor__icon {
+  background: var(--color-metaphor-subtle);
+  color: var(--color-metaphor);
+}
+
+:root[data-visual-theme="main"] .metaphor__content {
+  border-color: var(--color-metaphor);
+  background: var(--color-metaphor-subtle);
+}
+
+:root[data-visual-theme="main"] .metaphor__body {
+  font-family: var(--font-body);
+  color: var(--color-text-muted);
+}
+

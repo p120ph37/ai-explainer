@@ -25,8 +25,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-md);
   max-width: var(--content-width-wide);
   margin-inline: auto;
+}
+
+.app-header__inner .app-nav {
+  margin-left: auto;
 }
 
 .app-logo {
@@ -257,6 +262,347 @@
 }
 
 /* ============================================
+   Metaphor (Margin Notes)
+   ============================================ */
+
+.metaphor {
+  /* Mobile: sits in flow but aligned right */
+  position: relative;
+  margin-block: var(--space-md);
+}
+
+.metaphor__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  transition: all var(--duration-fast) var(--ease-out);
+  width: 100%;
+  text-align: left;
+}
+
+.metaphor__trigger:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+.metaphor__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-subtle);
+}
+
+.metaphor__trigger:hover .metaphor__icon {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.metaphor__title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.metaphor__chevron {
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.metaphor--open .metaphor__chevron {
+  transform: rotate(180deg);
+}
+
+.metaphor__content {
+  padding: var(--space-md);
+  padding-top: var(--space-sm);
+  
+  /* Animate content appearance */
+  animation: metaphor-content-appear var(--duration-normal, 200ms) var(--ease-out);
+}
+
+@keyframes metaphor-content-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Unified box when expanded */
+.metaphor--open {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.metaphor--open .metaphor__trigger {
+  border: none;
+  border-radius: 0;
+}
+
+.metaphor--open .metaphor__content {
+  border-top: 1px dashed var(--color-border);
+  background: transparent;
+}
+
+.metaphor__body {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.metaphor__body p:first-child {
+  margin-top: 0;
+}
+
+.metaphor__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Desktop: Position in margin when collapsed, in flow when open */
+@media (min-width: 1200px) {
+  .metaphor {
+    --metaphor-width: 280px;
+    --metaphor-gap: var(--space-lg);
+  }
+  
+  /* Collapsed: absolutely positioned in right margin */
+  .metaphor:not(.metaphor--open) {
+    position: absolute;
+    left: calc(100% + var(--metaphor-gap));
+    width: var(--metaphor-width);
+    margin-block: 0;
+    
+    /* Apply deoverlap offset if set by JS */
+    transform: translateY(var(--deoverlap-offset, 0));
+    transition: transform var(--duration-normal, 200ms) var(--ease-out);
+    
+    /* Slide out to margin when collapsing */
+    animation: metaphor-slide-out var(--duration-normal, 200ms) var(--ease-out);
+  }
+  
+  /* Open state: in normal flow, full width */
+  .metaphor--open {
+    position: relative;
+    left: auto;
+    width: 100%;
+    margin-block: var(--space-md);
+    
+    /* Slide in from margin when expanding */
+    animation: metaphor-slide-in var(--duration-normal, 200ms) var(--ease-out);
+  }
+  
+  @keyframes metaphor-slide-in {
+    from {
+      opacity: 0.8;
+      transform: translateX(calc(var(--metaphor-width) + var(--metaphor-gap)));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes metaphor-slide-out {
+    from {
+      opacity: 0.8;
+      transform: translateX(calc(-1 * (var(--metaphor-width) + var(--metaphor-gap))));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+/* Very wide screens: larger margin notes */
+@media (min-width: 1400px) {
+  .metaphor {
+    --metaphor-width: 320px;
+  }
+}
+
+/* Enable margin positioning on content node */
+.content-node__body {
+  position: relative;
+}
+
+/* ============================================
+   Question Aside (Left Margin Notes)
+   ============================================ */
+
+.question-aside {
+  position: relative;
+  margin-block: var(--space-md);
+}
+
+.question-aside__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  transition: all var(--duration-fast) var(--ease-out);
+  width: 100%;
+  text-align: left;
+}
+
+.question-aside__trigger:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+.question-aside__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-subtle);
+}
+
+.question-aside__trigger:hover .question-aside__icon {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.question-aside__title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.question-aside__chevron {
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.question-aside--open .question-aside__chevron {
+  transform: rotate(180deg);
+}
+
+.question-aside__content {
+  padding: var(--space-md);
+  padding-top: var(--space-sm);
+  animation: question-content-appear var(--duration-normal, 200ms) var(--ease-out);
+}
+
+@keyframes question-content-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.question-aside__body p:first-child {
+  margin-top: 0;
+}
+
+.question-aside__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Unified box when expanded */
+.question-aside--open {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.question-aside--open .question-aside__trigger {
+  border: none;
+  border-radius: 0;
+}
+
+.question-aside--open .question-aside__content {
+  border-top: 1px solid var(--color-border);
+  background: transparent;
+}
+
+/* Desktop: Position in LEFT margin when collapsed, in flow when open */
+@media (min-width: 1200px) {
+  .question-aside {
+    --question-width: 280px;
+    --question-gap: var(--space-lg);
+  }
+  
+  /* Collapsed: absolutely positioned in left margin */
+  .question-aside:not(.question-aside--open) {
+    position: absolute;
+    right: calc(100% + var(--question-gap));
+    width: var(--question-width);
+    margin-block: 0;
+    
+    /* Apply deoverlap offset if set by JS */
+    transform: translateY(var(--deoverlap-offset, 0));
+    transition: transform var(--duration-normal, 200ms) var(--ease-out);
+    
+    /* Slide out to margin when collapsing */
+    animation: question-slide-out var(--duration-normal, 200ms) var(--ease-out);
+  }
+  
+  /* Open state: in normal flow, full width */
+  .question-aside--open {
+    position: relative;
+    right: auto;
+    width: 100%;
+    margin-block: var(--space-md);
+    
+    /* Slide in from margin when expanding */
+    animation: question-slide-in var(--duration-normal, 200ms) var(--ease-out);
+  }
+  
+  @keyframes question-slide-in {
+    from {
+      opacity: 0.8;
+      transform: translateX(calc(-1 * (var(--question-width) + var(--question-gap))));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes question-slide-out {
+    from {
+      opacity: 0.8;
+      transform: translateX(calc(var(--question-width) + var(--question-gap)));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+/* Very wide screens: larger margin notes */
+@media (min-width: 1400px) {
+  .question-aside {
+    --question-width: 320px;
+  }
+}
+
+/* ============================================
    Recognition & Try This Blocks
    ============================================ */
 
@@ -369,6 +715,103 @@
   margin-top: var(--space-3xs);
 }
 
+/* Sources sections */
+.sources__section {
+  margin-bottom: var(--space-lg);
+}
+
+.sources__section:last-child {
+  margin-bottom: 0;
+}
+
+.sources--references {
+  border-top: 1px dashed var(--color-border-subtle);
+}
+
+/* References list (numbered) */
+.references__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.reference {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  font-size: var(--font-size-sm);
+}
+
+.reference__number {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  min-width: 1.5em;
+  flex-shrink: 0;
+}
+
+.reference__backlink {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.reference__backlink:hover {
+  opacity: 1;
+}
+
+.reference__type {
+  font-size: var(--font-size-xs);
+}
+
+.reference__info {
+  flex: 1;
+}
+
+.reference__title {
+  color: var(--color-link);
+}
+
+.reference__meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* Footnote markers (inline) */
+.footnote {
+  font-size: 0.75em;
+  line-height: 1;
+  vertical-align: super;
+}
+
+.footnote__link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  padding: 0 0.1em;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.footnote__link:hover {
+  background: var(--color-accent-subtle);
+}
+
+/* Scroll target highlight */
+.reference:target,
+.footnote:target {
+  animation: highlight-flash 1s ease-out;
+}
+
+@keyframes highlight-flash {
+  0% { background: var(--color-accent-subtle); }
+  100% { background: transparent; }
+}
+
 /* ============================================
    Interactive Elements Container
    ============================================ */
@@ -394,6 +837,27 @@
 /* ============================================
    Theme Toggle
    ============================================ */
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.app-nav__link {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: var(--space-2xs) var(--space-sm);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.app-nav__link:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
 
 .theme-toggle {
   display: flex;
