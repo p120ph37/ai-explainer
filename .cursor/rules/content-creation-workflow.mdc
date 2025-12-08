@@ -1,0 +1,157 @@
+# Content Creation Workflow
+
+## Overview
+
+This rule defines the process for creating new content nodes. Follow this workflow for every new piece of content to ensure consistent quality.
+
+## Step 1: Select Topic from Backlog
+
+1. Open `content-backlog.md`
+2. Find a **checked** `[x]` item in "Approved for Development"
+3. Only work on approved (checked) items
+4. Note the scope, connections, and any guidance provided
+
+## Step 2: Research & Plan
+
+Before writing:
+
+1. **Review prerequisites**: Read any parent/related nodes to understand context
+2. **Check the style guide**: Re-read `.cursor/rules/writing-style.mdc`
+3. **Identify key questions**: What would the reader want to know?
+4. **Plan structure**: Outline the flow (question-led sections work well)
+5. **Note connections**: What asides, metaphors, or links to other nodes are needed?
+
+## Step 3: Create the Content File
+
+1. Create file at `src/content/[category]/[topic-id].mdx`
+2. Include required frontmatter/meta
+3. Follow the component patterns from the style guide
+4. Include at least:
+   - Clear title and summary
+   - Recognition hook OR TryThis block
+   - Sources section with citations
+   - Navigation links to related nodes
+
+## Step 4: Run Automated Validation
+
+Run the validation script:
+```bash
+bun run scripts/validate-content.ts src/content/[category]/[topic-id].mdx
+```
+
+This checks:
+- [ ] Required components present (meta, title, summary, sources)
+- [ ] No AI-slop phrases detected
+- [ ] External links are valid (HTTP 200)
+- [ ] Em-dash usage (should be rare, spaced if present)
+- [ ] File references existing parent nodes
+
+Fix any automated validation failures before proceeding.
+
+## Step 5: Self-Assessment (Quality Gate)
+
+Complete this rubric honestly. Score each dimension 1-5.
+
+### Quality Rubric
+
+**Style Guide Adherence** (1-5)
+- Follows Curiosity-Driven voice?
+- Uses question-led sections?
+- Avoids AI-slop phrases?
+- Metaphor asides (if any) are vivid and accurate?
+- Em-dashes used sparingly or not at all?
+
+**Factual Accuracy** (1-5)
+- Claims are accurate to your knowledge?
+- Uncertain claims are hedged appropriately?
+- Technical details are correct?
+- Citations provided for specific facts?
+
+**Reader Engagement** (1-5)
+- Opens with relatable hook or question?
+- Maintains curiosity throughout?
+- Appropriate length (not padded, not rushed)?
+- Recognition hooks connect to reader experience?
+
+**Topic Relevance** (1-5)
+- Stays focused on declared scope?
+- Fits naturally in the content graph?
+- Doesn't duplicate content from other nodes?
+- Appropriate depth (not too tangential)?
+
+**Completeness** (1-5)
+- Answers the core question satisfyingly?
+- Asides enhance rather than distract?
+- Sources section is substantive?
+- Navigation links are accurate?
+
+### Scoring
+
+Calculate total: `(Style + Accuracy + Engagement + Relevance + Completeness) / 5`
+
+- **4.0+**: Publish ready. Proceed to Step 6.
+- **3.0-3.9**: Needs improvement. Identify weak areas and revise. Re-assess.
+- **Below 3.0**: Significant issues. After 2 revision attempts, stop and report.
+
+### If Unable to Meet Quality Bar
+
+After 2 revision attempts, if score remains below 3.5:
+
+1. **Stop work on this topic**
+2. **Document concerns** in a comment at the top of the file:
+   ```mdx
+   {/* 
+   QUALITY REVIEW: Unable to meet quality bar after 2 revisions.
+   
+   Scores: Style=X, Accuracy=X, Engagement=X, Relevance=X, Completeness=X
+   
+   Concerns:
+   - [List specific issues]
+   
+   Suggestions:
+   - [What might help]
+   
+   Awaiting human review before proceeding.
+   */}
+   ```
+3. **Do not mark as complete** in the backlog
+4. **Move to next topic** or stop if none available
+
+## Step 6: Update Backlog & Suggest Topics
+
+1. Move completed item to "Completed" section with date
+2. Add any new topic suggestions discovered while writing:
+   - Add as **unchecked** `[ ]` items in "Suggestions" section
+   - Include scope and rationale
+   - Don't add duplicates of existing items
+
+## Step 7: Update Content Registry
+
+Add the new node to `src/content/_registry.ts`:
+
+```typescript
+'topic-id': () => import('./category/topic-id.mdx') as Promise<ContentModule>,
+```
+
+## Step 8: Visual Verification
+
+1. Navigate to the page in browser
+2. Verify:
+   - Content renders correctly
+   - Asides expand/collapse properly
+   - Links work
+   - Mobile layout is acceptable
+3. Take a screenshot for the record
+
+---
+
+## Quick Checklist
+
+Before marking a topic complete:
+
+- [ ] Automated validation passes
+- [ ] Self-assessment score ≥ 4.0 (or ≥ 3.5 with noted caveats)
+- [ ] Content registry updated
+- [ ] Visual verification done
+- [ ] Backlog updated (item moved to Completed)
+- [ ] New suggestions added (if any discovered)
