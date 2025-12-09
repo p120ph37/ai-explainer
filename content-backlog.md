@@ -72,6 +72,7 @@ Cursor Agent adds suggestions here. Check to approve.
   - Scope: Emergence in complex systems, phase transitions, why scale produces surprise capabilities
   - Rationale: Unintuitive but crucial concept; explains why LLM capabilities are hard to predict
   - Note: Interactive Conway's Game of Life widget to demonstrate emergence from simple rules
+  - Aside: Primordial ooze / abiogenesis as canonical example; LLM work as theoretical validation that complex systems can arise from immense numbers of simple components under consistent external steering stimuli
 
 ---
 
