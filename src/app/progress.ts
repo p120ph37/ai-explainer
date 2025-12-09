@@ -85,7 +85,8 @@ export function getNodeProgress(nodeId: string): NodeProgress {
 /**
  * Count how many of the given topic IDs have been globally discovered
  */
-export function countDiscoveredTopics(topicIds: string[]): number {
+export function countDiscoveredTopics(topicIds: string[] | undefined | null): number {
+  if (!topicIds || !Array.isArray(topicIds)) return 0;
   const discovered = progressState.value.allDiscoveredTopics;
   return topicIds.filter(id => discovered.includes(id)).length;
 }
@@ -95,7 +96,7 @@ export function countDiscoveredTopics(topicIds: string[]): number {
  * @param nodeId - The node to check
  * @param linkedTopics - Array of topic IDs linked from this page (children + related)
  */
-export function getQuestStatus(nodeId: string, linkedTopics: string[] = []): QuestStatus {
+export function getQuestStatus(nodeId: string, linkedTopics?: string[]): QuestStatus {
   const progress = getNodeProgress(nodeId);
   const allDiscovered = progressState.value.allDiscoveredTopics;
   
@@ -111,8 +112,9 @@ export function getQuestStatus(nodeId: string, linkedTopics: string[] = []): Que
   
   // Check completion: explored 100% AND all linked topics discovered
   const isFullyExplored = progress.exploredPercent >= 100;
-  const discoveredCount = countDiscoveredTopics(linkedTopics);
-  const allTopicsFound = linkedTopics.length === 0 || discoveredCount >= linkedTopics.length;
+  const topics = linkedTopics || [];
+  const discoveredCount = countDiscoveredTopics(topics);
+  const allTopicsFound = topics.length === 0 || discoveredCount >= topics.length;
   
   if (isFullyExplored && allTopicsFound) {
     return 'complete';

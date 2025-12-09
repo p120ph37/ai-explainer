@@ -9,4 +9,8 @@ plugins = ["./src/plugins/mdx-plugin.ts"]
 react = "preact/compat"
 react-dom = "preact/compat"
 
+# Test configuration
+[test]
+preload = ["./src/__tests__/setup.ts"]
+
 

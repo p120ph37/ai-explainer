@@ -8,7 +8,6 @@
  */
 
 import { useEffect, useRef } from 'preact/hooks';
-import { useSignal } from '@preact/signals';
 import { onDiscovery } from '../progress.ts';
 import { getNode } from '../../content/_registry.ts';
 
@@ -39,116 +38,35 @@ let flyingIdCounter = 0;
 
 export function DiscoveryAnimationLayer() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particles = useSignal<Particle[]>([]);
-  const flyingElements = useSignal<FlyingElement[]>([]);
-  const animationFrame = useRef<number | null>(null);
+  const particlesRef = useRef<Particle[]>([]);
+  const flyingRef = useRef<FlyingElement[]>([]);
+  const animationFrameRef = useRef<number | null>(null);
+  const isAnimatingRef = useRef(false);
   
-  // Handle new discoveries
-  useEffect(() => {
-    const unsubscribe = onDiscovery(async (nodeId, sourceElement) => {
-      // Get the position of the source link
-      const rect = sourceElement.getBoundingClientRect();
-      const sourceX = rect.left + rect.width / 2;
-      const sourceY = rect.top + rect.height / 2;
-      
-      // Get the position of the quest log toggle (target)
-      const questToggle = document.querySelector('.progress-toggle');
-      let targetX = window.innerWidth - 100;
-      let targetY = 60;
-      
-      if (questToggle) {
-        const toggleRect = questToggle.getBoundingClientRect();
-        targetX = toggleRect.left + toggleRect.width / 2;
-        targetY = toggleRect.top + toggleRect.height / 2;
-      }
-      
-      // Create particle burst at source
-      createParticleBurst(sourceX, sourceY);
-      
-      // Get the node title for the flying element
-      let title = nodeId;
-      try {
-        const module = await getNode(nodeId);
-        if (module?.meta?.title) {
-          title = module.meta.title;
-        }
-      } catch {
-        // Use nodeId as fallback
-      }
-      
-      // Create flying element
-      const flyingId = flyingIdCounter++;
-      flyingElements.value = [
-        ...flyingElements.value,
-        {
-          id: flyingId,
-          nodeId,
-          title,
-          startX: sourceX,
-          startY: sourceY,
-          endX: targetX,
-          endY: targetY,
-          progress: 0,
-        },
-      ];
-      
-      // Flash the quest toggle
-      questToggle?.classList.add('progress-toggle--flash');
-      setTimeout(() => {
-        questToggle?.classList.remove('progress-toggle--flash');
-      }, 600);
-    });
+  // Start animation loop
+  const startAnimation = () => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
     
-    return unsubscribe;
-  }, []);
-  
-  // Create particle burst
-  const createParticleBurst = (x: number, y: number) => {
-    const newParticles: Particle[] = [];
-    const particleCount = 12 + Math.floor(Math.random() * 8);
-    
-    for (let i = 0; i < particleCount; i++) {
-      const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5;
-      const speed = 2 + Math.random() * 4;
-      
-      newParticles.push({
-        id: particleIdCounter++,
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2, // Slight upward bias
-        size: 3 + Math.random() * 4,
-        opacity: 1,
-        hue: 45 + Math.random() * 30, // Golden/yellow range
-      });
-    }
-    
-    particles.value = [...particles.value, ...newParticles];
-  };
-  
-  // Animation loop
-  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    
-    resize();
-    window.addEventListener('resize', resize);
-    
     const animate = () => {
+      // Resize canvas if needed
+      if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Update and draw particles
-      const activeParticles = particles.value.filter(p => p.opacity > 0.01);
+      particlesRef.current = particlesRef.current.filter(p => p.opacity > 0.01);
       
-      for (const particle of activeParticles) {
+      for (const particle of particlesRef.current) {
         // Update position
         particle.x += particle.vx;
         particle.y += particle.vy;
@@ -184,16 +102,14 @@ export function DiscoveryAnimationLayer() {
         ctx.restore();
       }
       
-      particles.value = activeParticles;
-      
       // Update flying elements
-      const activeFlying = flyingElements.value.filter(f => f.progress < 1);
+      flyingRef.current = flyingRef.current.filter(f => f.progress < 1);
       
-      for (const flying of activeFlying) {
-        flying.progress += 0.02; // Speed of flight
+      for (const flying of flyingRef.current) {
+        flying.progress += 0.025; // Speed of flight
         
         // Eased position along bezier curve
-        const t = easeOutCubic(flying.progress);
+        const t = easeOutCubic(Math.min(1, flying.progress));
         
         // Control point for arc (above the line)
         const midX = (flying.startX + flying.endX) / 2;
@@ -245,52 +161,134 @@ export function DiscoveryAnimationLayer() {
         
         // Spawn trail particles occasionally
         if (Math.random() < 0.3) {
-          particles.value = [
-            ...particles.value,
-            {
-              id: particleIdCounter++,
-              x: x + (Math.random() - 0.5) * 10,
-              y: y + (Math.random() - 0.5) * 10,
-              vx: (Math.random() - 0.5) * 2,
-              vy: (Math.random() - 0.5) * 2,
-              size: 2 + Math.random() * 2,
-              opacity: 0.8,
-              hue: 40 + Math.random() * 20,
-            },
-          ];
+          particlesRef.current.push({
+            id: particleIdCounter++,
+            x: x + (Math.random() - 0.5) * 10,
+            y: y + (Math.random() - 0.5) * 10,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            size: 2 + Math.random() * 2,
+            opacity: 0.8,
+            hue: 40 + Math.random() * 20,
+          });
         }
       }
       
-      flyingElements.value = activeFlying;
-      
       // Continue animation if there are active elements
-      if (activeParticles.length > 0 || activeFlying.length > 0) {
-        animationFrame.current = requestAnimationFrame(animate);
+      if (particlesRef.current.length > 0 || flyingRef.current.length > 0) {
+        animationFrameRef.current = requestAnimationFrame(animate);
       } else {
-        animationFrame.current = null;
+        isAnimatingRef.current = false;
+        animationFrameRef.current = null;
       }
     };
     
-    // Start animation when there are particles or flying elements
-    const checkAndStart = () => {
-      if (
-        (particles.value.length > 0 || flyingElements.value.length > 0) &&
-        !animationFrame.current
-      ) {
-        animationFrame.current = requestAnimationFrame(animate);
-      }
-    };
+    animationFrameRef.current = requestAnimationFrame(animate);
+  };
+  
+  // Create particle burst
+  const createParticleBurst = (x: number, y: number) => {
+    const particleCount = 12 + Math.floor(Math.random() * 8);
     
-    // Watch for changes
-    const interval = setInterval(checkAndStart, 100);
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5;
+      const speed = 2 + Math.random() * 4;
+      
+      particlesRef.current.push({
+        id: particleIdCounter++,
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 2, // Slight upward bias
+        size: 3 + Math.random() * 4,
+        opacity: 1,
+        hue: 45 + Math.random() * 30, // Golden/yellow range
+      });
+    }
+    
+    startAnimation();
+  };
+  
+  // Handle new discoveries
+  useEffect(() => {
+    const unsubscribe = onDiscovery(async (nodeId, sourceElement) => {
+      console.log('Discovery animation triggered for:', nodeId);
+      
+      // Get the position of the source link
+      const rect = sourceElement.getBoundingClientRect();
+      const sourceX = rect.left + rect.width / 2;
+      const sourceY = rect.top + rect.height / 2;
+      
+      // Get the position of the quest log toggle (target)
+      const questToggle = document.querySelector('.progress-toggle');
+      let targetX = window.innerWidth - 100;
+      let targetY = 60;
+      
+      if (questToggle) {
+        const toggleRect = questToggle.getBoundingClientRect();
+        targetX = toggleRect.left + toggleRect.width / 2;
+        targetY = toggleRect.top + toggleRect.height / 2;
+      }
+      
+      // Create particle burst at source
+      createParticleBurst(sourceX, sourceY);
+      
+      // Get the node title for the flying element
+      let title = nodeId;
+      try {
+        const module = await getNode(nodeId);
+        if (module?.meta?.title) {
+          title = module.meta.title;
+        }
+      } catch {
+        // Use nodeId as fallback
+      }
+      
+      // Create flying element
+      flyingRef.current.push({
+        id: flyingIdCounter++,
+        nodeId,
+        title,
+        startX: sourceX,
+        startY: sourceY,
+        endX: targetX,
+        endY: targetY,
+        progress: 0,
+      });
+      
+      // Ensure animation is running
+      startAnimation();
+      
+      // Flash the quest toggle
+      questToggle?.classList.add('progress-toggle--flash');
+      setTimeout(() => {
+        questToggle?.classList.remove('progress-toggle--flash');
+      }, 600);
+    });
     
     return () => {
-      window.removeEventListener('resize', resize);
-      clearInterval(interval);
-      if (animationFrame.current) {
-        cancelAnimationFrame(animationFrame.current);
+      unsubscribe();
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
     };
+  }, []);
+  
+  // Initialize canvas size
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      
+      const handleResize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+      
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
   }, []);
   
   return (
@@ -311,4 +309,3 @@ function easeOutCubic(t: number): number {
 function quadraticBezier(p0: number, p1: number, p2: number, t: number): number {
   return (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
 }
-

@@ -9,7 +9,9 @@
     "dev": "bun --hot src/server.ts",
     "build": "bun scripts/build.ts",
     "preview": "bun src/preview.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "validate": "bun scripts/validate-content.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

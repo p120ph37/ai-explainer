@@ -36,39 +36,54 @@ export function DiscoverableLink({ nodeId, children, className }: DiscoverableLi
       return;
     }
     
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting && !hasDiscovered.current) {
-            hasDiscovered.current = true;
-            
-            // Find the actual link element inside
-            const linkElement = element.querySelector('a') || element;
-            
-            // Trigger discovery with animation
-            const wasNew = markTopicDiscovered(nodeId, linkElement as HTMLElement);
-            
-            if (wasNew) {
-              // Add a brief highlight class to the link
-              element.classList.add('discoverable-link--discovered');
-              setTimeout(() => {
-                element.classList.remove('discoverable-link--discovered');
-              }, 1000);
-            }
-            
-            // Stop observing once discovered
-            observer.disconnect();
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting && !hasDiscovered.current) {
+          hasDiscovered.current = true;
+          
+          // Find the actual link element inside
+          const linkElement = element.querySelector('a') || element;
+          
+          // Trigger discovery with animation
+          const wasNew = markTopicDiscovered(nodeId, linkElement as HTMLElement);
+          
+          if (wasNew) {
+            // Add a brief highlight class to the link
+            element.classList.add('discoverable-link--discovered');
+            setTimeout(() => {
+              element.classList.remove('discoverable-link--discovered');
+            }, 1000);
           }
+          
+          // Stop observing once discovered
+          observer.disconnect();
         }
-      },
-      {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.5, // Trigger when 50% visible
       }
-    );
+    };
+    
+    const observer = new IntersectionObserver(handleIntersection, {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.5, // Trigger when 50% visible
+    });
     
     observer.observe(element);
+    
+    // Check if already visible (for elements visible on initial render)
+    // Use setTimeout to ensure the observer is fully set up
+    setTimeout(() => {
+      if (!hasDiscovered.current) {
+        const rect = element.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const isVisible = rect.top < viewportHeight && rect.bottom > 0;
+        const visibleRatio = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+        const elementHeight = rect.height;
+        
+        if (isVisible && elementHeight > 0 && (visibleRatio / elementHeight) >= 0.5) {
+          handleIntersection([{ isIntersecting: true } as IntersectionObserverEntry]);
+        }
+      }
+    }, 100);
     
     return () => observer.disconnect();
   }, [nodeId]);
