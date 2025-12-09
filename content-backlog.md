@@ -14,7 +14,7 @@ Cursor Agent: Only work on checked items. Add new suggestions as unchecked items
 
 Check a box to approve a topic. Cursor Agent will work through these.
 
-- [ ] **context-window**: The context window
+- [x] **context-window**: The context window
   - Scope: What context is, why limited, conversation "memory"
   - From: tokens → leads to: attention
 
@@ -55,6 +55,16 @@ Cursor Agent adds suggestions here. Check to approve.
 - [ ] **embeddings**: How do tokens become numbers?
   - Scope: Vector representations, semantic similarity, embedding space
   - Rationale: Referenced in tokens as related; bridges tokenization to neural network processing
+
+- [ ] **vector-databases-rag**: How do LLMs use external knowledge?
+  - Scope: Vector databases, embeddings for retrieval, RAG (Retrieval-Augmented Generation), semantic search
+  - Rationale: Practical technique for grounding LLMs in specific knowledge; addresses hallucination concerns
+  - Note: Could split into vector-databases + rag if scope too broad
+
+- [ ] **tools-mcp**: How do LLMs use tools?
+  - Scope: Function calling, tool use, MCP (Model Context Protocol), agents
+  - Rationale: Key capability extending LLMs beyond text; how AI assistants take actions
+  - Note: Could split into tool-use + mcp if scope too broad
 
 ---
 
