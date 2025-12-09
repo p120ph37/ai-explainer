@@ -12,6 +12,40 @@ import { MarginDeoverlap } from './components/MarginDeoverlap.tsx';
 import { ProgressSidebar } from './components/ProgressSidebar.tsx';
 import { DiscoveryAnimationLayer } from './components/DiscoveryAnimation.tsx';
 import { contentRegistry } from '../content/_registry.ts';
+import type { ComponentType } from 'preact';
+
+/**
+ * Check if editorial mode is enabled (set by editorial server)
+ */
+function isEditorialMode(): boolean {
+  return typeof window !== 'undefined' && (window as any).__EDITORIAL_MODE__ === true;
+}
+
+/**
+ * Lazy-loaded Editorial Layer component
+ * Only loaded when editorial mode is active
+ */
+function EditorialLayerLoader({ pageId }: { pageId: string }) {
+  const EditorialLayer = useSignal<ComponentType<{ pageId: string }> | null>(null);
+  
+  useEffect(() => {
+    if (isEditorialMode()) {
+      // Dynamically import editorial client only when needed
+      import('../editorial/client/index.ts').then((mod) => {
+        EditorialLayer.value = mod.EditorialLayer;
+      }).catch((err) => {
+        console.error('Failed to load editorial layer:', err);
+      });
+    }
+  }, []);
+  
+  if (!isEditorialMode() || !EditorialLayer.value) {
+    return null;
+  }
+  
+  const Component = EditorialLayer.value;
+  return <Component pageId={pageId} />;
+}
 
 export function App() {
   const theme = useSignal(getEffectiveTheme());
@@ -83,6 +117,9 @@ export function App() {
       
       {/* Discovery animation overlay */}
       <DiscoveryAnimationLayer />
+      
+      {/* Editorial mode layer - only loaded when editorial server is running */}
+      <EditorialLayerLoader pageId={currentRoute.value.nodeId} />
     </div>
   );
 }

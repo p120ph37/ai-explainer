@@ -140,6 +140,15 @@ export function isValidNode(nodeId: string): boolean {
   return nodeId in nodeFiles || nodeId === 'index' || nodeId === '';
 }
 
+/**
+ * Get the full filesystem path to a node's MDX file
+ */
+export function getContentPath(nodeId: string, contentDir: string = 'src/content'): string | null {
+  const filePath = nodeFiles[nodeId];
+  if (!filePath) return null;
+  return `${contentDir}/${filePath}`;
+}
+
 // Special pages metadata
 export const specialPages: Record<string, NodeMeta> = {
   'index': {

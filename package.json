@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "dev": "bun --hot src/server.ts",
+    "dev:editorial": "bun --hot src/editorial/server.ts",
     "dev:stop": "test -f .dev.pid && kill $(cat .dev.pid) 2>/dev/null; rm -f .dev.pid",
     "dev:restart": "bun run dev:stop; sleep 1; bun run dev",
     "build": "bun scripts/build.ts",
@@ -17,7 +18,8 @@
     "test:e2e:ui": "bunx playwright test --ui",
     "test:e2e:update": "bunx playwright test --update-snapshots",
     "test:all": "bun test && playwright test",
-    "validate": "bun scripts/validate-content.ts"
+    "validate": "bun scripts/validate-content.ts",
+    "editorial:validate": "bun src/editorial/validate-anchors.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

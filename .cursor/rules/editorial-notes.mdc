@@ -1,0 +1,113 @@
+---
+description: How to work with editorial notes in this project
+globs: "*"
+alwaysApply: false
+---
+
+# Editorial Notes System
+
+This project has an editorial annotation system for reviewing and improving content. When asked to review or act on editorial notes, follow this workflow.
+
+## Accessing Editorial Notes
+
+The editorial notes are stored in `editorial/notes.json`. To get a formatted view of all open notes suitable for review:
+
+```bash
+curl http://localhost:3000/api/editorial/notes/ai
+```
+
+Or for a specific page:
+```bash
+curl "http://localhost:3000/api/editorial/notes/ai?pageId=intro"
+```
+
+You can also read the notes file directly:
+```
+editorial/notes.json
+```
+
+## Note Structure
+
+Each note contains:
+- `id`: Unique identifier for the note
+- `pageId`: Which content page the note is attached to (e.g., "intro", "tokens")
+- `variantId`: If attached to a variant (null for base content)
+- `anchor`: Where in the content the note is anchored
+  - `type: "text-selection"` - Anchored to specific text
+  - `type: "page"` - General note for the whole page
+  - `type: "line"` - Anchored to MDX source lines
+- `content`: The editorial feedback/instruction
+- `status`: "open" | "in-progress" | "addressed" | "wont-fix" | "question"
+- `priority`: "critical" | "high" | "medium" | "low"
+- `responses`: Thread of responses (from humans or AI)
+
+## Acting on Notes
+
+When addressing a note:
+
+1. **Read the note content** to understand what change is requested
+2. **Locate the anchored text** in the MDX file (in `src/content/`)
+3. **Make the requested change** to the content
+4. **Mark the note as addressed** by updating the note:
+
+```bash
+# Via API (if server is running):
+curl -X POST http://localhost:3000/api/editorial/notes/{noteId}/address \
+  -H "Content-Type: application/json" \
+  -d '{"author": "cursor", "actionTaken": "Description of what was changed"}'
+```
+
+Or by directly updating `editorial/notes.json`:
+- Set `status` to `"addressed"`
+- Add a response to the `responses` array:
+```json
+{
+  "id": "generated-id",
+  "author": "cursor",
+  "content": "Marked as addressed.",
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "actionTaken": "Description of what was changed"
+}
+```
+
+## Adding Responses or Questions
+
+If you need clarification on a note, add a response with `status: "question"`:
+
+```json
+{
+  "id": "response-id",
+  "author": "cursor",
+  "content": "Question: Did you want me to also update the related section in tokens.mdx?",
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+And update the note's `status` to `"question"`.
+
+## Finding Content Files
+
+Notes reference pages by their node ID. Map node IDs to file paths:
+- `intro` → `src/content/intro/what-is-llm.mdx`
+- `tokens` → `src/content/foundations/tokens.mdx`
+- `attention` → `src/content/foundations/attention.mdx`
+- etc.
+
+See `src/lib/node-metadata.ts` for the complete mapping.
+
+## Handling Orphaned Notes
+
+Notes become orphaned when their anchored text can no longer be found (e.g., if the text was edited). These should be:
+1. Reviewed to understand the original intent
+2. Either re-anchored to the new text location
+3. Or converted to page-level notes if the anchor context is unclear
+
+## Workflow Summary
+
+1. Get list of open notes (via API or reading `editorial/notes.json`)
+2. For each note, in order of priority:
+   - Read the note content and anchor info
+   - Find the relevant MDX file and section
+   - Make the requested changes
+   - Mark the note as addressed with a description of what was done
+3. If unsure about a note, add a question response and mark status as "question"
