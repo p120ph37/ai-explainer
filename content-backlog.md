@@ -64,6 +64,15 @@ Cursor Agent adds suggestions here. Check to approve.
   - Rationale: Key capability extending LLMs beyond text; how AI assistants take actions
   - Note: Could split into tool-use + mcp if scope too broad
 
+- [ ] **tuning**: How are LLMs customized?
+  - Scope: Fine-tuning, RLHF, instruction tuning, LoRA, when/why to tune
+  - Rationale: Explains how base models become assistants; complements training topic
+
+- [ ] **emergent-behavior**: What is emergent behavior?
+  - Scope: Emergence in complex systems, phase transitions, why scale produces surprise capabilities
+  - Rationale: Unintuitive but crucial concept; explains why LLM capabilities are hard to predict
+  - Note: Interactive Conway's Game of Life widget to demonstrate emergence from simple rules
+
 ---
 
 ## Completed
