@@ -1,0 +1,136 @@
+---
+id: parameters
+title: "What are parameters?"
+summary: Parameters are the learned numbers inside a neural network. Billions of them encode everything the model knows about language.
+prerequisites:
+  - neural-network
+children:
+  - training
+related:
+  - why-large
+  - embeddings
+keywords:
+  - parameters
+  - weights
+  - biases
+  - model size
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**When people say GPT-4 has "a trillion parameters," what does that mean?**
+
+Parameters are the numbers that define a neural network. Every weight connecting neurons, every bias shifting activations: these are parameters. When a model "learns," it's adjusting these numbers.
+
+A model with 175 billion parameters has 175 billion individual numbers that were tuned during training. Each one contributes, in some small way, to every prediction the model makes.
+
+**What do parameters actually store?**
+
+This is subtle. Parameters don't store facts like a database stores records. You can't point to a parameter and say "this one knows that Paris is the capital of France."
+
+Instead, knowledge is distributed across parameters. Patterns about language, facts about the world, reasoning heuristics: all encoded as statistical relationships between millions of numbers. The parameter values collectively create a function that maps inputs to outputs in useful ways.
+
+<Recognition>
+
+You've encountered something similar with JPEG compression. An image isn't stored as "sky in top half, grass in bottom half." It's stored as mathematical coefficients that, when processed together, reconstruct the image. No single coefficient contains "sky." The information is distributed.
+
+</Recognition>
+
+**Why do we need so many?**
+
+More parameters means more capacity to store patterns. A small network with thousands of parameters can learn simple rules. A network with billions can learn subtle distinctions.
+
+Consider what language requires:
+- Grammar rules and exceptions to those rules
+- Word meanings and how context shifts them
+- Facts about the world
+- Reasoning patterns
+- Style, tone, register
+- Multiple languages and their interactions
+
+Encoding all of this requires enormous parameter counts. Each additional parameter is another degree of freedom the model can use to capture nuance.
+
+<Question title="Is bigger always better?">
+
+Not automatically. A larger model has more *capacity* to learn, but:
+
+- It needs more training data to fill that capacity
+- It costs more to train and run
+- Without enough data, it may memorize rather than generalize
+
+Research on "scaling laws" found that you need to balance model size with data quantity. The Chinchilla paper showed that many large models were undertrained: they would have performed better if made smaller but trained on more data.
+
+Size matters, but it's not the only thing that matters.
+
+→ [Why scale matters](#/why-large)
+
+</Question>
+
+**How much space do parameters take?**
+
+Each parameter is typically stored as a floating-point number. Common formats:
+
+- **32-bit (FP32)**: 4 bytes per parameter, full precision
+- **16-bit (FP16/BF16)**: 2 bytes per parameter, common for training
+- **8-bit (INT8)**: 1 byte per parameter, used for efficient inference
+- **4-bit**: 0.5 bytes per parameter, aggressive compression
+
+GPT-3's 175 billion parameters at 16-bit precision: about 350 gigabytes just for the weights. This is why running large models requires specialized hardware with substantial memory.
+
+<Expandable title="Quantization: making models smaller">
+
+**Quantization** reduces the precision of parameters to save memory and speed up computation. Instead of 16-bit numbers, you might use 8-bit or even 4-bit.
+
+This sounds like it should destroy performance. Surprisingly, it often doesn't. The network has redundancy. Small precision losses at the individual parameter level average out across billions of parameters.
+
+A 70-billion parameter model at 4-bit quantization fits in about 35 gigabytes: runnable on a high-end consumer GPU. The same model at full precision would need 280 gigabytes.
+
+Quantization enables running powerful models on more accessible hardware, with only modest quality degradation.
+
+</Expandable>
+
+**What happens to parameters during training?**
+
+Before training, parameters are initialized randomly (with some careful choices about the random distribution). The model outputs nonsense.
+
+Training iteratively adjusts parameters to reduce prediction error:
+
+1. A batch of examples flows through the network (forward pass)
+2. The outputs are compared to targets, producing a loss value
+3. Gradients are computed showing how each parameter affects the loss (backward pass)
+4. Each parameter is nudged slightly in the direction that reduces loss
+5. Repeat billions of times
+
+By the end, the random initial values have been sculpted into a configuration that captures something about language.
+
+<Metaphor title="A landscape of possibilities">
+
+Picture each parameter as a dimension. Two parameters form a plane. Three form a space. Billions form an unimaginably high-dimensional landscape.
+
+Every point in this landscape represents a possible model: a specific configuration of all parameters. Most points are useless. The model outputs gibberish.
+
+Training is searching this landscape for good points: configurations where the model predicts accurately. Gradient descent is like rolling downhill, always moving toward lower loss.
+
+The final trained model is a single point in this vast space. Remarkably, the training process finds points that generalize: they work well not just on training data, but on new inputs the model has never seen.
+
+</Metaphor>
+
+<TryThis>
+
+Compare parameter counts of models you can access. If you use Claude, that's likely over 100 billion parameters. A local model like Llama 2 7B has 7 billion. GPT-4 is estimated at over a trillion. Notice the relationship between parameter count and the model's capabilities (and its computational cost).
+
+</TryThis>
+
+**The parameter mystery**
+
+We can count parameters. We can measure what models do. What we can't easily do is understand *how* specific parameters contribute to specific behaviors.
+
+This is the interpretability challenge. 175 billion numbers, all contributing fractionally to every output. Which parameters encode grammar? Which encode facts about history? The question may not even be well-formed: knowledge is distributed so diffusely that no parameter "knows" anything individually.
+
+Understanding this distributed, high-dimensional encoding is one of the open frontiers in AI research.
+
+<Sources>
+<Citation type="paper" title="Language Models are Few-Shot Learners" authors="Brown et al." source="OpenAI" url="https://arxiv.org/abs/2005.14165" year={2020} />
+<Citation type="paper" title="Training Compute-Optimal Large Language Models" authors="Hoffmann et al." source="DeepMind" url="https://arxiv.org/abs/2203.15556" year={2022} />
+<Citation type="video" title="But what is a GPT?" source="3Blue1Brown" url="https://www.youtube.com/watch?v=wjZofJX0v4M" year={2024} />
+</Sources>

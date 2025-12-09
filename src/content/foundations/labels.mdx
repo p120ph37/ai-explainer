@@ -1,0 +1,125 @@
+---
+id: labels
+title: "What is labeled data?"
+summary: Labels are the answers that training data provides. They tell the model what output it should produce for each input, enabling supervised learning.
+prerequisites:
+  - intro
+children:
+  - training
+related:
+  - reward
+keywords:
+  - labeled data
+  - supervised learning
+  - annotation
+  - ground truth
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**How does a model learn what the "right" answer is?**
+
+During training, models need feedback. They need to know when they're wrong so they can adjust. **Labels** provide this feedback: the correct answers attached to training examples.
+
+An image classifier might train on photos labeled "cat" or "dog." A spam filter trains on emails labeled "spam" or "not spam." The model sees the input, makes a prediction, compares it to the label, and adjusts.
+
+This process, learning from labeled examples, is called **supervised learning**. The labels supervise the learning.
+
+**What about LLMs? What are their labels?**
+
+Here's the elegant part: for language models, the labels are built into the text itself.
+
+Given "The cat sat on the," the label is whatever word actually came next in the training text: "mat." The model predicts, compares to the real next word, and learns.
+
+No human needs to label each example. The structure of text provides natural supervision. This is why LLMs can train on trillions of words: the labeling is automatic.
+
+<Recognition>
+
+This is why LLMs can learn from the raw internet without someone manually annotating every sentence. The text labels itself. Each word is a training example where preceding words are input and the word itself is the label.
+
+</Recognition>
+
+**When do you need human labels?**
+
+Automatic labels from text only teach prediction. For other objectives, humans must provide labels:
+
+- **Safety labels**: "This response is harmful / safe"
+- **Quality labels**: "Response A is better than Response B"
+- **Instruction labels**: Pairs of (instruction, desired response)
+- **Factuality labels**: "This claim is true / false / uncertain"
+
+This human labeling is expensive and slow. Companies employ thousands of labelers to create datasets for fine-tuning and safety work.
+
+<Question title="How do you label at scale?">
+
+Several approaches:
+
+**Crowd workers**: Platforms like Scale AI or Surge AI coordinate thousands of workers to label data according to detailed guidelines.
+
+**Expert annotators**: For specialized tasks (medical, legal, scientific), domain experts provide higher-quality labels at higher cost.
+
+**Synthetic labels**: Using existing models to generate labels for training new models. GPT-4 labeling data to train smaller models, for instance.
+
+**User feedback**: Thumbs up/down on responses, user edits, regeneration requests. All implicit labels about quality.
+
+The challenge is consistency. Different humans label the same example differently. Guidelines must be precise, and quality control matters.
+
+</Question>
+
+**Label quality determines model quality**
+
+Garbage in, garbage out. If labels are noisy, inconsistent, or wrong, the model learns those errors.
+
+This is why curating training data matters so much. A smaller dataset with high-quality labels often beats a larger dataset with sloppy labels. The model can only learn what the labels teach.
+
+<Expandable title="The annotation crisis">
+
+As models grow, the appetite for labeled data grows faster. But human labeling doesn't scale cheaply.
+
+Some implications:
+- Companies guard high-quality labeled datasets as competitive advantages
+- Synthetic data generation (using models to create training data) becomes more attractive
+- Active learning techniques try to minimize labels needed by choosing examples strategically
+- The humans doing labeling are often underpaid workers in lower-income countries
+
+The AI boom runs on human annotation. That labor is often invisible but essential.
+
+</Expandable>
+
+**Self-supervised learning: labels from structure**
+
+LLM pre-training is **self-supervised**: the labels come from the data itself, not external annotation. Other self-supervised approaches:
+
+- **Masked language modeling** (BERT): Hide some words, predict them from context
+- **Contrastive learning**: Learn that augmented versions of the same example should have similar representations
+- **Next sentence prediction**: Given two sentences, predict if the second actually followed the first
+
+These techniques let models learn from vast unlabeled datasets. The structure of the data provides supervision without human labels.
+
+<Metaphor title="Answer keys that write themselves">
+
+Traditional machine learning is like a student with a textbook and answer key. Study the problems (inputs), check the answers (labels), learn the patterns.
+
+LLM training is like a student with just a book. But cleverly, the book itself contains implicit answers: every word predicts the next. The student covers a word, guesses it, reveals it, and learns. The text is its own answer key.
+
+</Metaphor>
+
+<TryThis>
+
+Think about how you'd label data for a specific task. Say you want to train a model to detect sarcasm. How would you instruct human labelers? What edge cases would cause disagreement? How would you verify label quality? This exercise reveals why annotation is harder than it sounds.
+
+</TryThis>
+
+**Labels shape what models learn**
+
+A model optimized on one set of labels learns one thing. Change the labels and it learns something else.
+
+This is why fine-tuning works: you can take a pre-trained model (learned from text prediction) and adjust it with task-specific labels (learned from human preferences). The base capabilities plus targeted labels produce specialized behavior.
+
+Understanding labels means understanding the fundamental question of machine learning: what are we teaching the model is "good"?
+
+<Sources>
+<Citation type="article" title="Supervised learning" source="Wikipedia" url="https://en.wikipedia.org/wiki/Supervised_learning" />
+<Citation type="article" title="Inside the AI Factory" source="The Verge" url="https://www.theverge.com/features/23764584/ai-artificial-intelligence-data-notation-labor-scale-surge-remotasks-consumers-openai-chatbots" year={2023} />
+<Citation type="paper" title="Self-Supervised Learning: Generative or Contrastive" authors="Liu et al." url="https://arxiv.org/abs/2006.08218" year={2020} />
+</Sources>

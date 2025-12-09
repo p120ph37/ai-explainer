@@ -1,0 +1,128 @@
+---
+id: neural-network
+title: "What is a neural network?"
+summary: Neural networks are computing systems loosely inspired by biological brains. They learn patterns from data by adjusting millions of numerical connections.
+prerequisites:
+  - intro
+children:
+  - parameters
+  - attention
+related:
+  - training
+  - embeddings
+keywords:
+  - neural network
+  - perceptron
+  - layers
+  - neurons
+  - weights
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**What's actually inside an AI model?**
+
+At its core, a neural network is a mathematical function built from simple, repeated building blocks. Each block takes some numbers in, does basic math, and passes numbers out. Stack thousands of these blocks in careful arrangements, and something remarkable happens: the system can learn.
+
+The "neural" part comes from a loose analogy to brain neurons. But don't take it too literally. These are mathematical operations, not biological cells.
+
+**The simplest case: the perceptron**
+
+To understand neural networks, start with the simplest possible one: a single unit called a **perceptron**.
+
+A perceptron takes multiple inputs (numbers), multiplies each by a **weight** (another number), adds them up, and outputs a result. That's it. Multiply, add, output.
+
+```
+inputs:  [x₁, x₂, x₃]
+weights: [w₁, w₂, w₃]
+output:  w₁·x₁ + w₂·x₂ + w₃·x₃ + bias
+```
+
+The magic is in the weights. By adjusting them, the perceptron can learn to make different decisions. High weight on an input means "pay attention to this." Low or negative weight means "ignore or invert this."
+
+<Recognition>
+
+You do something like this intuitively. When deciding whether to go outside, you might weight "is it raining?" heavily negative, weight "do I have errands?" heavily positive, and weight "what's on TV?" slightly negative. Different weights, different decisions.
+
+</Recognition>
+
+**From one to many: layers**
+
+A single perceptron can only learn simple patterns (technically, linear separations). But stack them into **layers**, where the outputs of one layer become the inputs to the next, and the network can learn complex patterns.
+
+- **Input layer**: Your raw data (pixels of an image, tokens of text)
+- **Hidden layers**: Middle layers that transform and combine features
+- **Output layer**: The final answer (a classification, a probability distribution over next tokens)
+
+Each layer extracts more abstract features. In an image network, early layers might detect edges, middle layers might detect shapes, and later layers might detect faces. Nobody programs these features; they emerge from training.
+
+<Question title="Why do they call them 'hidden' layers?">
+
+Because you don't directly observe them. You see what goes in (inputs) and what comes out (outputs), but the intermediate computations are internal to the network. They're hidden from the outside view.
+
+The term isn't profound. It just means "not input, not output, somewhere in between."
+
+</Question>
+
+**What makes them learn?**
+
+A neural network starts with random weights. It makes terrible predictions. Then training begins:
+
+1. Show the network an example
+2. Compare its output to the correct answer
+3. Calculate how wrong it was (the "loss")
+4. Adjust the weights slightly to be less wrong
+5. Repeat millions of times
+
+This process is called **gradient descent**. "Gradient" refers to the mathematical slope that tells you which direction to adjust each weight. "Descent" because you're descending toward lower error.
+
+<Expandable title="Backpropagation: how gradients flow">
+
+With millions of weights across many layers, how do you know which ones to adjust and by how much?
+
+**Backpropagation** solves this. It's an algorithm that efficiently calculates how much each weight contributed to the error. Starting from the output, it propagates the error signal backward through the network, computing gradients layer by layer.
+
+The math involves calculus (chain rule), but the intuition is simple: trace the blame backward. If the output was wrong, which weights in the previous layer made it wrong? And which weights before that?
+
+This backward pass is why training requires so much computation. For every forward pass (making a prediction), you need a backward pass (computing gradients) of similar cost.
+
+</Expandable>
+
+**How big are these networks?**
+
+Size varies enormously:
+
+- A perceptron: 10-100 weights
+- A simple image classifier: millions of weights
+- GPT-3: 175 billion weights
+- GPT-4: estimated 1+ trillion weights
+
+Each weight is a number, typically stored as 16 or 32 bits. GPT-3's weights alone take about 350 gigabytes to store. Running the network requires loading these weights and performing matrix multiplications across them.
+
+<Metaphor title="A vast switchboard">
+
+Picture an old telephone switchboard with billions of connections. Each connection has a dial controlling its strength. Some connections amplify signals, others dampen them, others invert them.
+
+When you input a message, signals flow through this switchboard. At each junction, signals are combined and transformed based on the dial settings. The final output emerges from this cascade of combinations.
+
+Training is an operator adjusting billions of dials, one tiny click at a time, until the switchboard routes messages to correct outputs.
+
+</Metaphor>
+
+<TryThis>
+
+Many "neural network playground" sites let you visualize small networks learning in real-time. Try [TensorFlow Playground](https://playground.tensorflow.org/). Watch how the decision boundary evolves as the network trains. Add more layers and see how it can learn more complex patterns.
+
+</TryThis>
+
+**Why does this work at all?**
+
+Neural networks exploit a mathematical property: sufficiently large networks can approximate any function. This is the "universal approximation theorem." Give a network enough units and it can, in principle, learn any input-output mapping.
+
+But "can in principle" doesn't mean "will in practice." The genius is in architectures (how you arrange the layers), training procedures (how you adjust weights), and data (what examples you show). These determine whether a network actually learns something useful.
+
+<Sources>
+<Citation type="video" title="But what is a neural network?" source="3Blue1Brown" url="https://www.youtube.com/watch?v=aircAruvnKk" year={2017} />
+<Citation type="article" title="Neural network" source="Wikipedia" url="https://en.wikipedia.org/wiki/Artificial_neural_network" />
+<Citation type="docs" title="TensorFlow Playground" source="TensorFlow" url="https://playground.tensorflow.org/" />
+</Sources>
