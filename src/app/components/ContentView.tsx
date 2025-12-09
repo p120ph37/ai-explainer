@@ -3,6 +3,7 @@
  * 
  * Dynamically loads and renders content nodes based on the current route.
  * Also handles special routes like the index page.
+ * Includes prerequisites display and scroll completion tracking.
  */
 
 import { useSignal, useComputed } from '@preact/signals';
@@ -12,6 +13,9 @@ import { contentRegistry, getNode, getNodeMeta } from '../../content/_registry.t
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { NavLinks } from './NavLinks.tsx';
 import { IndexPage } from './IndexPage.tsx';
+import { PrerequisitesBlock } from './PrerequisitesBlock.tsx';
+import { useExplorationTracking } from '../hooks/useExplorationTracking.ts';
+import { CurrentPageContext } from './DiscoverableLink.tsx';
 import type { ComponentType } from 'preact';
 
 interface ContentModule {
@@ -110,23 +114,58 @@ export function ContentView() {
   }
   
   return (
-    <article className="content-node">
-      <Breadcrumbs path={currentRoute.value.path} />
-      
-      <header className="content-node__header">
-        <h1 className="content-node__title">{nodeMeta.title}</h1>
-        <p className="content-node__summary">{nodeMeta.summary}</p>
-      </header>
-      
-      <div className="content-node__body">
-        <ContentComponent />
-      </div>
-      
-      <NavLinks 
-        children={nodeMeta.children}
-        related={nodeMeta.related}
-      />
-    </article>
+    <ContentRenderer 
+      nodeId={nodeId.value}
+      nodeMeta={nodeMeta}
+      ContentComponent={ContentComponent}
+      path={currentRoute.value.path}
+    />
+  );
+}
+
+/**
+ * Inner component to use hooks properly (after conditional checks)
+ */
+function ContentRenderer({
+  nodeId,
+  nodeMeta,
+  ContentComponent,
+  path,
+}: {
+  nodeId: string;
+  nodeMeta: ContentModule['meta'];
+  ContentComponent: ComponentType;
+  path: string[];
+}) {
+  // Track exploration progress (scroll position, expandables)
+  useExplorationTracking({ nodeId });
+  
+  const hasPrerequisites = nodeMeta.prerequisites && nodeMeta.prerequisites.length > 0;
+  
+  return (
+    <CurrentPageContext.Provider value={nodeId}>
+      <article className="content-node" data-node-id={nodeId}>
+        <Breadcrumbs path={path} />
+        
+        <header className="content-node__header">
+          <h1 className="content-node__title">{nodeMeta.title}</h1>
+          <p className="content-node__summary">{nodeMeta.summary}</p>
+        </header>
+        
+        {hasPrerequisites && (
+          <PrerequisitesBlock prerequisites={nodeMeta.prerequisites!} />
+        )}
+        
+        <div className="content-node__body">
+          <ContentComponent />
+        </div>
+        
+        <NavLinks 
+          children={nodeMeta.children}
+          related={nodeMeta.related}
+        />
+      </article>
+    </CurrentPageContext.Provider>
   );
 }
 

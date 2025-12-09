@@ -2,10 +2,12 @@
  * Navigation links component
  * 
  * Shows links to child concepts (deeper) and related concepts (lateral).
+ * Uses DiscoverableLink to trigger discovery animation when links become visible.
  */
 
 import { navigateTo } from '../router.ts';
 import { getNodeMeta } from '../../content/_registry.ts';
+import { DiscoverableLink } from './DiscoverableLink.tsx';
 
 interface NavLinksProps {
   children?: string[];
@@ -30,16 +32,18 @@ export function NavLinks({ children, related }: NavLinksProps) {
               const meta = getNodeMeta(nodeId);
               return (
                 <li key={nodeId}>
-                  <a 
-                    href={`#/${nodeId}`}
-                    className="nav-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigateTo(nodeId, { addToPath: true });
-                    }}
-                  >
-                    {meta?.title || nodeId}
-                  </a>
+                  <DiscoverableLink nodeId={nodeId}>
+                    <a 
+                      href={`#/${nodeId}`}
+                      className="nav-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateTo(nodeId, { addToPath: true });
+                      }}
+                    >
+                      {meta?.title || nodeId}
+                    </a>
+                  </DiscoverableLink>
                 </li>
               );
             })}
@@ -55,16 +59,18 @@ export function NavLinks({ children, related }: NavLinksProps) {
               const meta = getNodeMeta(nodeId);
               return (
                 <li key={nodeId}>
-                  <a 
-                    href={`#/${nodeId}`}
-                    className="nav-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigateTo(nodeId);
-                    }}
-                  >
-                    {meta?.title || nodeId}
-                  </a>
+                  <DiscoverableLink nodeId={nodeId}>
+                    <a 
+                      href={`#/${nodeId}`}
+                      className="nav-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateTo(nodeId);
+                      }}
+                    >
+                      {meta?.title || nodeId}
+                    </a>
+                  </DiscoverableLink>
                 </li>
               );
             })}
@@ -74,4 +80,3 @@ export function NavLinks({ children, related }: NavLinksProps) {
     </nav>
   );
 }
-

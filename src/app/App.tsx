@@ -9,6 +9,8 @@ import { toggleTheme, getEffectiveTheme } from './theme.ts';
 import { markVisited } from './state.ts';
 import { ContentView } from './components/ContentView.tsx';
 import { MarginDeoverlap } from './components/MarginDeoverlap.tsx';
+import { ProgressSidebar } from './components/ProgressSidebar.tsx';
+import { DiscoveryAnimationLayer } from './components/DiscoveryAnimation.tsx';
 
 export function App() {
   const theme = useSignal(getEffectiveTheme());
@@ -66,6 +68,12 @@ export function App() {
           </nav>
         </div>
       </footer>
+      
+      {/* Quest log sidebar */}
+      <ProgressSidebar />
+      
+      {/* Discovery animation overlay */}
+      <DiscoveryAnimationLayer />
     </div>
   );
 }

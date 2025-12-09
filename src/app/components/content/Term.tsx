@@ -3,11 +3,13 @@
  * 
  * Renders a link to another concept with a tooltip preview.
  * Used for the "optionally opaque" unexplained terms.
+ * Wrapped in DiscoverableLink to trigger discovery animation.
  */
 
 import { useState } from 'preact/hooks';
 import { navigateTo } from '../../router.ts';
 import { getNodeMeta } from '../../../content/_registry.ts';
+import { DiscoverableLink } from '../DiscoverableLink.tsx';
 import type { TermProps } from '../../../content/_types.ts';
 
 export function Term({ id, children }: TermProps) {
@@ -20,26 +22,27 @@ export function Term({ id, children }: TermProps) {
   };
   
   return (
-    <span 
-      className="term-link"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      onFocus={() => setShowTooltip(true)}
-      onBlur={() => setShowTooltip(false)}
-    >
-      <a 
-        href={`#/${id}`}
-        onClick={handleClick}
-        tabIndex={0}
+    <DiscoverableLink nodeId={id} className="term-link-wrapper">
+      <span 
+        className="term-link"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onFocus={() => setShowTooltip(true)}
+        onBlur={() => setShowTooltip(false)}
       >
-        {children}
-      </a>
-      {showTooltip && meta && (
-        <span className="term-link__tooltip" role="tooltip">
-          {meta.summary}
-        </span>
-      )}
-    </span>
+        <a 
+          href={`#/${id}`}
+          onClick={handleClick}
+          tabIndex={0}
+        >
+          {children}
+        </a>
+        {showTooltip && meta && (
+          <span className="term-link__tooltip" role="tooltip">
+            {meta.summary}
+          </span>
+        )}
+      </span>
+    </DiscoverableLink>
   );
 }
-
