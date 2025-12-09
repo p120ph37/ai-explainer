@@ -1,0 +1,161 @@
+---
+id: vector-databases
+title: "What are vector databases?"
+summary: Vector databases store embeddings and enable similarity search. They power semantic search, recommendations, and retrieval-augmented generation.
+prerequisites:
+  - embeddings
+children: []
+related:
+  - tools
+  - hallucinations
+keywords:
+  - vector database
+  - similarity search
+  - nearest neighbors
+  - semantic search
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**How do you search by meaning instead of keywords?**
+
+Traditional search matches keywords. Search for "car" and you get documents containing "car." Miss documents about "automobile" or "vehicle" even though they're relevant.
+
+**Semantic search** matches meaning. It finds documents that are conceptually similar, regardless of exact wording. The secret: convert text to embeddings (vectors of numbers) and search for nearby vectors.
+
+This requires storing and searching millions of vectors efficiently. That's what **vector databases** do.
+
+**How vector search works**
+
+1. **Index time**: Convert your documents to embeddings. Store them in the database with their vectors.
+2. **Query time**: Convert the search query to an embedding using the same model.
+3. **Search**: Find vectors in the database closest to the query vector.
+4. **Return**: Return the documents associated with those vectors.
+
+"Closest" is typically measured by cosine similarity or Euclidean distance. Vectors pointing in similar directions (cosine) or near each other (Euclidean) represent similar meanings.
+
+<Recognition>
+
+You've used this when a search engine finds relevant results despite different wording. "How to fix a leaky faucet" might find articles about "repairing dripping taps." The search understood meaning, not just keywords.
+
+</Recognition>
+
+**Why not just compare every vector?**
+
+If you have a million documents, comparing a query to all million vectors is slow. Vector databases use clever indexing to make this fast.
+
+**Approximate nearest neighbor** (ANN) algorithms trade perfect accuracy for speed. They find vectors that are *probably* closest, very quickly. For most applications, approximate is fine.
+
+Popular algorithms include:
+- **HNSW** (Hierarchical Navigable Small World): Graph-based, very fast
+- **IVF** (Inverted File Index): Clusters vectors, searches relevant clusters
+- **PQ** (Product Quantization): Compresses vectors for memory efficiency
+
+These techniques enable searching billions of vectors in milliseconds.
+
+<Question title="What databases are commonly used?">
+
+**Purpose-built vector databases**:
+- Pinecone: Managed service, easy to start
+- Weaviate: Open source, flexible
+- Milvus: Open source, highly scalable
+- Chroma: Lightweight, developer-friendly
+- Qdrant: Open source, performant
+
+**Traditional databases with vector support**:
+- PostgreSQL + pgvector: Add vectors to existing Postgres
+- Elasticsearch: Dense vector search alongside text search
+- Redis: Vector similarity in Redis Stack
+
+The right choice depends on scale, existing infrastructure, and feature needs. For experiments, anything works. For production, evaluate carefully.
+
+</Question>
+
+**Retrieval-Augmented Generation (RAG)**
+
+Vector databases power **RAG**: a pattern where LLMs retrieve relevant information before generating responses.
+
+```
+User: "What's our refund policy?"
+
+RAG flow:
+1. Embed the question
+2. Search vector database for similar content
+3. Find: policy document section about refunds
+4. Include retrieved text in prompt to LLM
+5. LLM generates response grounded in actual policy
+```
+
+RAG reduces hallucination by giving the model real information to work with. Instead of inventing answers, it synthesizes from retrieved sources.
+
+<Expandable title="RAG architecture details">
+
+A typical RAG system:
+
+**Indexing pipeline**:
+- Split documents into chunks (paragraphs, sections)
+- Generate embeddings for each chunk
+- Store in vector database with metadata
+
+**Query pipeline**:
+- Receive user question
+- Generate query embedding
+- Search for top-k similar chunks
+- Construct prompt with retrieved chunks as context
+- Generate response
+
+**Considerations**:
+- Chunk size affects retrieval precision
+- Overlap between chunks preserves context
+- Metadata filtering narrows search scope
+- Reranking improves relevance of retrieved chunks
+- Citation tracking enables source verification
+
+</Expandable>
+
+**Beyond search: other applications**
+
+Vector databases enable many applications:
+
+- **Recommendations**: Find similar products, articles, users
+- **Deduplication**: Identify near-duplicate content
+- **Clustering**: Group similar items automatically
+- **Anomaly detection**: Find outliers far from typical vectors
+- **Image search**: Embed images, search by visual similarity
+- **Code search**: Find semantically similar code snippets
+
+Any domain where "similarity" matters can benefit from vector search.
+
+<Metaphor title="A library organized by meaning">
+
+Traditional databases are like libraries organized by call numbers. Books are where the system puts them. Finding related books requires knowing how the system categorizes.
+
+Vector databases are like a magical library where similar books physically cluster together. Books about cooking are near each other, regardless of author or publication date. Walk to the "healthy recipes" section and nearby books are all relevant.
+
+The magic is the embedding. It transforms arbitrary content into positions in a meaningful space where proximity equals relevance.
+
+</Metaphor>
+
+<TryThis>
+
+Try a semantic search demo. Hugging Face has sentence-transformer examples where you can embed sentences and find similarities. Notice how "The cat sat on the mat" is similar to "A feline rested on the rug" despite no shared words. That's vector similarity capturing meaning.
+
+</TryThis>
+
+**Limitations**
+
+Vector search isn't perfect:
+
+- **Embedding quality matters**: Garbage embeddings mean garbage search
+- **Context loss**: Chunking documents loses some context
+- **Semantic vs lexical**: Sometimes exact keyword match is what you need
+- **Cold start**: New content needs embedding before it's searchable
+- **Maintenance**: Embeddings may need regenerating when models update
+
+Vector databases are powerful but not a complete replacement for traditional search. Often, hybrid approaches combining keyword and semantic search work best.
+
+<Sources>
+<Citation type="article" title="What is a Vector Database?" source="Pinecone" url="https://www.pinecone.io/learn/vector-database/" />
+<Citation type="paper" title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks" authors="Lewis et al." source="Meta AI" url="https://arxiv.org/abs/2005.11401" year={2020} />
+<Citation type="docs" title="Vector Search" source="Weaviate" url="https://weaviate.io/developers/weaviate" />
+</Sources>

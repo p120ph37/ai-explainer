@@ -22,76 +22,29 @@ Check a box to approve a topic. Cursor Agent will work through these.
 
 Cursor Agent adds suggestions here. Check to approve.
 
-- [ ] **training**: How are LLMs trained?
-  - Scope: Pre-training, prediction objective, compute requirements
-  - Rationale: Natural next question after understanding what LLMs do
+- [ ] **mcp**: What is Model Context Protocol?
+  - Scope: MCP specification, standardized tool integration, ecosystem
+  - Rationale: Emerging standard for AI tool use; split from tools topic
 
-- [ ] **hallucinations**: Why do LLMs make things up?
-  - Scope: What hallucination is, why it happens, mitigation
-  - Rationale: Common user concern, mentioned in intro
+- [ ] **rag**: What is Retrieval-Augmented Generation?
+  - Scope: RAG pattern, combining retrieval with generation, grounding responses
+  - Rationale: Key technique for reducing hallucinations; split from vector-databases topic
 
-- [ ] **understanding-debate**: Do LLMs really understand?
-  - Scope: Philosophical debate, Chinese Room, behavioral vs phenomenal
-  - Rationale: Expands on "Is prediction understanding?" aside
+- [ ] **alignment**: Why is AI alignment hard?
+  - Scope: The alignment problem, value specification, instrumental convergence, current approaches
+  - Rationale: Central concern in AI safety; expands on reward topic
 
-- [ ] **temperature**: What is "temperature" in AI?
-  - Scope: Temperature parameter, sampling, creativity vs accuracy
-  - Rationale: Expands on "Why add randomness?" aside
+- [ ] **multimodal**: How do AI models see and hear?
+  - Scope: Vision models, audio, video, how LLMs expand beyond text
+  - Rationale: Increasingly relevant as GPT-4V, Gemini, Claude vision become standard
 
-- [ ] **attention**: How does attention work?
-  - Scope: Intuition for attention mechanism, self-attention basics
-  - Rationale: Core mechanism enabling context understanding
+- [ ] **open**: Open vs closed AI models
+  - Scope: Open weights (Llama, Mistral) vs proprietary (GPT, Claude), trade-offs, implications
+  - Rationale: Important ecosystem context; helps readers understand model landscape
 
-- [ ] **prompt-engineering**: Communicating effectively with LLMs
-  - Scope: Why prompts matter, techniques, pitfalls
-  - Rationale: Practical application of LLM understanding
-
-- [ ] **parameters**: What are parameters?
-  - Scope: Neural network weights, what they encode, why billions are needed
-  - Rationale: Referenced in why-large as child node; explains the "large" in LLM
-
-- [ ] **embeddings**: How do tokens become numbers?
-  - Scope: Vector representations, semantic similarity, embedding space
-  - Rationale: Referenced in tokens as related; bridges tokenization to neural network processing
-  - Aside: Mention eigenvalues/eigenvectors — the mathematical machinery behind dimensionality and finding meaningful axes in high-dimensional spaces
-
-- [ ] **vector-databases-rag**: How do LLMs use external knowledge?
-  - Scope: Vector databases, embeddings for retrieval, RAG (Retrieval-Augmented Generation), semantic search
-  - Rationale: Practical technique for grounding LLMs in specific knowledge; addresses hallucination concerns
-  - Note: Could split into vector-databases + rag if scope too broad
-
-- [ ] **tools-mcp**: How do LLMs use tools?
-  - Scope: Function calling, tool use, MCP (Model Context Protocol), agents
-  - Rationale: Key capability extending LLMs beyond text; how AI assistants take actions
-  - Note: Could split into tool-use + mcp if scope too broad
-
-- [ ] **tuning**: How are LLMs customized?
-  - Scope: Fine-tuning, RLHF, instruction tuning, LoRA, when/why to tune
-  - Rationale: Explains how base models become assistants; complements training topic
-
-- [ ] **emergent-behavior**: What is emergent behavior?
-  - Scope: Emergence in complex systems, phase transitions, why scale produces surprise capabilities
-  - Rationale: Unintuitive but crucial concept; explains why LLM capabilities are hard to predict
-  - Note: Interactive Conway's Game of Life widget to demonstrate emergence from simple rules
-  - Aside: Primordial ooze / abiogenesis as canonical example; LLM work as theoretical validation that complex systems can arise from immense numbers of simple components under consistent external steering stimuli
-
-- [ ] **reward**: How do AI systems learn what's "good"?
-  - Scope: Reward signals, RLHF, reward modeling, reward hacking, alignment implications
-  - Rationale: Core concept for understanding how models learn preferences and why alignment is hard
-
-- [ ] **labels**: What is labeled data?
-  - Scope: Labeled vs unlabeled data, supervised learning, annotation, why labels matter for training
-  - Rationale: Foundational concept; explains how models learn to associate inputs with outputs
-
-- [ ] **neural-network**: What is a neural network?
-  - Scope: Neurons, layers, weights, activation functions; start with perceptron for intuition
-  - Rationale: Core building block underlying all LLMs; demystifies "how it actually works"
-  - Note: Interactive perceptron toy for hands-on experimentation with weights and decision boundaries
-
-- [ ] **hardware**: What hardware runs AI?
-  - Scope: CPU vs GPU vs TPU and why it matters; parallelizability (on-die and multi-machine); memory and power requirements; major manufacturers (NVIDIA, AMD, Google, Intel, etc.), their products, competition, differentiation, and current valuations
-  - Rationale: Explains why AI progress is tied to hardware advances; contextualizes industry dynamics
-  - Note: No speculative predictions about future valuations
+- [ ] **bias**: Where does AI bias come from?
+  - Scope: Training data bias, amplification, measurement, mitigation approaches
+  - Rationale: Common concern; helps readers critically evaluate model outputs
 
 ---
 
@@ -101,6 +54,24 @@ Cursor Agent adds suggestions here. Check to approve.
 - [x] **tokens**: What are tokens? *(2024-12-08)*
 - [x] **why-large**: Why does scale matter? *(2024-12-08)*
 - [x] **context-window**: The context window *(2024-12-08)*
+- [x] **neural-network**: What is a neural network? *(2024-12-08)*
+- [x] **parameters**: What are parameters? *(2024-12-08)*
+- [x] **embeddings**: How do tokens become numbers? *(2024-12-08)*
+- [x] **attention**: How does attention work? *(2024-12-08)*
+- [x] **transformer**: What is a Transformer? *(2024-12-08)*
+- [x] **labels**: What is labeled data? *(2024-12-08)*
+- [x] **training**: How are LLMs trained? *(2024-12-08)*
+- [x] **reward**: How do AI systems learn what's "good"? *(2024-12-08)*
+- [x] **tuning**: How are LLMs customized? *(2024-12-08)*
+- [x] **inference**: How does text generation actually happen? *(2024-12-08)*
+- [x] **temperature**: What is temperature in AI? *(2024-12-08)*
+- [x] **emergence**: What is emergent behavior? *(2024-12-08)*
+- [x] **hallucinations**: Why do LLMs make things up? *(2024-12-08)*
+- [x] **understanding**: Do LLMs really understand? *(2024-12-08)*
+- [x] **prompt-engineering**: Communicating effectively with LLMs *(2024-12-08)*
+- [x] **tools**: How do LLMs use tools? *(2024-12-08)*
+- [x] **vector-databases**: What are vector databases? *(2024-12-08)*
+- [x] **hardware**: What hardware runs AI? *(2024-12-08)*
 
 ---
 

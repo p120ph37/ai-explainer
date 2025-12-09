@@ -1,0 +1,137 @@
+---
+id: inference
+title: "How does text generation actually happen?"
+summary: When you hit send, the model runs a forward pass to predict the next token, samples one, appends it, and repeats. This loop generates entire responses token by token.
+prerequisites:
+  - neural-network
+  - tokens
+children: []
+related:
+  - temperature
+  - context-window
+keywords:
+  - inference
+  - generation
+  - autoregressive
+  - forward pass
+  - KV cache
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**What happens in the milliseconds after you press send?**
+
+Your prompt is tokenized, breaking text into token IDs. These IDs become embeddings: vectors of numbers. The embeddings flow through the neural network, layer by layer. At the end, the model outputs probabilities for every possible next token.
+
+One token is selected from those probabilities. It's appended to the sequence. The whole process repeats with this slightly longer sequence. Token by token, the response emerges.
+
+This is **inference**: running the model to produce output. Training taught the model what to predict. Inference is prediction happening in real-time.
+
+**The autoregressive loop**
+
+LLMs generate text **autoregressively**: each token depends on all previous tokens.
+
+```
+Input: "The capital of France is"
+Step 1: Predict next token → "Paris"
+Step 2: Input is now "The capital of France is Paris"
+        Predict next token → "."
+Step 3: Input is now "The capital of France is Paris."
+        Predict next token → [end]
+```
+
+Each step requires a full forward pass through the network. A 500-token response requires 500 forward passes. This is why generation takes noticeable time.
+
+<Recognition>
+
+When you see responses stream in word by word, you're watching the autoregressive loop in action. Each word appears after a forward pass completes. The model doesn't know what it will say next until it says it.
+
+</Recognition>
+
+**Why is inference expensive?**
+
+Each forward pass involves massive matrix multiplications across billions of parameters. For a 70-billion parameter model, each token requires roughly 70 billion multiply-add operations.
+
+Multiply by sequence length. A 1000-token response means 70 trillion operations. This is why inference requires specialized hardware: GPUs or TPUs that can perform trillions of operations per second.
+
+**The KV cache optimization**
+
+Here's a key insight: in autoregressive generation, most of the computation is repeated. When generating token 501, you recompute attention for tokens 1-500, even though nothing about them changed.
+
+The **KV cache** stores the key and value vectors from previous tokens. On each new step, you only compute the new token and look up cached values for previous tokens. This dramatically speeds up generation.
+
+The tradeoff: the cache consumes memory. Long contexts with large caches can exhaust GPU memory. This is one reason context windows have practical limits.
+
+<Question title="What's the difference between latency and throughput?">
+
+**Latency**: Time to generate one response. How long you wait.
+
+**Throughput**: Tokens generated per second across all users. Total capacity.
+
+They often trade off. Batching multiple requests together improves throughput (GPU stays busy) but may increase latency (your request waits for others).
+
+Providers tune this balance. Interactive applications prioritize latency. Batch processing prioritizes throughput.
+
+</Question>
+
+<Expandable title="Batching and parallelism">
+
+A single request doesn't fully utilize a modern GPU. The solution: process multiple requests simultaneously.
+
+**Batching**: Group requests together, process them in parallel through the same model. More efficient hardware utilization.
+
+**Continuous batching**: As some requests finish, new ones join the batch dynamically. Keeps the GPU constantly busy.
+
+**Speculative decoding**: Use a small, fast model to predict several tokens, then verify with the large model in one pass. Can speed up generation significantly.
+
+These optimizations are why API inference is cheaper than running your own GPU: providers achieve efficiency through scale and engineering.
+
+</Expandable>
+
+**What determines inference speed?**
+
+Key factors:
+
+- **Model size**: More parameters means more computation per token
+- **Context length**: Longer contexts mean more attention computation (quadratic scaling)
+- **Hardware**: GPU memory, compute speed, interconnect bandwidth
+- **Optimization**: KV cache, quantization, batching efficiency
+- **Sampling**: How tokens are selected (simple greedy vs complex sampling)
+
+Smaller models (7B vs 70B parameters) generate much faster but may produce lower quality. Quantized models (reduced precision) trade some quality for speed. The right balance depends on use case.
+
+<Metaphor title="The thinking river">
+
+Generation is like a river that carves its own path. Each token is a drop that, once placed, determines where the next drop can go. The model doesn't plan the whole river course in advance. It places each drop based on the terrain so far.
+
+This is why generation can go wrong and can't easily recover. A misleading early token shapes all subsequent tokens. The river carved a path that's hard to undo.
+
+</Metaphor>
+
+<TryThis>
+
+Watch response streaming carefully. Notice the speed: how many tokens per second? Try different providers or models and compare. Count words in a response and note the total time. You're measuring inference efficiency directly.
+
+</TryThis>
+
+**Inference vs training**
+
+Training is much more expensive than inference because:
+
+- Training computes gradients (backward pass) in addition to predictions (forward pass)
+- Training processes the entire dataset many times (epochs)
+- Training updates parameters, requiring memory for optimizer states
+
+A single inference query costs a tiny fraction of what training cost. But inference scales with users: millions of queries add up. Inference cost is the ongoing expense; training cost is the upfront investment.
+
+**The economics of inference**
+
+Running inference at scale requires substantial infrastructure. A single H100 GPU costs around $30,000 and can serve maybe tens of queries per second for a large model. Serving millions of users requires thousands of GPUs.
+
+This is why API pricing matters. Providers balance hardware costs, cooling, staff, and profit margins to set per-token prices. Cheaper inference comes from efficiency gains: better hardware, smarter batching, model optimizations.
+
+<Sources>
+<Citation type="video" title="Let's build GPT: from scratch, in code" source="Andrej Karpathy" url="https://www.youtube.com/watch?v=kCc8FmEb1nY" year={2023} />
+<Citation type="paper" title="Fast Inference from Transformers via Speculative Decoding" authors="Leviathan et al." source="Google" url="https://arxiv.org/abs/2211.17192" year={2022} />
+<Citation type="article" title="Large Language Model Inference" source="Hugging Face" url="https://huggingface.co/docs/transformers/llm_tutorial" />
+</Sources>

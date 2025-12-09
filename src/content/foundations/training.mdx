@@ -1,0 +1,144 @@
+---
+id: training
+title: "How are LLMs trained?"
+summary: LLMs learn by predicting text billions of times, adjusting their parameters to make better predictions. This simple process, at massive scale, produces remarkable capabilities.
+prerequisites:
+  - neural-network
+  - parameters
+children:
+  - tuning
+  - reward
+related:
+  - labels
+  - hardware
+keywords:
+  - training
+  - pre-training
+  - backpropagation
+  - gradient descent
+  - loss
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**How do you teach a neural network language?**
+
+You show it text. A lot of text. And you ask it, over and over: what word comes next?
+
+The model starts with random parameters. Its predictions are nonsense. But each wrong prediction provides feedback. The parameters adjust slightly. Over billions of examples, the adjustments accumulate into something that understands language.
+
+This is **pre-training**: the massive first phase where an LLM learns the patterns of language itself.
+
+**The training loop**
+
+Training follows a simple loop:
+
+1. **Sample a batch**: Grab some text from the training data
+2. **Forward pass**: Run the text through the model, get predictions for each next token
+3. **Compute loss**: Compare predictions to actual next tokens. How wrong was it?
+4. **Backward pass**: Calculate how each parameter contributed to the error
+5. **Update parameters**: Nudge each parameter slightly to reduce error
+6. **Repeat**: Billions of times
+
+Each iteration improves the model imperceptibly. But imperceptible changes compound. After trillions of tokens, the model has extracted patterns that no human could articulate.
+
+<Recognition>
+
+This is surprisingly similar to how humans learn language: exposure to massive amounts of text (or speech), pattern extraction, gradual improvement. The model learns "the cat sat on the mat" is probable and "the cat sat on the quantum" is not, just as a child learns what sounds right without explicit rules.
+
+</Recognition>
+
+**What data do they train on?**
+
+Scale requires enormous datasets:
+
+- **Web crawls**: Common Crawl, billions of web pages
+- **Books**: Digital libraries, published text
+- **Code**: GitHub repositories, documentation
+- **Conversations**: Reddit, forums, chat logs
+- **Academic papers**: Scientific literature
+- **Wikipedia**: Encyclopedic knowledge
+
+A typical large model might train on trillions of tokens from diverse sources. The diversity matters: it's why LLMs can discuss both Shakespeare and Python, both cooking and quantum physics.
+
+<Question title="What is 'loss' and why minimize it?">
+
+**Loss** is a number measuring how wrong the model's predictions are. Common for LLMs is **cross-entropy loss**: roughly, how surprised the model was by the actual next token.
+
+If the model predicts "mat" with 90% probability and the actual word is "mat," the loss is low. If it predicts "mat" with 1% probability, the loss is high.
+
+Training minimizes average loss across all predictions. Lower loss means the model assigns higher probability to what actually came next. It's becoming a better predictor.
+
+This single objective, getting good at predicting next tokens, turns out to teach grammar, facts, reasoning, and more. The objective is simple; the emergent capabilities are not.
+
+</Question>
+
+**The compute required**
+
+Training large models requires staggering resources:
+
+- **GPT-3** (175B parameters): Estimated thousands of GPU-years
+- **GPT-4**: Even more, exact figures undisclosed
+- **Cost**: Tens to hundreds of millions of dollars in compute
+
+Training runs last weeks to months on clusters of thousands of specialized chips. Power consumption rivals small towns. Cooling is a serious engineering challenge.
+
+This is why only a few organizations train frontier models. The capital requirements are prohibitive.
+
+<Expandable title="Distributed training across many machines">
+
+No single machine can train a large model. The solution: **distributed training** across hundreds or thousands of machines.
+
+**Data parallelism**: Each machine sees different batches of data, computes gradients, and they're averaged across machines.
+
+**Model parallelism**: The model itself is split across machines. Different layers live on different chips.
+
+**Pipeline parallelism**: Different stages of the forward and backward pass run on different machines simultaneously.
+
+Coordinating this is complex. Communication between machines becomes a bottleneck. Training code is as much about distributed systems as about machine learning.
+
+</Expandable>
+
+**Stages of training**
+
+Modern LLMs typically go through multiple phases:
+
+1. **Pre-training**: Massive text prediction on diverse data. Builds general capabilities.
+
+2. **Supervised fine-tuning** (SFT): Training on curated instruction-response pairs. Teaches the model to follow instructions.
+
+3. **Reinforcement learning from human feedback** (RLHF): Training on human preferences about response quality. Aligns with what users want.
+
+Each stage builds on the previous. Pre-training provides the foundation; fine-tuning and RLHF shape behavior.
+
+<Metaphor title="Carving a sculpture">
+
+Pre-training is quarrying a massive block of marble. Billions of text predictions shape the raw material into something with potential, with structure.
+
+Fine-tuning is carving. Specialized training data sculpts the general shape into something more specific: an assistant, a coder, a particular persona.
+
+RLHF is polishing. Human feedback smooths rough edges, adjusts the expression, refines the final appearance.
+
+The foundation must be solid. You can't fine-tune your way to capabilities that aren't latent in the pre-trained model.
+
+</Metaphor>
+
+<TryThis>
+
+If you have access to the OpenAI or Anthropic developer consoles, check the training compute reported for various model versions. Compare costs. Notice how each generation required dramatically more compute than the last.
+
+</TryThis>
+
+**Why does it work?**
+
+This is the deep mystery. Predicting next tokens sounds too simple to produce intelligence. Yet it works.
+
+One theory: to predict text well across all human writing, you must model human cognition. You must understand logic to predict arguments, facts to predict descriptions, emotion to predict dialogue. The prediction task forces the model to develop something like general intelligence.
+
+Whether this is "real" understanding remains debated. What's undeniable: the training process produces capabilities that continually surprise us.
+
+<Sources>
+<Citation type="paper" title="Language Models are Few-Shot Learners" authors="Brown et al." source="OpenAI" url="https://arxiv.org/abs/2005.14165" year={2020} />
+<Citation type="video" title="Let's build GPT: from scratch, in code" source="Andrej Karpathy" url="https://www.youtube.com/watch?v=kCc8FmEb1nY" year={2023} />
+<Citation type="paper" title="Training language models to follow instructions with human feedback" authors="Ouyang et al." source="OpenAI" url="https://arxiv.org/abs/2203.02155" year={2022} />
+</Sources>

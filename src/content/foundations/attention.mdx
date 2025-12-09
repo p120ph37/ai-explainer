@@ -1,0 +1,130 @@
+---
+id: attention
+title: "How does attention work?"
+summary: Attention lets a model focus on relevant parts of the input when producing each output. It's the mechanism that allows LLMs to understand context.
+prerequisites:
+  - neural-network
+  - embeddings
+children:
+  - transformer
+related:
+  - context-window
+keywords:
+  - attention
+  - self-attention
+  - query
+  - key
+  - value
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**How does the model know which words matter for predicting the next one?**
+
+When you read "The cat sat on the ___", you know "mat" is likely because of "cat" and "sat." Not every word matters equally. Your brain focuses on the relevant parts.
+
+Neural networks needed a similar ability. Enter **attention**: a mechanism that lets the model dynamically focus on different parts of the input depending on what it's trying to do.
+
+Before attention, models processed text in fixed ways. With attention, the model learns *where to look* for each decision it makes.
+
+**The core idea: weighted combinations**
+
+Attention computes which parts of the input are relevant to each output. For every position in the sequence, it produces weights over all other positions. High weight means "pay attention here." Low weight means "ignore this."
+
+These weights let the model combine information flexibly. When predicting a word that refers back to something earlier, attention can put high weight on that earlier word, effectively connecting them despite the distance.
+
+<Recognition>
+
+You do this when reading. Encountering a pronoun like "it," your mind flicks back to find the referent. "The book was heavy. I dropped it." You instantly connect "it" to "book." Attention gives models a similar ability to make these connections explicitly.
+
+</Recognition>
+
+**Self-attention: every word attends to every other**
+
+In **self-attention**, each position in a sequence computes attention weights over all positions (including itself). This happens in parallel for every position.
+
+The result: a new representation where each position has gathered information from wherever it was relevant. A pronoun's representation now includes information about its referent. A verb's representation includes information about its subject.
+
+This is why LLMs can handle long-range dependencies. Attention creates direct pathways between any two positions, regardless of distance.
+
+<Question title="How does it decide what's relevant?">
+
+Through learned computations called **queries**, **keys**, and **values**.
+
+Each position produces:
+- A **query**: "What am I looking for?"
+- A **key**: "What do I contain?"
+- A **value**: "What information should I contribute?"
+
+Attention scores come from comparing queries to keys. If a query matches a key well, that position gets high attention weight. The output is a weighted sum of values, where weights come from query-key matches.
+
+All of this is learned. The model discovers what queries, keys, and values to produce through training on text prediction.
+
+</Question>
+
+**Multi-head attention: looking at many things at once**
+
+A single attention mechanism can only focus on one pattern at a time. But language has many simultaneous relationships: syntax, semantics, coreference, style.
+
+**Multi-head attention** runs several attention mechanisms in parallel, each with different learned queries, keys, and values. One head might track grammatical agreement. Another might track semantic relatedness. Another might track position.
+
+The outputs of all heads are combined, giving the model a rich, multi-faceted view of relationships in the text.
+
+<Expandable title="The math behind attention">
+
+For those who want the formulas:
+
+Given query Q, key K, and value V matrices:
+
+```
+Attention(Q, K, V) = softmax(QK^T / √d) V
+```
+
+- QK^T computes similarity scores between all queries and keys
+- Division by √d (dimension size) prevents scores from getting too large
+- Softmax converts scores to weights that sum to 1
+- Multiplying by V produces the weighted combination
+
+This is computed for each attention head, then heads are concatenated and projected.
+
+The elegance: it's all matrix multiplication, which GPUs excel at computing in parallel.
+
+</Expandable>
+
+**Why attention was revolutionary**
+
+Before the Transformer (2017), sequence models processed text step-by-step. To connect the first word to the hundredth, information had to flow through 99 intermediate steps. Information got diluted or lost.
+
+Attention creates direct connections. The hundredth word can attend directly to the first. No intermediate steps, no dilution. This is why Transformers handle long contexts so much better than their predecessors.
+
+It also parallelizes perfectly. All attention computations for all positions can happen simultaneously. Previous architectures had to process sequentially. This made Transformers dramatically faster to train.
+
+<Metaphor title="A room where everyone can whisper to everyone">
+
+Picture a meeting room with a hundred people. In the old model, messages pass person-to-person down a line. By the time a message reaches the end, it's garbled.
+
+With attention, everyone can whisper directly to everyone else. Each person chooses who to listen to based on what they need to know. A question at position 100 can directly consult the answer at position 3.
+
+The "attention weights" are how much each person listens to each other person. These weights change depending on the task: different patterns of who-listens-to-whom for different purposes.
+
+</Metaphor>
+
+<TryThis>
+
+Many Transformer visualization tools show attention patterns. Try [BertViz](https://github.com/jessevig/bertviz) or look for "attention visualization" demos online. You can see which words attend to which other words. Notice how "it" attends to its referent, how verbs attend to their subjects.
+
+</TryThis>
+
+**Attention has costs**
+
+Computing attention between every pair of positions means cost grows quadratically with sequence length. Double the context, quadruple the computation.
+
+This is why context windows have limits. A million-token context means computing attention between every pair of a million positions: a trillion operations per layer. Researchers work on efficient attention variants (sparse attention, linear attention) to reduce this cost.
+
+For now, the quadratic cost is why large context windows require proportionally more compute.
+
+<Sources>
+<Citation type="paper" title="Attention Is All You Need" authors="Vaswani et al." source="Google" url="https://arxiv.org/abs/1706.03762" year={2017} />
+<Citation type="video" title="Attention in transformers, visually explained" source="3Blue1Brown" url="https://www.youtube.com/watch?v=eMlx5fFNoYc" year={2024} />
+<Citation type="article" title="The Illustrated Transformer" source="Jay Alammar" url="https://jalammar.github.io/illustrated-transformer/" year={2018} />
+</Sources>
