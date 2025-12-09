@@ -53,6 +53,7 @@ Cursor Agent adds suggestions here. Check to approve.
 - [ ] **embeddings**: How do tokens become numbers?
   - Scope: Vector representations, semantic similarity, embedding space
   - Rationale: Referenced in tokens as related; bridges tokenization to neural network processing
+  - Aside: Mention eigenvalues/eigenvectors — the mathematical machinery behind dimensionality and finding meaningful axes in high-dimensional spaces
 
 - [ ] **vector-databases-rag**: How do LLMs use external knowledge?
   - Scope: Vector databases, embeddings for retrieval, RAG (Retrieval-Augmented Generation), semantic search
@@ -86,6 +87,11 @@ Cursor Agent adds suggestions here. Check to approve.
   - Scope: Neurons, layers, weights, activation functions; start with perceptron for intuition
   - Rationale: Core building block underlying all LLMs; demystifies "how it actually works"
   - Note: Interactive perceptron toy for hands-on experimentation with weights and decision boundaries
+
+- [ ] **hardware**: What hardware runs AI?
+  - Scope: CPU vs GPU vs TPU and why it matters; parallelizability (on-die and multi-machine); memory and power requirements; major manufacturers (NVIDIA, AMD, Google, Intel, etc.), their products, competition, differentiation, and current valuations
+  - Rationale: Explains why AI progress is tied to hardware advances; contextualizes industry dynamics
+  - Note: No speculative predictions about future valuations
 
 ---
 
