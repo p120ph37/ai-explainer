@@ -1,26 +1,23 @@
-# Deploy to GitHub Pages using official GitHub actions
-# Only deploys if all tests pass (quality gate)
+# Test workflow
+# - Quick tests (unit) on every push to any branch
+# - Full tests (unit + e2e) on PRs to main and main branch pushes
 
-name: Deploy to GitHub Pages
+name: Tests
 
 on:
   push:
+    branches: ['**']  # All branches
+  pull_request:
     branches: [main]
-  workflow_dispatch:  # Allow manual trigger
+    types: [opened, synchronize, reopened, ready_for_review]
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment
+# Cancel in-progress runs for the same branch
 concurrency:
-  group: pages
+  group: test-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Run all tests first as quality gate
+  # Quick unit tests - runs on all pushes
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -37,9 +34,14 @@ jobs:
       - name: Run unit tests
         run: bun test
 
+  # Full e2e tests - only on PRs (non-draft) and main branch
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    # Run on main pushes OR non-draft PRs
+    if: |
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,6 +54,9 @@ jobs:
 
       - name: Install Playwright browsers
         run: bunx playwright install chromium --with-deps
+
+      - name: Run unit tests
+        run: bun test
 
       - name: Build for e2e tests
         run: bun run build
@@ -69,6 +74,15 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+      - name: Upload test screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-screenshots
+          path: test-results/
+          retention-days: 7
+
+  # Content validation
   validate:
     name: Content Validation
     runs-on: ubuntu-latest
@@ -85,41 +99,3 @@ jobs:
       - name: Validate content
         run: bun run validate
 
-  # Build only runs after all tests pass
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [unit-tests, e2e-tests, validate]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Build
-        run: bun run build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dist
-
-  # Deploy only runs after build succeeds
-  deploy:
-    name: Deploy
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4

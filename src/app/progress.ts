@@ -74,6 +74,14 @@ function emitDiscovery(nodeId: string, sourceElement: HTMLElement): void {
 }
 
 /**
+ * Check if the user is currently on the index page
+ * Links on the index page don't trigger discovery effects
+ */
+export function isOnIndexPage(): boolean {
+  return window.location.hash === '#/index' || window.location.hash === '';
+}
+
+/**
  * Get progress for a specific node
  */
 export function getNodeProgress(nodeId: string): NodeProgress {

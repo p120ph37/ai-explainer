@@ -153,13 +153,6 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
       onMouseEnter={() => showTooltip.value = true}
       onMouseLeave={() => showTooltip.value = false}
     >
-      <span 
-        className="internal-link__status"
-        title={progressInfo.value.label}
-        aria-label={progressInfo.value.label}
-      >
-        {progressInfo.value.icon}
-      </span>
       <a 
         href={`#/${nodeId}`}
         onClick={handleClick}
@@ -168,6 +161,12 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
       >
         {children}
       </a>
+      <span 
+        className="internal-link__status"
+        aria-label={progressInfo.value.label}
+      >
+        {progressInfo.value.icon}
+      </span>
       {showTooltip.value && meta && (
         <span className="internal-link__tooltip" role="tooltip">
           <strong>{meta.title}</strong>

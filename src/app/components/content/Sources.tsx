@@ -4,10 +4,27 @@
  * Two-part sources section:
  * 1. FurtherReading: approachable, general resources
  * 2. References: numbered footnotes linked from specific points in text
+ * 
+ * Footnotes link to citations via id prop. When clicked:
+ * - Smoothly scrolls to the citation
+ * - Highlights/flashes the citation
+ * - Shows tooltip with citation title on hover
  */
 
+import { useState, useEffect } from 'preact/hooks';
 import type { CitationType } from '../../../content/_types.ts';
 import type { ComponentChildren } from 'preact';
+
+// Registry to store citation titles for footnote tooltips
+const citationRegistry: Map<number, string> = new Map();
+
+export function getCitationTitle(id: number): string | undefined {
+  return citationRegistry.get(id);
+}
+
+export function registerCitation(id: number, title: string): void {
+  citationRegistry.set(id, title);
+}
 
 // Type labels for citations
 const typeLabels: Record<CitationType, { emoji: string; label: string }> = {
@@ -60,6 +77,8 @@ export function References({ children }: ReferencesProps) {
 // ============================================
 
 interface CitationProps {
+  /** Optional footnote ID - if provided, this citation can be linked from a Footnote */
+  id?: number;
   type: CitationType;
   title: string;
   url: string;
@@ -68,8 +87,17 @@ interface CitationProps {
   year?: number;
 }
 
-export function Citation({ type, title, url, authors, source, year }: CitationProps) {
+export function Citation({ id, type, title, url, authors, source, year }: CitationProps) {
   const { emoji, label } = typeLabels[type];
+  
+  // Register this citation's title for footnote tooltips
+  useEffect(() => {
+    if (id !== undefined) {
+      // Strip the [N] suffix from title if present for cleaner tooltip
+      const cleanTitle = title.replace(/\s*\[\d+\]\s*$/, '');
+      registerCitation(id, cleanTitle);
+    }
+  }, [id, title]);
   
   const metaParts = [
     authors,
@@ -78,7 +106,11 @@ export function Citation({ type, title, url, authors, source, year }: CitationPr
   ].filter(Boolean);
   
   return (
-    <div className="citation">
+    <div 
+      className="citation"
+      id={id !== undefined ? `ref-${id}` : undefined}
+      data-ref-id={id}
+    >
       <span className={`citation__type citation__type--${type}`}>
         {emoji} {label}
       </span>
@@ -86,6 +118,9 @@ export function Citation({ type, title, url, authors, source, year }: CitationPr
         <a href={url} target="_blank" rel="noopener noreferrer" className="citation__title">
           {title}
         </a>
+        {id !== undefined && (
+          <span className="citation__ref-number">[{id}]</span>
+        )}
         {metaParts.length > 0 && (
           <div className="citation__meta">
             {metaParts.join(' · ')}
@@ -147,11 +182,58 @@ interface FootnoteProps {
 }
 
 export function Footnote({ id }: FootnoteProps) {
+  const [tooltipTitle, setTooltipTitle] = useState<string | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  // Get the citation title for tooltip (may not be available immediately)
+  useEffect(() => {
+    // Small delay to ensure citation has registered
+    const timer = setTimeout(() => {
+      const title = getCitationTitle(id);
+      if (title) {
+        setTooltipTitle(title);
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [id]);
+  
+  const handleClick = (e: MouseEvent) => {
+    e.preventDefault();
+    
+    // Find the citation element and scroll to it
+    const citation = document.getElementById(`ref-${id}`);
+    if (citation) {
+      // Scroll smoothly to the citation
+      citation.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Trigger highlight animation
+      citation.classList.add('citation--highlighted');
+      setTimeout(() => {
+        citation.classList.remove('citation--highlighted');
+      }, 2000);
+    }
+  };
+  
   return (
-    <sup className="footnote" id={`fn-${id}`}>
-      <a href={`#ref-${id}`} className="footnote__link" aria-label={`Reference ${id}`}>
+    <sup 
+      className="footnote" 
+      id={`fn-${id}`}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      <a 
+        href={`#ref-${id}`} 
+        className="footnote__link" 
+        aria-label={tooltipTitle ? `Reference ${id}: ${tooltipTitle}` : `Reference ${id}`}
+        onClick={handleClick}
+      >
         [{id}]
       </a>
+      {showTooltip && tooltipTitle && (
+        <span className="footnote__tooltip" role="tooltip">
+          {tooltipTitle}
+        </span>
+      )}
     </sup>
   );
 }

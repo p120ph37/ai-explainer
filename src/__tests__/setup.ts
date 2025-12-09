@@ -1,109 +1,92 @@
 /**
- * Test setup and common mocks
+ * Test setup using happy-dom for full DOM support
  * 
- * This file is automatically loaded before tests run.
+ * This provides a real DOM environment for testing components,
+ * hooks, and DOM manipulation without needing a browser.
  */
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
-    get length() { return Object.keys(store).length; },
-    key: (index: number) => Object.keys(store)[index] || null,
-  };
-})();
+import { Window } from 'happy-dom';
 
-// Mock window object for non-browser environment
-const windowMock = {
-  location: {
-    hash: '',
-    href: 'http://localhost:3000',
-    pathname: '/',
-    search: '',
-  },
-  history: {
-    pushState: () => {},
-    replaceState: () => {},
-    back: () => {},
-    forward: () => {},
-    go: () => {},
-    length: 1,
-    state: null,
-  },
-  addEventListener: () => {},
-  removeEventListener: () => {},
-  scrollTo: () => {},
-  innerWidth: 1024,
-  innerHeight: 768,
-  getComputedStyle: () => ({
-    getPropertyValue: () => '',
-  }),
-  localStorage: localStorageMock,
-  requestAnimationFrame: (cb: FrameRequestCallback) => setTimeout(() => cb(Date.now()), 16),
-  cancelAnimationFrame: (id: number) => clearTimeout(id),
-};
+// Create a happy-dom window instance
+const window = new Window({
+  url: 'http://localhost:3000',
+  width: 1024,
+  height: 768,
+});
+
+// Get document from window
+const document = window.document;
 
 // Set up globals
-if (typeof globalThis.localStorage === 'undefined') {
-  // @ts-ignore
-  globalThis.localStorage = localStorageMock;
+globalThis.window = window as unknown as Window & typeof globalThis;
+globalThis.document = document as unknown as Document;
+globalThis.navigator = window.navigator as unknown as Navigator;
+globalThis.location = window.location as unknown as Location;
+globalThis.history = window.history as unknown as History;
+globalThis.localStorage = window.localStorage as unknown as Storage;
+globalThis.sessionStorage = window.sessionStorage as unknown as Storage;
+globalThis.HTMLElement = window.HTMLElement as unknown as typeof HTMLElement;
+globalThis.Element = window.Element as unknown as typeof Element;
+globalThis.Node = window.Node as unknown as typeof Node;
+globalThis.Event = window.Event as unknown as typeof Event;
+globalThis.CustomEvent = window.CustomEvent as unknown as typeof CustomEvent;
+globalThis.MouseEvent = window.MouseEvent as unknown as typeof MouseEvent;
+globalThis.KeyboardEvent = window.KeyboardEvent as unknown as typeof KeyboardEvent;
+globalThis.MutationObserver = window.MutationObserver as unknown as typeof MutationObserver;
+globalThis.IntersectionObserver = window.IntersectionObserver as unknown as typeof IntersectionObserver;
+globalThis.ResizeObserver = window.ResizeObserver as unknown as typeof ResizeObserver;
+globalThis.DOMRect = window.DOMRect as unknown as typeof DOMRect;
+globalThis.getComputedStyle = window.getComputedStyle.bind(window) as typeof getComputedStyle;
+globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(() => cb(performance.now()), 16) as unknown as number;
+globalThis.cancelAnimationFrame = (id: number) => clearTimeout(id);
+
+// Reset state between tests
+beforeEach(() => {
+  // Clear localStorage
+  localStorage.clear();
+  
+  // Reset location hash
+  window.location.hash = '';
+  
+  // Clear document body
+  document.body.innerHTML = '';
+});
+
+// Export for tests that need direct access
+export { window, document };
+
+// Helper to set up a basic DOM structure for component tests
+export function setupTestDOM(): HTMLElement {
+  document.body.innerHTML = `
+    <div id="root">
+      <main class="content-node__body"></main>
+    </div>
+  `;
+  return document.getElementById('root') as HTMLElement;
 }
 
-if (typeof globalThis.window === 'undefined') {
-  // @ts-ignore
-  globalThis.window = windowMock;
+// Helper to create a mock internal link
+export function createMockInternalLink(nodeId: string, text: string = 'Test Link'): HTMLAnchorElement {
+  const anchor = document.createElement('a') as HTMLAnchorElement;
+  anchor.href = `#/${nodeId}`;
+  anchor.textContent = text;
+  return anchor;
 }
 
-// Mock document for DOM operations
-const documentMock = {
-  createElement: (tag: string) => ({
-    tagName: tag.toUpperCase(),
-    style: {},
-    classList: {
-      add: () => {},
-      remove: () => {},
-      contains: () => false,
-      toggle: () => false,
-    },
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    appendChild: () => {},
-    removeChild: () => {},
-    querySelector: () => null,
-    querySelectorAll: () => [],
-    getBoundingClientRect: () => ({ top: 0, left: 0, width: 100, height: 100, bottom: 100, right: 100 }),
-    setAttribute: () => {},
-    getAttribute: () => null,
-  }),
-  querySelector: () => null,
-  querySelectorAll: () => [],
-  body: {
-    appendChild: () => {},
-    removeChild: () => {},
-    classList: {
-      add: () => {},
-      remove: () => {},
-    },
-  },
-  documentElement: {
-    setAttribute: () => {},
-    getAttribute: () => null,
-    style: {},
-  },
-  head: {
-    appendChild: () => {},
-  },
-};
-
-if (typeof globalThis.document === 'undefined') {
-  // @ts-ignore
-  globalThis.document = documentMock;
+// Helper to create a mock element and attach to DOM
+export function createMockElement(tag: string = 'div'): HTMLElement {
+  const el = document.createElement(tag) as HTMLElement;
+  document.body.appendChild(el);
+  return el;
 }
 
-// Export mocks for use in tests
-export { localStorageMock, windowMock, documentMock };
+// Helper to wait for DOM updates
+export function waitForDOM(): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
 
+// Helper to simulate scrolling
+export function simulateScroll(scrollY: number): void {
+  Object.defineProperty(window, 'scrollY', { value: scrollY, writable: true });
+  window.dispatchEvent(new Event('scroll'));
+}

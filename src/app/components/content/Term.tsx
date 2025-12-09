@@ -150,13 +150,6 @@ export function Term({ id, children }: TermProps) {
       onFocus={() => showTooltip.value = true}
       onBlur={() => showTooltip.value = false}
     >
-      <span 
-        className="term-link__status"
-        title={progressInfo.value.label}
-        aria-label={progressInfo.value.label}
-      >
-        {progressInfo.value.icon}
-      </span>
       <a 
         href={`#/${id}`}
         onClick={handleClick}
@@ -165,6 +158,13 @@ export function Term({ id, children }: TermProps) {
       >
         {children}
       </a>
+      <span 
+        className="term-link__status"
+        title={progressInfo.value.label}
+        aria-label={progressInfo.value.label}
+      >
+        {progressInfo.value.icon}
+      </span>
       {showTooltip.value && meta && (
         <span className="term-link__tooltip" role="tooltip">
           <strong>{meta.title}</strong>

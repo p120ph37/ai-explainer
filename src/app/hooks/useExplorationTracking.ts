@@ -11,7 +11,8 @@
 
 import { useEffect, useRef, useCallback } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { updateExploredPercent, markVisited } from '../progress.ts';
+import { updateExploredPercent, markVisited, markTopicDiscovered, getQuestStatus, questStatusInfo, isOnIndexPage } from '../progress.ts';
+import { contentRegistry } from '../../content/_registry.ts';
 
 interface ContentSection {
   /** Unique ID for this section */
@@ -255,6 +256,104 @@ export function useExplorationTracking({
     
     return () => observer.disconnect();
   }, [contentSelector, scanContent]);
+  
+  // Enhance internal links with progress indicators and discovery tracking
+  // This needs to run whenever the DOM changes (e.g., expandables opening)
+  const enhanceLinks = useCallback(() => {
+    if (isOnIndexPage()) return []; // Don't enhance links on index page
+    
+    const contentBody = document.querySelector(contentSelector);
+    if (!contentBody) return [];
+    
+    // Find all anchor tags that point to internal topics
+    const links = contentBody.querySelectorAll('a[href^="#/"]');
+    const observers: IntersectionObserver[] = [];
+    
+    links.forEach((link) => {
+      const anchor = link as HTMLAnchorElement;
+      const href = anchor.getAttribute('href');
+      if (!href || anchor.dataset.enhanced === 'true') return;
+      
+      // Skip if already wrapped in an internal-link (e.g., by React component)
+      if (anchor.closest('.internal-link')) return;
+      
+      const linkNodeId = href.replace(/^#\//, '');
+      const meta = contentRegistry.getMeta(linkNodeId);
+      if (!meta) return; // Not a valid internal link
+      
+      // Mark as enhanced to avoid duplicate processing
+      anchor.dataset.enhanced = 'true';
+      
+      // Create wrapper span
+      const wrapper = document.createElement('span');
+      const status = getQuestStatus(linkNodeId);
+      const statusData = questStatusInfo[status];
+      wrapper.className = `internal-link internal-link--${status}`;
+      wrapper.dataset.nodeId = linkNodeId;
+      
+      // Move the anchor into the wrapper
+      anchor.parentNode?.insertBefore(wrapper, anchor);
+      wrapper.appendChild(anchor);
+      
+      // Add status indicator after the link (single icon, no title to avoid double tooltip)
+      const indicator = document.createElement('span');
+      indicator.className = 'internal-link__status';
+      indicator.textContent = statusData.icon;
+      indicator.setAttribute('aria-label', statusData.label);
+      wrapper.appendChild(indicator);
+      
+      // Add title tooltip to the anchor only
+      anchor.title = meta.title;
+      
+      // Set up IntersectionObserver for discovery
+      if (status === 'undiscovered') {
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting) {
+              markTopicDiscovered(linkNodeId, anchor);
+              // Update the wrapper class and indicator
+              wrapper.className = `internal-link internal-link--discovered`;
+              indicator.textContent = questStatusInfo.discovered.icon;
+              indicator.title = questStatusInfo.discovered.label;
+              observer.disconnect();
+            }
+          },
+          { threshold: 0.5 }
+        );
+        observer.observe(anchor);
+        observers.push(observer);
+      }
+    });
+    
+    return observers;
+  }, [contentSelector]);
+  
+  // Initial link enhancement on mount
+  useEffect(() => {
+    const observers = enhanceLinks();
+    return () => {
+      observers.forEach(obs => obs.disconnect());
+    };
+  }, [nodeId, enhanceLinks]);
+  
+  // Re-enhance links when expandables are toggled
+  useEffect(() => {
+    const contentBody = document.querySelector(contentSelector);
+    if (!contentBody) return;
+    
+    // When an expandable is toggled, new links may appear - enhance them
+    const handleToggle = () => {
+      setTimeout(() => enhanceLinks(), 50); // Small delay for DOM to update
+    };
+    
+    contentBody.addEventListener('click', handleToggle);
+    contentBody.addEventListener('toggle', handleToggle, true);
+    
+    return () => {
+      contentBody.removeEventListener('click', handleToggle);
+      contentBody.removeEventListener('toggle', handleToggle, true);
+    };
+  }, [contentSelector, enhanceLinks]);
   
   return {
     sections,

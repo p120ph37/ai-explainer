@@ -51,7 +51,7 @@ function deoverlapAll() {
   // Small delay to let layout settle after open/close animations
   requestAnimationFrame(() => {
     // Left margin: Questions
-    deoverlapSide('.question-aside:not(.question-aside--open)');
+    deoverlapSide('.question:not(.question--open)');
     // Right margin: Metaphors
     deoverlapSide('.metaphor:not(.metaphor--open)');
   });
@@ -70,7 +70,7 @@ export function MarginDeoverlap() {
       const relevantChange = mutations.some(m => 
         m.type === 'attributes' && 
         m.attributeName === 'class' &&
-        (m.target as Element).matches?.('.metaphor, .question-aside')
+        (m.target as Element).matches?.('.metaphor, .question')
       );
       if (relevantChange) {
         deoverlapAll();

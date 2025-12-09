@@ -42,10 +42,18 @@ export function ContentView() {
     return <IndexPage />;
   }
   
+  // Check if nodeId is an in-page anchor (like ref-1, fn-1) - these shouldn't trigger content loading
+  const isInPageAnchor = (id: string) => id.startsWith('ref-') || id.startsWith('fn-');
+  
   useEffect(() => {
     let cancelled = false;
     
     async function loadContent() {
+      // Skip in-page anchors
+      if (isInPageAnchor(nodeId.value)) {
+        return;
+      }
+      
       loading.value = true;
       error.value = null;
       

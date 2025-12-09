@@ -22,6 +22,19 @@ export const currentRoute = signal<RouteState>({
 const navHistory: RouteState[] = [];
 
 /**
+ * Check if a hash is an in-page anchor (not a route)
+ * In-page anchors include: #ref-1, #fn-1, etc.
+ * Routes always start with #/
+ */
+export function isInPageAnchor(hash: string): boolean {
+  // Empty hash or hash that doesn't start with / is in-page
+  if (!hash || !hash.startsWith('/')) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Parse the current URL into a route state
  */
 function parseUrl(): RouteState {
@@ -29,6 +42,12 @@ function parseUrl(): RouteState {
   
   if (!hash) {
     return { nodeId: 'intro', path: ['intro'] };
+  }
+  
+  if (isInPageAnchor(hash)) {
+    // Don't change route for in-page anchors
+    // Return current route or default
+    return currentRoute.value;
   }
   
   // URL format: #/path/to/node
@@ -104,6 +123,12 @@ export function initRouter(): void {
   
   // Handle browser back/forward
   window.addEventListener('popstate', (event) => {
+    // Ignore in-page anchors
+    const hash = window.location.hash.slice(1);
+    if (isInPageAnchor(hash)) {
+      return;
+    }
+    
     if (event.state) {
       currentRoute.value = event.state as RouteState;
     } else {

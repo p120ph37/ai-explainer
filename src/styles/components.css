@@ -184,11 +184,11 @@
   text-decoration-style: solid;
 }
 
-/* Status indicator - small icon before the link */
+/* Status indicator - small icon after the link */
 .term-link__status {
   display: inline-block;
   font-size: 0.7em;
-  margin-right: 0.15em;
+  margin-left: 0.2em;
   vertical-align: middle;
   opacity: 0.7;
   transition: opacity var(--duration-fast);
@@ -307,13 +307,14 @@
   text-decoration-style: solid;
 }
 
-/* Status indicator */
+/* Status indicator - after the link */
 .internal-link__status {
   display: inline-block;
   font-size: 0.7em;
-  margin-right: 0.2em;
+  margin-left: 0.2em;
   vertical-align: middle;
   opacity: 0.7;
+  font-style: normal; /* Don't inherit italics from container */
   transition: opacity var(--duration-fast);
 }
 
@@ -477,8 +478,8 @@
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
-  background: var(--color-surface);
-  border: 1px dashed var(--color-border);
+  background: var(--color-metaphor-subtle);
+  border: 1px dashed var(--color-metaphor);
   border-radius: var(--radius-md);
   cursor: pointer;
   font-family: var(--font-ui);
@@ -490,9 +491,9 @@
 }
 
 .metaphor__trigger:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  background: var(--color-accent-subtle);
+  border-color: var(--color-metaphor);
+  color: var(--color-metaphor);
+  background: var(--color-metaphor-subtle);
 }
 
 .metaphor__icon {
@@ -502,14 +503,14 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: var(--color-bg-subtle);
+  background: var(--color-metaphor-subtle);
   border-radius: var(--radius-sm);
-  color: var(--color-text-subtle);
+  color: var(--color-metaphor);
 }
 
 .metaphor__trigger:hover .metaphor__icon {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-metaphor-subtle);
+  color: var(--color-metaphor);
 }
 
 .metaphor__title {
@@ -543,20 +544,21 @@
   }
 }
 
-/* Unified box when expanded */
+/* Expanded state - subtle tinted background, header keeps its border */
 .metaphor--open {
-  border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
+  background: var(--color-metaphor-subtle);
   overflow: hidden;
 }
 
 .metaphor--open .metaphor__trigger {
-  border: none;
-  border-radius: 0;
+  /* Keep the dashed border on all sides so it's clear it's still clickable */
+  border: 1px dashed var(--color-metaphor);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: transparent;
 }
 
 .metaphor--open .metaphor__content {
-  border-top: 1px dashed var(--color-border);
   background: transparent;
 }
 
@@ -645,18 +647,18 @@
    Question Aside (Left Margin Notes)
    ============================================ */
 
-.question-aside {
+.question {
   position: relative;
   margin-block: var(--space-md);
 }
 
-.question-aside__trigger {
+.question__trigger {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  background: var(--color-question-subtle);
+  border: 1px dashed var(--color-question);
   border-radius: var(--radius-md);
   cursor: pointer;
   font-family: var(--font-ui);
@@ -667,44 +669,44 @@
   text-align: left;
 }
 
-.question-aside__trigger:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  background: var(--color-accent-subtle);
+.question__trigger:hover {
+  border-color: var(--color-question);
+  color: var(--color-question);
+  background: var(--color-question-subtle);
 }
 
-.question-aside__icon {
+.question__icon {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: var(--color-surface);
+  background: var(--color-question-subtle);
   border-radius: var(--radius-sm);
-  color: var(--color-text-subtle);
+  color: var(--color-question);
 }
 
-.question-aside__trigger:hover .question-aside__icon {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+.question__trigger:hover .question__icon {
+  background: var(--color-question-subtle);
+  color: var(--color-question);
 }
 
-.question-aside__title {
+.question__title {
   flex: 1;
   font-weight: 500;
 }
 
-.question-aside__chevron {
+.question__chevron {
   flex-shrink: 0;
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.question-aside--open .question-aside__chevron {
+.question--open .question__chevron {
   transform: rotate(180deg);
 }
 
-.question-aside__content {
+.question__content {
   padding: var(--space-md);
   padding-top: var(--space-sm);
   animation: question-content-appear var(--duration-normal, 200ms) var(--ease-out);
@@ -715,40 +717,41 @@
   to { opacity: 1; }
 }
 
-.question-aside__body p:first-child {
+.question__body p:first-child {
   margin-top: 0;
 }
 
-.question-aside__body p:last-child {
+.question__body p:last-child {
   margin-bottom: 0;
 }
 
-/* Unified box when expanded */
-.question-aside--open {
-  border: 1px solid var(--color-border);
+/* Expanded state - subtle tinted background, header keeps its border */
+.question--open {
   border-radius: var(--radius-md);
+  background: var(--color-question-subtle);
   overflow: hidden;
 }
 
-.question-aside--open .question-aside__trigger {
-  border: none;
-  border-radius: 0;
+.question--open .question__trigger {
+  /* Keep the dashed border on all sides so it's clear it's still clickable */
+  border: 1px dashed var(--color-question);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: transparent;
 }
 
-.question-aside--open .question-aside__content {
-  border-top: 1px solid var(--color-border);
+.question--open .question__content {
   background: transparent;
 }
 
 /* Desktop: Position in LEFT margin when collapsed, in flow when open */
 @media (min-width: 1200px) {
-  .question-aside {
+  .question {
     --question-width: 280px;
     --question-gap: var(--space-lg);
   }
   
   /* Collapsed: absolutely positioned in left margin */
-  .question-aside:not(.question-aside--open) {
+  .question:not(.question--open) {
     position: absolute;
     right: calc(100% + var(--question-gap));
     width: var(--question-width);
@@ -763,7 +766,7 @@
   }
   
   /* Open state: in normal flow, full width */
-  .question-aside--open {
+  .question--open {
     position: relative;
     right: auto;
     width: 100%;
@@ -798,7 +801,7 @@
 
 /* Very wide screens: larger margin notes */
 @media (min-width: 1400px) {
-  .question-aside {
+  .question {
     --question-width: 320px;
   }
 }
@@ -911,6 +914,15 @@
   color: var(--color-link);
 }
 
+.citation__ref-number {
+  color: var(--color-accent);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-left: var(--space-2xs);
+  opacity: 0.8;
+}
+
 .citation__meta {
   color: var(--color-text-muted);
   margin-top: var(--space-3xs);
@@ -1002,8 +1014,67 @@
   background: var(--color-accent-subtle);
 }
 
+/* Footnote tooltip */
+.footnote {
+  position: relative;
+}
+
+.footnote__tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-ui);
+  font-weight: normal;
+  color: var(--color-text);
+  white-space: nowrap;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: var(--z-tooltip, 100);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  
+  /* Animation */
+  animation: tooltip-appear 0.15s ease-out;
+}
+
+@keyframes tooltip-appear {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Citation highlight when navigated to */
+.citation--highlighted {
+  animation: citation-flash 2s ease-out;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes citation-flash {
+  0%, 20% { 
+    background: var(--color-accent-subtle);
+    box-shadow: 0 0 0 4px var(--color-accent-subtle);
+  }
+  100% { 
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
 /* Scroll target highlight */
 .reference:target,
+.citation:target,
 .footnote:target {
   animation: highlight-flash 1s ease-out;
 }

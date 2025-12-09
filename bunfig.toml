@@ -12,5 +12,6 @@ react-dom = "preact/compat"
 # Test configuration
 [test]
 preload = ["./src/__tests__/setup.ts"]
+root = "./src/__tests__"
 
 

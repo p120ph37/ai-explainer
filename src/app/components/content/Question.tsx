@@ -17,15 +17,15 @@ export function Question({ title, children }: QuestionProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
-    <aside className={`question-aside ${isOpen ? 'question-aside--open' : ''}`}>
+    <aside className={`question ${isOpen ? 'question--open' : ''}`}>
       <button
         type="button"
-        className="question-aside__trigger"
+        className="question__trigger"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-label={isOpen ? 'Close question' : title}
       >
-        <span className="question-aside__icon" aria-hidden="true">
+        <span className="question__icon" aria-hidden="true">
           {/* Question mark icon */}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <circle cx="12" cy="12" r="10" />
@@ -33,8 +33,8 @@ export function Question({ title, children }: QuestionProps) {
             <circle cx="12" cy="17" r="0.5" fill="currentColor" />
           </svg>
         </span>
-        <span className="question-aside__title">{title}</span>
-        <span className="question-aside__chevron" aria-hidden="true">
+        <span className="question__title">{title}</span>
+        <span className="question__chevron" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6l4 4 4-4" />
           </svg>
@@ -42,8 +42,8 @@ export function Question({ title, children }: QuestionProps) {
       </button>
       
       {isOpen && (
-        <div className="question-aside__content">
-          <div className="question-aside__body">
+        <div className="question__content">
+          <div className="question__body">
             {children}
           </div>
         </div>

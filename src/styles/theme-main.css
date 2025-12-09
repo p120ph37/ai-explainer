@@ -72,6 +72,10 @@
   /* Metaphor notes - violet/imagination color */
   --color-metaphor: #7c3aed;
   --color-metaphor-subtle: #f5f3ff;
+  
+  /* Question colors - teal/cyan for curiosity */
+  --color-question: #0891b2;
+  --color-question-subtle: #ecfeff;
 }
 
 /* Dark mode colors */
@@ -108,6 +112,10 @@
   /* Metaphor notes - violet/imagination color */
   --color-metaphor: #a78bfa;
   --color-metaphor-subtle: #1e1b2e;
+  
+  /* Question colors - teal/cyan for curiosity */
+  --color-question: #22d3ee;
+  --color-question-subtle: #0c1f24;
 }
 
 /* Component overrides */

@@ -9,7 +9,7 @@
 
 import { useEffect, useRef } from 'preact/hooks';
 import { onDiscovery } from '../progress.ts';
-import { getNode } from '../../content/_registry.ts';
+import { getNodeMeta } from '../../content/_registry.ts';
 
 interface Particle {
   id: number;
@@ -235,13 +235,9 @@ export function DiscoveryAnimationLayer() {
       
       // Get the node title for the flying element
       let title = nodeId;
-      try {
-        const module = await getNode(nodeId);
-        if (module?.meta?.title) {
-          title = module.meta.title;
-        }
-      } catch {
-        // Use nodeId as fallback
+      const nodeMeta = getNodeMeta(nodeId);
+      if (nodeMeta?.title) {
+        title = nodeMeta.title;
       }
       
       // Create flying element
