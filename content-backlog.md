@@ -14,9 +14,7 @@ Cursor Agent: Only work on checked items. Add new suggestions as unchecked items
 
 Check a box to approve a topic. Cursor Agent will work through these.
 
-- [x] **context-window**: The context window
-  - Scope: What context is, why limited, conversation "memory"
-  - From: tokens → leads to: attention
+*(No items currently approved)*
 
 ---
 
@@ -73,6 +71,7 @@ Cursor Agent adds suggestions here. Check to approve.
 - [x] **what-is-llm**: What is an LLM? *(2024-12-08)*
 - [x] **tokens**: What are tokens? *(2024-12-08)*
 - [x] **why-large**: Why does scale matter? *(2024-12-08)*
+- [x] **context-window**: The context window *(2024-12-08)*
 
 ---
 

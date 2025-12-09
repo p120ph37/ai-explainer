@@ -1,0 +1,117 @@
+---
+id: context-window
+title: "The context window"
+summary: LLMs can only consider a limited amount of text at once. This "context window" is their working memory, and understanding it explains many AI behaviors.
+prerequisites:
+  - tokens
+children:
+  - attention
+related:
+  - vector-databases-rag
+keywords:
+  - context window
+  - context length
+  - memory
+  - token limit
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**Why does ChatGPT sometimes "forget" what you told it earlier?**
+
+It hasn't forgotten. It simply can't see that part of your conversation anymore.
+
+LLMs have a **context window**: a maximum number of tokens they can consider at once. Everything the model knows about your conversation must fit within this window. Your messages, its responses, any system instructions, all of it competes for the same limited space.
+
+When a conversation grows too long, older content gets pushed out. The model isn't storing memories elsewhere. If it's outside the window, it's gone.
+
+<Recognition>
+
+You've likely experienced this. A long conversation with an AI assistant starts going in circles, or it contradicts something it said earlier, or it asks a question you already answered. The assistant isn't being careless. It literally cannot see the earlier exchange anymore.
+
+</Recognition>
+
+**How big is the context window?**
+
+It varies by model and keeps growing:
+
+- GPT-3 (2020): 4,096 tokens (roughly 3,000 words)
+- GPT-4 (2023): 8,192 or 32,768 tokens
+- Claude 3 (2024): 200,000 tokens (roughly a 500-page book)
+- Some models now claim 1 million+ tokens
+
+These numbers sound large, but they fill up fast. A back-and-forth conversation accumulates tokens quickly. Every message you send, every response generated, every piece of context provided by the application: all of it counts against the limit.
+
+<Question title="What happens when you hit the limit?">
+
+Different systems handle this differently, but something must give.
+
+Some truncate: they simply drop the oldest messages from the conversation. You keep chatting, but the model's view of history keeps sliding forward, forgetting the beginning.
+
+Some summarize: they periodically compress older conversation into a shorter summary, preserving key points while freeing up tokens.
+
+Some refuse: they tell you the context is full and you need to start a new conversation.
+
+The application you're using makes this choice, often invisibly. When an AI assistant suddenly seems to lose track of your project, it may have silently truncated your earlier context.
+
+</Question>
+
+**Why can't they just make it bigger?**
+
+They're trying. Context windows have grown dramatically. But there are real constraints.
+
+Computational cost scales with context length. The attention mechanism (how the model weighs different parts of the input) requires comparing every token to every other token. Double the context, and you roughly quadruple the computation needed.
+
+Quality can degrade with length. Models trained on shorter contexts may struggle to effectively use very long ones. Information in the middle of a long context often gets less attention than information at the beginning or end.
+
+<Expandable title="The 'lost in the middle' problem">
+
+Research has shown that LLMs often struggle with information placed in the middle of long contexts. They attend well to the beginning (primacy) and the end (recency), but middle content can get overlooked.
+
+This has practical implications. If you're providing a long document and asking questions about it, key details in the middle pages may be effectively invisible to the model, even though they're technically within the context window.
+
+Researchers are actively working on architectures that handle long contexts more uniformly, but it remains an open challenge.
+
+</Expandable>
+
+**What does this mean for how I use AI?**
+
+Understanding context windows changes how you interact with AI tools.
+
+**Front-load important information.** Put critical context early in your prompt where it's less likely to be truncated and more likely to receive attention.
+
+**Be concise.** Verbose prompts waste tokens. Every unnecessary word is space that could hold useful context.
+
+**Start fresh when needed.** If a conversation has gone on too long and the AI seems confused, starting a new conversation with a clear summary of the relevant context often works better than continuing.
+
+**Provide context explicitly.** Don't assume the model remembers previous conversations. Each session typically starts with an empty context window.
+
+<TryThis>
+
+In a long conversation, try asking the AI to summarize what it knows about your project or request. If the summary is missing key details you mentioned earlier, those details have likely fallen outside the context window. This is a useful diagnostic when the AI seems to be ignoring your requirements.
+
+</TryThis>
+
+<Metaphor title="A desk, not a filing cabinet">
+
+The context window is like a desk, not a filing cabinet. Everything the model is actively thinking about must fit on the desk surface. There's no drawer to pull old papers from, no cabinet of archived conversations.
+
+When you slide a new document onto a crowded desk, something falls off the other side. The model isn't choosing to forget. There's simply no room.
+
+Some applications try to simulate a filing cabinet by summarizing old conversations and keeping the summaries on the desk. But this is a workaround, not true memory. The original details are still gone.
+
+</Metaphor>
+
+**The context window shapes AI capabilities**
+
+Many limitations people attribute to AI "intelligence" are actually context window constraints.
+
+Can't maintain a coherent project over weeks? Context window. Contradicts earlier statements? Context window. Needs repeated reminders? Context window.
+
+As context windows grow, some of these limitations will ease. But the fundamental constraint remains: the model can only reason about what it can currently see.
+
+<Sources>
+<Citation type="paper" title="Lost in the Middle: How Language Models Use Long Contexts" authors="Liu et al." source="Stanford" url="https://arxiv.org/abs/2307.03172" year={2023} />
+<Citation type="article" title="Context window" source="Wikipedia" url="https://en.wikipedia.org/wiki/Context_window" />
+<Citation type="docs" title="Claude's context window" source="Anthropic" url="https://docs.anthropic.com/en/docs/about-claude/models" />
+</Sources>
