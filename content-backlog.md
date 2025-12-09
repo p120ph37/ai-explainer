@@ -78,6 +78,15 @@ Cursor Agent adds suggestions here. Check to approve.
   - Scope: Reward signals, RLHF, reward modeling, reward hacking, alignment implications
   - Rationale: Core concept for understanding how models learn preferences and why alignment is hard
 
+- [ ] **labels**: What is labeled data?
+  - Scope: Labeled vs unlabeled data, supervised learning, annotation, why labels matter for training
+  - Rationale: Foundational concept; explains how models learn to associate inputs with outputs
+
+- [ ] **neural-network**: What is a neural network?
+  - Scope: Neurons, layers, weights, activation functions; start with perceptron for intuition
+  - Rationale: Core building block underlying all LLMs; demystifies "how it actually works"
+  - Note: Interactive perceptron toy for hands-on experimentation with weights and decision boundaries
+
 ---
 
 ## Completed
