@@ -17,6 +17,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { FlowDiagram, DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
 
 **How can an AI search the web or run code when it's just predicting text?**
 
@@ -44,6 +45,19 @@ When the model determines it needs a tool, instead of generating normal text, it
 ```
 
 The system executes the search, gets results, and feeds them back to the model. The model then generates its response using this real information.
+
+<FlowDiagram
+  title="Tool Use Cycle"
+  steps={[
+    { id: '1', label: 'User Query', sublabel: 'What\'s the weather?', icon: '💬' },
+    { id: '2', label: 'Model Decides', sublabel: 'Need tool: get_weather', icon: '🤔' },
+    { id: '3', label: 'Tool Call', sublabel: 'Execute function', icon: '🔧' },
+    { id: '4', label: 'Result', sublabel: 'Data returned', icon: '📥' },
+    { id: '5', label: 'Response', sublabel: 'With real info', icon: '✅' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing the tool use cycle from query to response"
+/>
 
 <Recognition>
 
@@ -157,6 +171,13 @@ The brain still does the thinking. Tools just execute what it decides to do. The
 Ask an LLM with web search a question about something that happened after its training cutoff (like recent news). Watch it decide to search, retrieve results, and synthesize an answer. Then ask the same question to a model without search capability. The difference demonstrates what tools enable.
 
 </TryThis>
+
+<DiagramPlaceholder
+  toyId="tool-flow"
+  title="Interactive Tool Flow"
+  description="Step through the tool use cycle and see each stage in action"
+  icon="🔧"
+/>
 
 **Trust and verification**
 

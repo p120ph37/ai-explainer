@@ -18,6 +18,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
 
 **How does the model know which words matter for predicting the next one?**
 
@@ -114,6 +115,13 @@ The "attention weights" are how much each person listens to each other person. T
 Many Transformer visualization tools show attention patterns. Try [BertViz](https://github.com/jessevig/bertviz) or look for "attention visualization" demos online. You can see which words attend to which other words. Notice how "it" attends to its referent, how verbs attend to their subjects.
 
 </TryThis>
+
+<DiagramPlaceholder
+  toyId="attention-viz"
+  title="Attention Pattern Visualizer"
+  description="See which words attend to which other words in real sentences"
+  icon="👁️"
+/>
 
 **Attention has costs**
 

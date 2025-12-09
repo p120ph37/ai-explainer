@@ -52,6 +52,15 @@ const contentImports: Record<string, () => Promise<ContentModule>> = {
   'vector-databases': () => import('./foundations/vector-databases.mdx') as Promise<ContentModule>,
   'hardware': () => import('./foundations/hardware.mdx') as Promise<ContentModule>,
   
+  // Ecosystem content
+  'models': () => import('./ecosystem/models.mdx') as Promise<ContentModule>,
+  'players': () => import('./ecosystem/players.mdx') as Promise<ContentModule>,
+  'open': () => import('./ecosystem/open.mdx') as Promise<ContentModule>,
+  
+  // Safety content
+  'bias': () => import('./safety/bias.mdx') as Promise<ContentModule>,
+  'alignment': () => import('./safety/alignment.mdx') as Promise<ContentModule>,
+  
   // TSX content example (for interactive visualizations):
   // 'tokenizer-demo': () => import('./interactive/tokenizer-demo.tsx'),
 };

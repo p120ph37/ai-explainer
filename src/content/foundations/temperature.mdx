@@ -16,6 +16,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
 
 **Why does the same prompt sometimes give different answers?**
 
@@ -129,6 +130,13 @@ Most conversations want moderate volume: enough variety to stay interesting, eno
 Ask the same creative prompt three times at temperature 0.2, then three times at 0.9. Notice the variation. Low temperature gives near-identical responses. High temperature gives different responses each time, sometimes wildly different. Feel the trade-off directly.
 
 </TryThis>
+
+<DiagramPlaceholder
+  toyId="temperature-slider"
+  title="Temperature Comparison"
+  description="Adjust temperature and see how the same prompt produces different outputs"
+  icon="🌡️"
+/>
 
 **Temperature is a symptom**
 

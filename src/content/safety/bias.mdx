@@ -1,0 +1,155 @@
+---
+id: bias
+title: Where does AI bias come from?
+summary: AI models learn patterns from data, including patterns that reflect historical biases, stereotypes, and inequities in that data.
+prerequisites:
+  - training
+  - embeddings
+children: []
+related:
+  - alignment
+  - hallucinations
+keywords:
+  - bias
+  - fairness
+  - discrimination
+  - training data
+  - stereotypes
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { FlowDiagram } from '../../app/components/diagrams/index.ts'
+
+**Why do AI models exhibit bias?**
+
+Models learn from data. If that data contains patterns we'd rather not perpetuate, the model learns those too.
+
+<FlowDiagram
+  title="How Bias Enters Models"
+  steps={[
+    { id: '1', label: 'Human-Generated Data', sublabel: 'Books, web, conversations', icon: '📚' },
+    { id: '2', label: 'Historical Biases Encoded', sublabel: 'Stereotypes in text', icon: '⚠️' },
+    { id: '3', label: 'Model Learns Patterns', sublabel: 'Including biased correlations', icon: '🧠' },
+    { id: '4', label: 'Bias in Outputs', sublabel: 'Stereotyped completions', icon: '💬' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing how bias flows from training data through the model to outputs"
+/>
+
+This isn't a bug that can be fixed with better code. It's a fundamental property of learning from human-generated data: the model becomes a reflection of that data, including its flaws.
+
+**What kinds of bias appear in AI models?**
+
+Several distinct types:
+
+**Representational bias**: Some groups appear more often in training data than others. The model "knows more" about well-represented groups.
+
+**Stereotypical associations**: If training data frequently associates certain professions with certain demographics, the model learns those associations. "CEO" might default to male; "nurse" might default to female.
+
+**Quality disparities**: The model may perform differently for different groups. Autocomplete might work better for common names than unusual ones. Translation might be more accurate for well-resourced languages.
+
+**Amplification**: Models can actually amplify biases present in data. If 60% of "doctor" examples in training data are male, the model might associate "doctor" with male 70% of the time.
+
+<Question title="Is this different from human bias?">
+
+Humans are biased too. But AI systems operate at scale in ways humans don't:
+
+- A biased human makes individual decisions. A biased model makes millions of decisions across a platform.
+- Human decisions can be questioned in context. Model decisions often happen silently, invisibly.
+- Humans can recognize when bias might apply and adjust. Models apply learned patterns uniformly.
+
+AI bias isn't worse than human bias in principle, but its scale and invisibility create different risks.
+
+</Question>
+
+<Recognition>
+
+You may have noticed that AI image generators create certain "looks" for different prompts. Ask for a "professional" and you might get a particular demographic mix. Ask for a "criminal" and you might get another. These patterns come directly from biased associations in training data.
+
+</Recognition>
+
+**Where does the biased data come from?**
+
+Training data for large language models is scraped from the internet, books, and other text sources. This data reflects:
+
+- **Historical inequities**: Literature from eras with explicit discrimination
+- **Contemporary stereotypes**: Online content isn't free of bias
+- **Selection effects**: What gets written, published, and preserved isn't a neutral sample of human thought
+- **Overrepresentation**: English-language, Western, and internet-user perspectives dominate
+
+<Expandable title="The internet reflects who writes on it">
+
+The training corpus is not a neutral sample of humanity. It overrepresents:
+
+- English speakers (especially American English)
+- People with internet access
+- People who write publicly (journalists, bloggers, forum posters)
+- Certain political and cultural perspectives that dominate online spaces
+
+Groups less likely to produce public text (because of language barriers, lack of internet access, or cultural factors) are underrepresented. The model knows less about them and may default to stereotypes when filling in gaps.
+
+</Expandable>
+
+**How do AI labs try to address bias?**
+
+Several approaches:
+
+1. **Data filtering**: Remove obviously offensive or biased content from training data. Imperfect; subtle bias remains.
+
+2. **Balanced sampling**: Intentionally include diverse perspectives. Limited by what data exists.
+
+3. **RLHF**: Train the model to avoid biased outputs through human feedback. Raters flag problematic responses.
+
+4. **Constitutional AI**: Define principles the model should follow, including fairness guidelines.
+
+5. **Output filtering**: Detect and block biased responses at inference time. A band-aid, not a cure.
+
+None of these fully solves the problem. Bias mitigation is an ongoing process, not a one-time fix.
+
+<Question title="Can't we just train on unbiased data?">
+
+There is no unbiased dataset of human text. Bias is baked into language itself: in which stories get told, which perspectives get published, which words carry connotations.
+
+You could curate a more balanced dataset, but that introduces its own choices: who decides what's balanced? Which groups should be represented equally? What counts as a harmful association versus a factual pattern?
+
+These are value judgments, not technical problems. Different people will reasonably disagree on the answers.
+
+</Question>
+
+**The measurement problem**
+
+Even defining "bias" is contested. Consider:
+
+- Is a model biased if it reflects true statistical patterns in the world? (More men are CEOs. Should the model know this?)
+- Is it biased if it ignores those patterns? (Should "CEO" be gender-neutral even though the role historically wasn't?)
+- How do we weigh different types of harm? (Stereotyping vs. erasing real disparities?)
+
+Researchers develop benchmarks to measure bias, but the benchmarks encode assumptions. A model might "pass" one bias test while "failing" another that measures something slightly different.
+
+<Metaphor title="The mirror and the window">
+
+A model trained on human data acts as both a mirror and a window: it reflects back patterns from the data it saw, but users look through it to understand the world.
+
+When you ask for information, you're looking through a window shaped by the mirror. The model's biases become part of your view, usually invisibly.
+
+</Metaphor>
+
+**What can you do as a user?**
+
+- **Be skeptical of defaults**: If the model makes assumptions (about gender, race, profession, culture), question whether those assumptions are warranted.
+- **Ask explicitly**: Instead of letting the model assume demographics, specify what you want or ask it to consider multiple perspectives.
+- **Notice patterns**: If you see the same stereotyped outputs repeatedly, that's the model's training showing through.
+- **Don't use AI for high-stakes decisions about people without human review**: Hiring, lending, criminal justice, anywhere bias could cause real harm.
+
+<TryThis>
+
+Ask an AI to write a story about a nurse and a doctor interacting. Notice what genders it assigns by default. Then explicitly ask for different combinations. The contrast reveals the model's learned associations.
+
+</TryThis>
+
+<Sources>
+<Citation type="article" title="On the Dangers of Stochastic Parrots" authors="Bender et al." source="Wikipedia" url="https://en.wikipedia.org/wiki/On_the_Dangers_of_Stochastic_Parrots" year={2021} />
+<Citation type="article" title="Language Models and Bias" source="Google AI Blog" url="https://ai.googleblog.com/" year={2023} />
+<Citation type="paper" title="Man is to Computer Programmer as Woman is to Homemaker?" authors="Bolukbasi et al." url="https://arxiv.org/abs/1607.06520" year={2016} />
+</Sources>
+

@@ -1,0 +1,157 @@
+---
+id: open
+title: Open vs. Closed AI Models
+summary: Open-weights models let you download and run them yourself; closed models are only accessible through APIs controlled by their creators.
+prerequisites:
+  - models
+children: []
+related:
+  - players
+  - alignment
+keywords:
+  - open source
+  - open weights
+  - Llama
+  - Mistral
+  - closed source
+  - proprietary
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { BarChart } from '../../app/components/diagrams/index.ts'
+
+**What does "open" mean for AI models?**
+
+The AI industry uses "open" differently than traditional software. A spectrum exists:
+
+- **Closed/Proprietary**: GPT-5.1, Claude 4.5. You can only access them through APIs. The weights, training data, and architecture details are secret.
+- **Open weights**: Llama 3.3, Mistral. You can download the trained model and run it yourself. But the training code and data are often not released.
+- **Fully open**: Some research models release weights, training code, and data. Rare at the frontier.
+
+Most "open-source AI" is actually open-weights: you get the result of training, not the recipe to reproduce it.
+
+<BarChart
+  title="Open vs. Closed: Approximate Capability Frontier (Late 2025)"
+  horizontal={true}
+  data={[
+    { label: 'GPT-5.1 (Closed)', value: 95, color: '#3d405b' },
+    { label: 'Claude Opus 4.5 (Closed)', value: 94, color: '#3d405b' },
+    { label: 'Gemini 2.0 (Closed)', value: 92, color: '#3d405b' },
+    { label: 'Llama 3.3 405B (Open)', value: 89, color: '#6366f1' },
+    { label: 'Mistral Large 2 (Open)', value: 86, color: '#6366f1' },
+    { label: 'Qwen 2.5 72B (Open)', value: 84, color: '#6366f1' },
+  ]}
+  yLabel="Relative Capability"
+  ariaLabel="Horizontal bar chart comparing closed models (higher scores) vs open models (slightly lower)"
+/>
+
+<Question title="Why isn't AI truly open source?">
+
+Training a frontier model costs $50-100 million or more. The investment includes:
+
+- **Compute**: Thousands of GPUs for months
+- **Data curation**: Cleaning and filtering trillions of tokens
+- **Human feedback**: Paying people to rate outputs for alignment
+
+Companies releasing open weights can justify it as ecosystem-building (Meta wants developers building on Llama). But releasing training code and data would let competitors replicate their work more cheaply.
+
+The "open" in "open-weights" is meaningful but limited. It's closer to releasing a compiled binary than releasing source code.
+
+</Question>
+
+**What can you do with open-weights models?**
+
+With Llama or Mistral, you can:
+
+- **Run locally**: No API calls, no usage fees, complete privacy
+- **Fine-tune**: Adapt the model for your specific domain or task
+- **Modify**: Remove safety filters, change behavior (with all the responsibility that implies)
+- **Deploy anywhere**: Your servers, your cloud, your rules
+- **Inspect**: Study how the model works, run interpretability research
+
+<Recognition>
+
+If you've used a local coding assistant, a private document chatbot, or an AI tool that works offline, it's almost certainly running an open model. Llama powers much of the self-hosted AI ecosystem.
+
+</Recognition>
+
+**What are the trade-offs?**
+
+**Open models offer:**
+- Control over your data (nothing sent to external servers)
+- Customization (fine-tune for your use case)
+- Cost predictability (hardware costs, not per-token fees)
+- Independence (no API changes, no service shutdowns)
+
+**Closed models offer:**
+- State-of-the-art capability (GPT-5.1, Claude 4.5 still lead)
+- No hardware management
+- Continuous improvements (providers update models behind the API)
+- Safety infrastructure (moderation, filtering, monitoring)
+
+<Expandable title="The safety debate">
+
+Open models spark genuine disagreement about safety:
+
+**For open models**: Transparency enables safety research. Closed models are black boxes we have to trust. Open development distributes power rather than concentrating it.
+
+**Against unrestricted release**: Powerful models in anyone's hands means bad actors can't be excluded. Fine-tuning can remove safety measures. Capability advances faster than our ability to prevent misuse.
+
+Meta's approach with Llama: release weights with an acceptable use policy, but no enforcement mechanism beyond legal terms. Anyone can download the model; Meta hopes most users are responsible.
+
+This debate intensifies as models become more capable. The next generation of open models may face release restrictions or government intervention.
+
+</Expandable>
+
+**The major open model families**
+
+- **Llama** (Meta): The flagship open model. Llama 3.3 405B approaches frontier closed model capability. Permissive license for most uses.
+- **Mistral** (Mistral AI): French company, strong models, competitive with larger Llama variants. Some models fully open, some commercial.
+- **Qwen** (Alibaba): Strong multilingual performance, especially Chinese. Various sizes and specializations.
+- **Gemma** (Google): Smaller models for research and development. More restricted license than Llama.
+- **Phi** (Microsoft): Small but capable, designed to prove that smaller models can perform well.
+
+<Question title="Can open models catch up to closed ones?">
+
+The gap has narrowed significantly. Llama 3.3 405B performs comparably to GPT-4-era models on many benchmarks. Whether it stays close depends on:
+
+- **Investment**: Will Meta and others continue spending billions on open model training?
+- **Architecture innovations**: Will breakthroughs stay proprietary or become public?
+- **Regulatory pressure**: Might governments restrict what can be released openly?
+
+Some believe open models will always trail by 6-12 months. Others think the frontier will become largely open as techniques commoditize. The honest answer: nobody knows.
+
+</Question>
+
+**Running open models yourself**
+
+The ecosystem for running open models has matured:
+
+- **Ollama**: One-command setup for running models locally on Mac, Windows, Linux
+- **llama.cpp**: Efficient C++ implementation that runs on consumer hardware
+- **vLLM**: High-performance inference for server deployments
+- **Text Generation WebUI**: Browser interface for local models
+
+With a decent GPU (16GB+ VRAM), you can run 7-13B parameter models comfortably. For larger models, you need multiple GPUs or cloud instances.
+
+<TryThis>
+
+Install Ollama and run `ollama run llama3.3`. Ask it the same question you'd ask ChatGPT. Notice what's different about the experience: it runs entirely on your machine, no account needed, no data leaving your computer.
+
+</TryThis>
+
+<Metaphor title="The library vs. the bookstore">
+
+Closed models are like a well-curated bookstore: you pay per visit, the selection is expertly chosen, and you can't take the books home. Open models are like a library: free access, you can take the books anywhere, but you're responsible for finding what you need and using it wisely.
+
+Both have their place. The bookstore might have a better selection for bestsellers. The library lets you do things the bookstore never would.
+
+</Metaphor>
+
+<Sources>
+<Citation type="article" title="Meta Llama 3.3" source="Meta AI" url="https://ai.meta.com/blog/meta-llama-3/" year={2025} />
+<Citation type="article" title="Mistral AI Documentation" source="Mistral AI" url="https://docs.mistral.ai/" />
+<Citation type="article" title="The Case for Open Foundation Models" source="Stanford HAI" url="https://hai.stanford.edu/" year={2024} />
+<Citation type="article" title="Ollama - Run LLMs Locally" source="Ollama" url="https://ollama.ai/" />
+</Sources>
+

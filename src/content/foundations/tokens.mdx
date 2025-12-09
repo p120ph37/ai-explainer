@@ -16,6 +16,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { TokenBoundaries, DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
 
 **When you type "Hello, how are you?" what does the model actually see?**
 
@@ -24,6 +25,20 @@ Not letters. Not words, exactly. The model sees **tokens**: chunks of text that 
 Before your message reaches the neural network, it gets chopped up by a **tokenizer**. "Hello" might become one token. "Tokenization" might become "Token" + "ization". An unusual word like "cryptographic" might become "crypt" + "ographic" or even smaller pieces.
 
 This chunking is crucial. Neural networks work with numbers, not text. Each token maps to a number (its ID in the vocabulary), and that number is what the model actually processes.
+
+<TokenBoundaries
+  originalText="Hello, how are you?"
+  tokens={[
+    { text: 'Hello', id: 9906 },
+    { text: ',', id: 11 },
+    { text: ' how', id: 1268 },
+    { text: ' are', id: 527 },
+    { text: ' you', id: 499 },
+    { text: '?', id: 30 },
+  ]}
+  showIds={true}
+  title="Example: GPT-4 tokenization"
+/>
 
 <Recognition>
 
@@ -56,6 +71,13 @@ The result: a vocabulary that efficiently compresses common language while remai
 Visit [tiktokenizer.vercel.app](https://tiktokenizer.vercel.app) and experiment. Type your name, then try common words, then technical jargon. Notice how frequent words are single tokens while unusual ones get fragmented. Try "antidisestablishmentarianism" and watch it shatter into pieces.
 
 </TryThis>
+
+<DiagramPlaceholder
+  toyId="tokenizer-demo"
+  title="Interactive Tokenizer"
+  description="Type text and see it split into tokens in real-time"
+  icon="✂️"
+/>
 
 **What does this mean for how the model thinks?**
 

@@ -17,6 +17,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
 
 **Neural networks work with numbers. Text is words. How do you bridge that gap?**
 
@@ -78,7 +79,7 @@ When you see a 2D plot of word embeddings with similar words clustered together,
 
 **Every model has its own embedding space**
 
-Different models learn different embeddings. GPT-4's embedding for "cat" is a completely different list of numbers than BERT's embedding for "cat." The spaces aren't compatible.
+Different models learn different embeddings. GPT-5.1's embedding for "cat" is a completely different list of numbers than BERT's embedding for "cat." The spaces aren't compatible.
 
 This matters when building applications. If you embed text with one model and try to search with another, the geometry doesn't match. You need to use the same embedding model consistently.
 
@@ -99,6 +100,13 @@ Every word sits at the intersection of thousands of such directions. The locatio
 Try the [Embedding Projector](https://projector.tensorflow.org/) from TensorFlow. It visualizes word embeddings in 3D (projected from higher dimensions). Search for a word and see its neighbors. Try "king" and see if the gender arithmetic works. Notice how related words cluster together.
 
 </TryThis>
+
+<DiagramPlaceholder
+  toyId="embedding-space"
+  title="3D Embedding Explorer"
+  description="Navigate through embedding space and see how similar words cluster together"
+  icon="🌐"
+/>
 
 **Why embeddings matter**
 

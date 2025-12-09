@@ -19,6 +19,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { LayerStack, DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
 
 **What's actually inside an AI model?**
 
@@ -38,6 +39,13 @@ weights: [w₁, w₂, w₃]
 output:  w₁·x₁ + w₂·x₂ + w₃·x₃ + bias
 ```
 
+<DiagramPlaceholder
+  toyId="perceptron-toy"
+  title="Interactive Perceptron"
+  description="Adjust weights and bias to see how a single neuron classifies inputs"
+  icon="🔘"
+/>
+
 The magic is in the weights. By adjusting them, the perceptron can learn to make different decisions. High weight on an input means "pay attention to this." Low or negative weight means "ignore or invert this."
 
 <Recognition>
@@ -53,6 +61,19 @@ A single perceptron can only learn simple patterns (technically, linear separati
 - **Input layer**: Your raw data (pixels of an image, tokens of text)
 - **Hidden layers**: Middle layers that transform and combine features
 - **Output layer**: The final answer (a classification, a probability distribution over next tokens)
+
+<LayerStack
+  title="Neural Network Layers"
+  layers={[
+    { id: 'input', label: 'Input Layer', sublabel: 'Raw data (tokens, pixels)', color: 'var(--color-surface)' },
+    { id: 'hidden1', label: 'Hidden Layer 1', sublabel: 'Low-level features' },
+    { id: 'hidden2', label: 'Hidden Layer 2', sublabel: 'Combinations of features' },
+    { id: 'hidden3', label: 'Hidden Layer ...', sublabel: 'Higher abstractions' },
+    { id: 'output', label: 'Output Layer', sublabel: 'Final prediction', color: 'var(--color-surface)' },
+  ]}
+  direction="up"
+  ariaLabel="Diagram showing neural network layers from input at bottom to output at top"
+/>
 
 Each layer extracts more abstract features. In an image network, early layers might detect edges, middle layers might detect shapes, and later layers might detect faces. Nobody programs these features; they emerge from training.
 
@@ -95,7 +116,7 @@ Size varies enormously:
 - A perceptron: 10-100 weights
 - A simple image classifier: millions of weights
 - GPT-3: 175 billion weights
-- GPT-4: estimated 1+ trillion weights
+- GPT-5.1: estimated 2+ trillion weights
 
 Each weight is a number, typically stored as 16 or 32 bits. GPT-3's weights alone take about 350 gigabytes to store. Running the network requires loading these weights and performing matrix multiplications across them.
 

@@ -18,6 +18,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { LayerStack } from '../../app/components/diagrams/index.ts'
 
 **What architecture actually powers GPT, Claude, and other LLMs?**
 
@@ -51,6 +52,20 @@ A Transformer stacks identical layers, each containing:
 3. **Layer normalization**: Stabilizes training
 4. **Residual connections**: Adds the input back to the output, helping gradients flow
 
+<LayerStack
+  title="Inside One Transformer Layer"
+  layers={[
+    { id: 'input', label: 'Input + Residual', sublabel: 'From previous layer' },
+    { id: 'norm1', label: 'Layer Norm' },
+    { id: 'attention', label: 'Self-Attention', sublabel: 'Every position attends to all others' },
+    { id: 'norm2', label: 'Layer Norm' },
+    { id: 'ffn', label: 'Feed-Forward Network', sublabel: 'Applied to each position' },
+    { id: 'output', label: 'Output + Residual', sublabel: 'To next layer' },
+  ]}
+  direction="up"
+  ariaLabel="Diagram showing components within a single transformer layer"
+/>
+
 Stack 12, 24, 96, or more of these layers. Each layer refines the representations, building more abstract understanding.
 
 <Question title="What are encoder and decoder?">
@@ -65,7 +80,7 @@ Different models use different configurations:
 - **Decoder-only** (GPT, Claude): Good for generating text
 - **Encoder-decoder** (T5, original Transformer): Good for translation, transformation
 
-Modern LLMs like GPT-4 and Claude are decoder-only. They just generate text, one token at a time, using masked self-attention.
+Modern LLMs like GPT-5.1 and Claude 4.5 are decoder-only. They just generate text, one token at a time, using masked self-attention.
 
 </Question>
 

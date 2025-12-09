@@ -4,3 +4,9 @@
 # Plugins for the dev server's HTML bundling
 plugins = ["./src/plugins/mdx-plugin.ts"]
 
+# Alias React to Preact for compatibility with visx
+[install.alias]
+react = "preact/compat"
+react-dom = "preact/compat"
+
+

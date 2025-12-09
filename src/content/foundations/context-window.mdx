@@ -16,6 +16,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { DiagramPlaceholder, BarChart } from '../../app/components/diagrams/index.ts'
 
 **Why does ChatGPT sometimes "forget" what you told it earlier?**
 
@@ -35,10 +36,18 @@ You've likely experienced this. A long conversation with an AI assistant starts 
 
 It varies by model and keeps growing:
 
-- GPT-3 (2020): 4,096 tokens (roughly 3,000 words)
-- GPT-4 (2023): 8,192 or 32,768 tokens
-- Claude 3 (2024): 200,000 tokens (roughly a 500-page book)
-- Some models now claim 1 million+ tokens
+<BarChart
+  title="Context Window Sizes (Tokens)"
+  horizontal={true}
+  data={[
+    { label: 'GPT-3 (2020)', value: 4096 },
+    { label: 'GPT-4 (2023)', value: 128000 },
+    { label: 'GPT-5.1 (2025)', value: 256000 },
+    { label: 'Claude 4.5 (2025)', value: 200000 },
+    { label: 'Gemini 2.0 (2025)', value: 2000000 },
+  ]}
+  ariaLabel="Bar chart showing context window growth from 4K tokens in 2020 to 2M tokens in 2025"
+/>
 
 These numbers sound large, but they fill up fast. A back-and-forth conversation accumulates tokens quickly. Every message you send, every response generated, every piece of context provided by the application: all of it counts against the limit.
 
@@ -91,6 +100,13 @@ Understanding context windows changes how you interact with AI tools.
 In a long conversation, try asking the AI to summarize what it knows about your project or request. If the summary is missing key details you mentioned earlier, those details have likely fallen outside the context window. This is a useful diagnostic when the AI seems to be ignoring your requirements.
 
 </TryThis>
+
+<DiagramPlaceholder
+  toyId="context-window-viz"
+  title="Context Window Visualizer"
+  description="Watch the context fill up and see what gets forgotten as conversation grows"
+  icon="📜"
+/>
 
 <Metaphor title="A desk, not a filing cabinet">
 

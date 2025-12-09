@@ -20,6 +20,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { FlowDiagram } from '../../app/components/diagrams/index.ts'
 
 **How do you teach a neural network language?**
 
@@ -33,12 +34,18 @@ This is **pre-training**: the massive first phase where an LLM learns the patter
 
 Training follows a simple loop:
 
-1. **Sample a batch**: Grab some text from the training data
-2. **Forward pass**: Run the text through the model, get predictions for each next token
-3. **Compute loss**: Compare predictions to actual next tokens. How wrong was it?
-4. **Backward pass**: Calculate how each parameter contributed to the error
-5. **Update parameters**: Nudge each parameter slightly to reduce error
-6. **Repeat**: Billions of times
+<FlowDiagram
+  title="The Training Loop"
+  steps={[
+    { id: '1', label: 'Sample Batch', sublabel: 'Get text', icon: '📦' },
+    { id: '2', label: 'Forward Pass', sublabel: 'Make predictions', icon: '➡️' },
+    { id: '3', label: 'Compute Loss', sublabel: 'How wrong?', icon: '📉' },
+    { id: '4', label: 'Backward Pass', sublabel: 'Find gradients', icon: '⬅️' },
+    { id: '5', label: 'Update', sublabel: 'Adjust params', icon: '🔄' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing the training loop: sample, forward, loss, backward, update"
+/>
 
 Each iteration improves the model imperceptibly. But imperceptible changes compound. After trillions of tokens, the model has extracted patterns that no human could articulate.
 
@@ -78,7 +85,7 @@ This single objective, getting good at predicting next tokens, turns out to teac
 Training large models requires staggering resources:
 
 - **GPT-3** (175B parameters): Estimated thousands of GPU-years
-- **GPT-4**: Even more, exact figures undisclosed
+- **GPT-5.1**: Trillions, exact figures undisclosed
 - **Cost**: Tens to hundreds of millions of dollars in compute
 
 Training runs last weeks to months on clusters of thousands of specialized chips. Power consumption rivals small towns. Cooling is a serious engineering challenge.

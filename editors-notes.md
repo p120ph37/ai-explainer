@@ -27,6 +27,17 @@ The dangerous patterns aren't obviously bad. They're the *default modes* LLMs fa
 
 General principle: **restraint over variation**. Each visual element adds cognitive load. The modern trend of mixing 3+ typefaces without clear visual blocking feels chaotic (e.g., Starbucks' 2025 menu redesign). Variation should be purposeful, not decorative.
 
+### Diagram Libraries
+
+**Chosen: visx** (primary), with D3.js or CSS as fallbacks for edge cases.
+
+Rejected options:
+- **Rough.js** — Hand-drawn aesthetic feels gimmicky rather than approachable
+- **Chart.js** — Too boring, information-sparse, wastes space with padding and minimal data density
+- **Mermaid** — Fine for quick diagrams, but limited customization
+
+visx provides clean, dense visualizations with good React integration. Falls back to raw D3 when visx doesn't have the right primitive, and to CSS for text-annotation cases (like token boundaries) where a charting library is overkill.
+
 ---
 
 ## On the Project's Purpose

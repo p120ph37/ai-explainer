@@ -18,6 +18,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { FlowDiagram, DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
 
 **What happens in the milliseconds after you press send?**
 
@@ -31,14 +32,18 @@ This is **inference**: running the model to produce output. Training taught the 
 
 LLMs generate text **autoregressively**: each token depends on all previous tokens.
 
-```
-Input: "The capital of France is"
-Step 1: Predict next token → "Paris"
-Step 2: Input is now "The capital of France is Paris"
-        Predict next token → "."
-Step 3: Input is now "The capital of France is Paris."
-        Predict next token → [end]
-```
+<FlowDiagram
+  title="The Generation Loop"
+  steps={[
+    { id: '1', label: 'Tokenize Input', sublabel: 'Text → Token IDs', icon: '📝' },
+    { id: '2', label: 'Forward Pass', sublabel: 'Through all layers', icon: '🔄' },
+    { id: '3', label: 'Get Probabilities', sublabel: 'For next token', icon: '📊' },
+    { id: '4', label: 'Sample Token', sublabel: 'Based on temperature', icon: '🎲' },
+    { id: '5', label: 'Append & Repeat', sublabel: 'Until done', icon: '➡️' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing the autoregressive text generation loop"
+/>
 
 Each step requires a full forward pass through the network. A 500-token response requires 500 forward passes. This is why generation takes noticeable time.
 
@@ -113,6 +118,13 @@ This is why generation can go wrong and can't easily recover. A misleading early
 Watch response streaming carefully. Notice the speed: how many tokens per second? Try different providers or models and compare. Count words in a response and note the total time. You're measuring inference efficiency directly.
 
 </TryThis>
+
+<DiagramPlaceholder
+  toyId="token-probabilities"
+  title="Token Probability Viewer"
+  description="See the probability distribution over candidate tokens at each generation step"
+  icon="📊"
+/>
 
 **Inference vs training**
 
