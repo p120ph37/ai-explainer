@@ -59,6 +59,11 @@ export function App() {
           <p>
             An open educational resource for understanding how AI actually works.
           </p>
+          <nav className="footer-nav" aria-label="Footer navigation">
+            <a href="#/index">Content Index</a>
+            <span className="footer-separator">·</span>
+            <a href="#/intro">Start Here</a>
+          </nav>
         </div>
       </footer>
     </div>

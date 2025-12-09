@@ -2,6 +2,7 @@
  * Content view component
  * 
  * Dynamically loads and renders content nodes based on the current route.
+ * Also handles special routes like the index page.
  */
 
 import { useSignal, useComputed } from '@preact/signals';
@@ -10,6 +11,7 @@ import { currentRoute, navigateTo } from '../router.ts';
 import { contentRegistry, getNode, getNodeMeta } from '../../content/_registry.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { NavLinks } from './NavLinks.tsx';
+import { IndexPage } from './IndexPage.tsx';
 import type { ComponentType } from 'preact';
 
 interface ContentModule {
@@ -30,6 +32,11 @@ export function ContentView() {
   const error = useSignal<string | null>(null);
   const Content = useSignal<ComponentType | null>(null);
   const meta = useSignal<ContentModule['meta'] | null>(null);
+  
+  // Handle special routes
+  if (nodeId.value === 'index') {
+    return <IndexPage />;
+  }
   
   useEffect(() => {
     let cancelled = false;

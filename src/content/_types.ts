@@ -17,6 +17,12 @@ export interface ContentMeta {
   /** One-sentence summary (the TLDR) */
   summary: string;
   
+  /** Category for grouping in index (e.g., "Getting Started", "Foundations", "Ecosystem") */
+  category?: string;
+  
+  /** Sort order within category (lower = earlier) */
+  order?: number;
+  
   /** Node IDs that must be understood before this one */
   prerequisites?: string[];
   
