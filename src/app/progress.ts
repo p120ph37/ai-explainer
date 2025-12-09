@@ -78,7 +78,8 @@ function emitDiscovery(nodeId: string, sourceElement: HTMLElement): void {
  * Links on the index page don't trigger discovery effects
  */
 export function isOnIndexPage(): boolean {
-  return window.location.hash === '#/index' || window.location.hash === '';
+  const pathname = window.location.pathname;
+  return pathname === '/index' || pathname === '/index/' || pathname === '/' || pathname === '';
 }
 
 /**

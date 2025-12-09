@@ -1,23 +1,29 @@
 /**
  * Tests for the client-side router
+ * 
+ * Uses path-based URLs (/tokens, /intro, etc.)
  */
 
-import { describe, test, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
-import { currentRoute, navigateTo, navigateUp, initRouter, type RouteState } from '../app/router.ts';
+import { describe, test, expect, beforeEach, mock } from 'bun:test';
+import { currentRoute, navigateTo, navigateUp, type RouteState } from '../app/router.ts';
 
 // Mock window.location and history
 const mockHistory: { state: RouteState | null }[] = [];
-let mockHash = '';
+let mockPathname = '/';
 
 const windowMock = {
   location: {
-    get hash() { return mockHash; },
-    set hash(value: string) { mockHash = value; },
+    get pathname() { return mockPathname; },
+    set pathname(value: string) { mockPathname = value; },
+    get hash() { return ''; },
+    set hash(_: string) { /* ignore hash changes */ },
+    origin: 'http://localhost:3000',
+    href: 'http://localhost:3000/',
   },
   history: {
     pushState: (state: RouteState, _: string, url: string) => {
       mockHistory.push({ state });
-      mockHash = url;
+      mockPathname = url;
     },
     replaceState: (state: RouteState, _: string, url: string) => {
       if (mockHistory.length > 0) {
@@ -25,11 +31,12 @@ const windowMock = {
       } else {
         mockHistory.push({ state });
       }
-      mockHash = url;
+      mockPathname = url;
     },
   },
   addEventListener: mock(() => {}),
   removeEventListener: mock(() => {}),
+  scrollTo: mock(() => {}),
 };
 
 // @ts-ignore
@@ -38,7 +45,7 @@ globalThis.window = windowMock;
 describe('Router', () => {
   beforeEach(() => {
     // Reset router state
-    mockHash = '';
+    mockPathname = '/';
     mockHistory.length = 0;
     currentRoute.value = { nodeId: 'intro', path: ['intro'] };
   });
@@ -49,9 +56,9 @@ describe('Router', () => {
       expect(currentRoute.value.nodeId).toBe('tokens');
     });
 
-    test('updates URL hash', () => {
+    test('updates URL pathname', () => {
       navigateTo('tokens');
-      expect(mockHash).toBe('#/tokens');
+      expect(mockPathname).toBe('/tokens');
     });
 
     test('adds to history by default', () => {
@@ -117,17 +124,24 @@ describe('Router', () => {
 });
 
 describe('URL Format', () => {
-  test('generates correct hash format', () => {
-    navigateTo('tokens');
-    expect(mockHash).toMatch(/^#\//);
+  beforeEach(() => {
+    mockPathname = '/';
+    mockHistory.length = 0;
+    currentRoute.value = { nodeId: 'intro', path: ['intro'] };
   });
 
-  test('handles multiple path segments', () => {
+  test('generates correct path format', () => {
+    navigateTo('tokens');
+    expect(mockPathname).toBe('/tokens');
+    expect(mockPathname.startsWith('/')).toBe(true);
+  });
+
+  test('uses simple path for navigation', () => {
     currentRoute.value = { nodeId: 'intro', path: ['intro'] };
     navigateTo('tokens', { addToPath: true });
     navigateTo('context-window', { addToPath: true });
     
-    expect(mockHash).toBe('#/intro/tokens/context-window');
+    // URL should just be the current node, not the full path
+    expect(mockPathname).toBe('/context-window');
   });
 });
-

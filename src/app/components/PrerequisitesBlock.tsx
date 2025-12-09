@@ -110,7 +110,7 @@ export function PrerequisitesBlock({ prerequisites }: PrerequisitesBlockProps) {
           const info = questStatusInfo[prereq.status];
           return (
             <li key={prereq.id} className={`prerequisites-item ${info.className}`}>
-              <a href={`#/${prereq.id}`} className="prerequisites-link">
+              <a href={`/${prereq.id}`} className="prerequisites-link">
                 <span 
                   className="prerequisites-status" 
                   title={info.label}

@@ -20,7 +20,7 @@ test.describe.configure({ mode: isCI ? 'skip' : 'parallel' });
 test.describe('Visual Regression', () => {
   test.describe('Page Layout', () => {
     test('home page renders correctly', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       await expect(page).toHaveScreenshot('home-page.png', {
@@ -29,7 +29,7 @@ test.describe('Visual Regression', () => {
     });
     
     test('index page renders correctly', async ({ page }) => {
-      await page.goto('/#/index');
+      await page.goto('/index');
       await page.waitForSelector('.index-page');
       
       await expect(page).toHaveScreenshot('index-page.png', {
@@ -40,7 +40,7 @@ test.describe('Visual Regression', () => {
   
   test.describe('Margin Asides', () => {
     test('metaphor aside closed state', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       // Find a metaphor aside
@@ -52,7 +52,7 @@ test.describe('Visual Regression', () => {
     });
     
     test('metaphor aside open state', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       // Find and click a metaphor aside
@@ -67,7 +67,7 @@ test.describe('Visual Regression', () => {
     });
     
     test('question aside closed state', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       const question = page.locator('.question').first();
@@ -78,7 +78,7 @@ test.describe('Visual Regression', () => {
     });
     
     test('question aside open state', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       const question = page.locator('.question').first();
@@ -93,7 +93,7 @@ test.describe('Visual Regression', () => {
     
     // TODO: Fix MarginDeoverlap component - currently asides can overlap by ~54px
     test.skip('margin asides do not overlap', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       // Wait for margin deoverlap to run
@@ -134,7 +134,7 @@ test.describe('Visual Regression', () => {
   
   test.describe('Internal Links', () => {
     test('internal link has status indicator', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       // Wait for link enhancement
@@ -148,7 +148,7 @@ test.describe('Visual Regression', () => {
     });
     
     test('internal link shows tooltip on hover', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       await page.waitForTimeout(500);
       
@@ -167,7 +167,7 @@ test.describe('Visual Regression', () => {
   
   test.describe('Footnotes', () => {
     test('footnote shows tooltip on hover', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       const footnote = page.locator('.footnote').first();
@@ -184,7 +184,7 @@ test.describe('Visual Regression', () => {
     });
     
     test('footnote click scrolls to citation', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       const footnote = page.locator('.footnote').first();
@@ -210,7 +210,7 @@ test.describe('Visual Regression', () => {
     });
     
     test('citation highlight animation', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       const footnote = page.locator('.footnote').first();
@@ -230,7 +230,7 @@ test.describe('Visual Regression', () => {
   
   test.describe('Progress Sidebar', () => {
     test('sidebar renders correctly', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       const sidebar = page.locator('.progress-sidebar');
@@ -242,7 +242,7 @@ test.describe('Visual Regression', () => {
     
     // TODO: Progress bar fill width isn't updating reactively - investigate signal binding
     test.skip('progress updates after scrolling', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
       // Scroll down the page
@@ -266,7 +266,7 @@ test.describe('Visual Regression', () => {
   
   test.describe('Theme', () => {
     test('light theme renders correctly', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.evaluate(() => {
         localStorage.setItem('theme-preference', 'light');
         document.documentElement.setAttribute('data-theme', 'light');
@@ -279,7 +279,7 @@ test.describe('Visual Regression', () => {
     });
     
     test('dark theme renders correctly', async ({ page }) => {
-      await page.goto('/#/intro');
+      await page.goto('/intro');
       await page.evaluate(() => {
         localStorage.setItem('theme-preference', 'dark');
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -296,7 +296,7 @@ test.describe('Visual Regression', () => {
 test.describe('Discovery Animation', () => {
   test('link discovery triggers animation canvas', async ({ page }) => {
     // Clear progress to ensure fresh discovery
-    await page.goto('/#/intro');
+    await page.goto('/intro');
     await page.evaluate(() => {
       localStorage.clear();
     });
@@ -311,26 +311,27 @@ test.describe('Discovery Animation', () => {
 
 test.describe('Navigation', () => {
   test('clicking internal link navigates', async ({ page }) => {
-    await page.goto('/#/intro');
+    await page.goto('/intro');
     await page.waitForSelector('.content-node__body');
     await page.waitForTimeout(500);
     
     // Find and click an internal link
-    const link = page.locator('.internal-link a, a[href^="#/"]').first();
+    const link = page.locator('.internal-link a, a[href^="/"]').first();
     
     if (await link.count() > 0) {
       const href = await link.getAttribute('href');
       await link.click();
       await page.waitForTimeout(500);
       
-      // Should have navigated
-      const currentHash = await page.evaluate(() => window.location.hash);
-      expect(currentHash).toContain('#/');
+      // Should have navigated (using pathname, not hash)
+      const pathname = await page.evaluate(() => window.location.pathname);
+      expect(pathname).toContain('/');
+      expect(pathname.length).toBeGreaterThan(1);
     }
   });
   
   test('breadcrumbs show correct path', async ({ page }) => {
-    await page.goto('/#/intro/tokens');
+    await page.goto('/intro/tokens');
     await page.waitForSelector('.content-node__body');
     
     const breadcrumbs = page.locator('.breadcrumbs');
@@ -344,7 +345,7 @@ test.describe('Navigation', () => {
 test.describe('Responsive Layout', () => {
   test('mobile viewport renders correctly', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/#/intro');
+    await page.goto('/intro');
     await page.waitForSelector('.content-node__body');
     
     await expect(page).toHaveScreenshot('mobile-layout.png', {
@@ -354,7 +355,7 @@ test.describe('Responsive Layout', () => {
   
   test('tablet viewport renders correctly', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto('/#/intro');
+    await page.goto('/intro');
     await page.waitForSelector('.content-node__body');
     
     await expect(page).toHaveScreenshot('tablet-layout.png', {

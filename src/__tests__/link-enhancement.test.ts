@@ -26,34 +26,44 @@ describe('parseInternalLink', () => {
     expect(parseInternalLink('//example.com')).toBeNull();
   });
 
-  test('returns null for non-hash links', () => {
-    expect(parseInternalLink('/tokens')).toBeNull();
+  test('returns null for non-path links', () => {
     expect(parseInternalLink('tokens')).toBeNull();
-    expect(parseInternalLink('#tokens')).toBeNull(); // Must be #/
+    expect(parseInternalLink('#tokens')).toBeNull();
+    expect(parseInternalLink('#/tokens')).toBeNull(); // Hash-based not supported
+  });
+
+  test('returns null for file paths', () => {
+    expect(parseInternalLink('/file.html')).toBeNull();
+    expect(parseInternalLink('/path/file.js')).toBeNull();
+    expect(parseInternalLink('/styles/main.css')).toBeNull();
   });
 
   test('parses valid internal links', () => {
-    const result = parseInternalLink('#/tokens');
+    const result = parseInternalLink('/tokens');
     expect(result).not.toBeNull();
     expect(result?.nodeId).toBe('tokens');
     expect(result?.isInternal).toBe(true);
-    expect(result?.href).toBe('#/tokens');
+    expect(result?.href).toBe('/tokens');
   });
 
   test('handles hyphenated node IDs', () => {
-    const result = parseInternalLink('#/context-window');
+    const result = parseInternalLink('/context-window');
     expect(result?.nodeId).toBe('context-window');
   });
 
   test('handles complex node IDs', () => {
-    const result = parseInternalLink('#/what-is-llm');
+    const result = parseInternalLink('/what-is-llm');
     expect(result?.nodeId).toBe('what-is-llm');
   });
 
+  test('extracts first path segment as node ID', () => {
+    const result = parseInternalLink('/tokens/details');
+    expect(result?.nodeId).toBe('tokens');
+  });
+
   test('returns null for invalid node ID characters', () => {
-    expect(parseInternalLink('#/node/with/slashes')).toBeNull();
-    expect(parseInternalLink('#/node with spaces')).toBeNull();
-    expect(parseInternalLink('#/node?query=1')).toBeNull();
+    expect(parseInternalLink('/node with spaces')).toBeNull();
+    expect(parseInternalLink('/node?query=1')).toBeNull();
   });
 });
 
@@ -235,14 +245,13 @@ describe('isElementInViewport', () => {
 });
 
 describe('extractNodeIdFromHref', () => {
-  test('extracts from hash format', () => {
-    expect(extractNodeIdFromHref('#/tokens')).toBe('tokens');
-    expect(extractNodeIdFromHref('#/context-window')).toBe('context-window');
-  });
-
   test('extracts from path format', () => {
     expect(extractNodeIdFromHref('/tokens')).toBe('tokens');
     expect(extractNodeIdFromHref('/context-window')).toBe('context-window');
+  });
+
+  test('extracts first segment from deep paths', () => {
+    expect(extractNodeIdFromHref('/tokens/details')).toBe('tokens');
   });
 
   test('returns null for empty string', () => {
@@ -258,5 +267,9 @@ describe('extractNodeIdFromHref', () => {
     expect(extractNodeIdFromHref('/file.html')).toBeNull();
     expect(extractNodeIdFromHref('/path/to/file.js')).toBeNull();
   });
-});
 
+  test('returns null for hash-based links', () => {
+    expect(extractNodeIdFromHref('#/tokens')).toBeNull();
+    expect(extractNodeIdFromHref('#ref-1')).toBeNull();
+  });
+});

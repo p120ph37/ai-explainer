@@ -34,7 +34,7 @@ export function NavLinks({ children, related }: NavLinksProps) {
                 <li key={nodeId}>
                   <DiscoverableLink nodeId={nodeId}>
                     <a 
-                      href={`#/${nodeId}`}
+                      href={`/${nodeId}`}
                       className="nav-link"
                       onClick={(e) => {
                         e.preventDefault();
@@ -61,7 +61,7 @@ export function NavLinks({ children, related }: NavLinksProps) {
                 <li key={nodeId}>
                   <DiscoverableLink nodeId={nodeId}>
                     <a 
-                      href={`#/${nodeId}`}
+                      href={`/${nodeId}`}
                       className="nav-link"
                       onClick={(e) => {
                         e.preventDefault();

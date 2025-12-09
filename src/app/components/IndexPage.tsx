@@ -144,7 +144,7 @@ export function IndexPage() {
                 <ul className="index-list">
                   {categoryNodes.map(node => (
                     <li key={node.id} className="index-item">
-                      <a href={`#/${node.id}`} className="index-link">
+                      <a href={`/${node.id}`} className="index-link">
                         <span className="index-title">{node.meta.title}</span>
                         <span className="index-summary">{node.meta.summary}</span>
                       </a>

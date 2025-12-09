@@ -33,19 +33,22 @@ export interface EnhancementConfig {
 
 /**
  * Parse an href attribute to extract link information
+ * Uses path-based URLs (/tokens, /intro, etc.)
  */
 export function parseInternalLink(href: string | null): LinkInfo | null {
   if (!href) return null;
   
-  // Check if it's an internal hash link
-  if (!href.startsWith('#/')) {
+  // Only support path-based links (/nodeId)
+  if (!href.startsWith('/') || href.startsWith('//') || href.includes('.')) {
     return null;
   }
   
-  const nodeId = href.replace(/^#\//, '');
+  const nodeId = href.slice(1).split('/')[0];
+  
+  if (!nodeId) return null;
   
   // Validate node ID format (alphanumeric with hyphens)
-  if (!nodeId || !/^[a-z0-9-]+$/i.test(nodeId)) {
+  if (!/^[a-z0-9-]+$/i.test(nodeId)) {
     return null;
   }
   
@@ -148,21 +151,17 @@ export function isElementInViewport(
 }
 
 /**
- * Parse node ID from various href formats
+ * Parse node ID from href
+ * Uses path-based URLs (/tokens, /intro, etc.)
  */
 export function extractNodeIdFromHref(href: string): string | null {
   if (!href) return null;
   
-  // Handle #/nodeId format
-  if (href.startsWith('#/')) {
-    return href.slice(2);
+  // Only support path-based format (/nodeId)
+  if (!href.startsWith('/') || href.startsWith('//') || href.includes('.')) {
+    return null;
   }
   
-  // Handle /nodeId format (without hash)
-  if (href.startsWith('/') && !href.startsWith('//') && !href.includes('.')) {
-    return href.slice(1);
-  }
-  
-  return null;
+  return href.slice(1).split('/')[0] || null;
 }
 

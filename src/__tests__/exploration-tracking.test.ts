@@ -147,36 +147,36 @@ describe('Exploration Tracking', () => {
     test('finds internal links in content', () => {
       document.body.innerHTML = `
         <article class="content-node__body">
-          <p>See <a href="#/tokens">tokens</a> for more info.</p>
-          <p>Also check <a href="#/embeddings">embeddings</a>.</p>
+          <p>See <a href="/tokens">tokens</a> for more info.</p>
+          <p>Also check <a href="/embeddings">embeddings</a>.</p>
         </article>
       `;
       
-      const links = document.querySelectorAll('a[href^="#/"]');
+      const links = document.querySelectorAll('a[href^="/"]');
       expect(links.length).toBe(2);
     });
     
     test('ignores external links', () => {
       document.body.innerHTML = `
         <article class="content-node__body">
-          <a href="#/tokens">Internal</a>
+          <a href="/tokens">Internal</a>
           <a href="https://example.com">External</a>
           <a href="#ref-1">Anchor</a>
         </article>
       `;
       
-      const internalLinks = document.querySelectorAll('a[href^="#/"]');
+      const internalLinks = document.querySelectorAll('a[href^="/"]');
       expect(internalLinks.length).toBe(1);
     });
     
     test('can extract node ID from internal link', () => {
       document.body.innerHTML = `
-        <a href="#/context-window" id="test-link">Context Window</a>
+        <a href="/context-window" id="test-link">Context Window</a>
       `;
       
       const link = document.getElementById('test-link');
       const href = link?.getAttribute('href');
-      const nodeId = href?.replace(/^#\//, '');
+      const nodeId = href?.slice(1); // Remove leading /
       
       expect(nodeId).toBe('context-window');
     });
@@ -219,7 +219,7 @@ describe('Exploration Tracking', () => {
   describe('Link Enhancement', () => {
     test('can mark links as enhanced', () => {
       document.body.innerHTML = `
-        <a href="#/tokens" id="test-link">Tokens</a>
+        <a href="/tokens" id="test-link">Tokens</a>
       `;
       
       const link = document.getElementById('test-link') as HTMLAnchorElement;
@@ -230,7 +230,7 @@ describe('Exploration Tracking', () => {
     
     test('can wrap links with status indicators', () => {
       document.body.innerHTML = `
-        <p>See <a href="#/tokens" id="test-link">tokens</a></p>
+        <p>See <a href="/tokens" id="test-link">tokens</a></p>
       `;
       
       const link = document.getElementById('test-link') as HTMLAnchorElement;
@@ -252,7 +252,7 @@ describe('Exploration Tracking', () => {
     test('enhanced links can be detected to avoid duplicate enhancement', () => {
       document.body.innerHTML = `
         <span class="internal-link">
-          <a href="#/tokens" data-enhanced="true">Tokens</a>
+          <a href="/tokens" data-enhanced="true">Tokens</a>
           <span class="internal-link__status">○</span>
         </span>
       `;

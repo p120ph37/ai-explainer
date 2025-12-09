@@ -4,18 +4,27 @@
 
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { currentRoute, initRouter } from './router.ts';
+import { currentRoute, initRouter, registerNodeId } from './router.ts';
 import { toggleTheme, getEffectiveTheme } from './theme.ts';
 import { markVisited } from './state.ts';
 import { ContentView } from './components/ContentView.tsx';
 import { MarginDeoverlap } from './components/MarginDeoverlap.tsx';
 import { ProgressSidebar } from './components/ProgressSidebar.tsx';
 import { DiscoveryAnimationLayer } from './components/DiscoveryAnimation.tsx';
+import { contentRegistry } from '../content/_registry.ts';
 
 export function App() {
   const theme = useSignal(getEffectiveTheme());
   
   useEffect(() => {
+    // Register all known node IDs with the router
+    const nodeIds = contentRegistry.getAllIds();
+    nodeIds.forEach(registerNodeId);
+    
+    // Also register special pages
+    registerNodeId('index');
+    
+    // Initialize router
     initRouter();
     
     // Apply the main visual theme
@@ -37,7 +46,7 @@ export function App() {
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header__inner">
-          <a href="#/" className="app-logo">
+          <a href="/" className="app-logo">
             Understanding Frontier AI
           </a>
           
@@ -62,9 +71,9 @@ export function App() {
             An open educational resource for understanding how AI actually works.
           </p>
           <nav className="footer-nav" aria-label="Footer navigation">
-            <a href="#/index">Content Index</a>
+            <a href="/index">Content Index</a>
             <span className="footer-separator">·</span>
-            <a href="#/intro">Start Here</a>
+            <a href="/intro">Start Here</a>
           </nav>
         </div>
       </footer>
@@ -77,4 +86,3 @@ export function App() {
     </div>
   );
 }
-

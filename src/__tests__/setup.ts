@@ -68,7 +68,7 @@ export function setupTestDOM(): HTMLElement {
 // Helper to create a mock internal link
 export function createMockInternalLink(nodeId: string, text: string = 'Test Link'): HTMLAnchorElement {
   const anchor = document.createElement('a') as HTMLAnchorElement;
-  anchor.href = `#/${nodeId}`;
+  anchor.href = `/${nodeId}`;
   anchor.textContent = text;
   return anchor;
 }

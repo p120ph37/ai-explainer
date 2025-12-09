@@ -1,11 +1,21 @@
 /**
- * Simple client-side router
+ * Hybrid Router
  * 
- * Handles navigation between content nodes using the History API.
- * Supports prefetching of likely next nodes for smooth navigation.
+ * Provides SPA-like navigation while using real URLs for SEO and deep linking.
+ * 
+ * Features:
+ * - Real pathname-based URLs (/tokens, /intro, etc.)
+ * - Intercepts internal link clicks for instant navigation
+ * - Fetches HTML and swaps content without full page reload
+ * - Uses History API for proper back/forward support
+ * - Falls back to normal navigation for external links
+ * 
+ * This approach combines the benefits of:
+ * - MPA: Real URLs, SEO, deep linking, server-rendered initial content
+ * - SPA: Fast navigation, preserved state, no JS reload
  */
 
-import { signal, effect } from '@preact/signals';
+import { signal } from '@preact/signals';
 
 export interface RouteState {
   nodeId: string;
@@ -18,40 +28,52 @@ export const currentRoute = signal<RouteState>({
   path: ['intro'],
 });
 
-// Navigation history for back button support
-const navHistory: RouteState[] = [];
+// Navigation state
+export const isNavigating = signal(false);
+
+// Known internal node IDs (populated at runtime from content registry)
+const knownNodeIds = new Set<string>();
+
+/**
+ * Register a node ID as a valid internal route
+ */
+export function registerNodeId(nodeId: string): void {
+  knownNodeIds.add(nodeId);
+}
+
+/**
+ * Check if a path is an internal route
+ */
+export function isInternalPath(path: string): boolean {
+  // Remove leading slash and get first segment
+  const nodeId = path.replace(/^\//, '').split('/')[0];
+  
+  // Check if it's a known node or special page
+  return knownNodeIds.has(nodeId) || nodeId === 'index' || nodeId === '';
+}
 
 /**
  * Check if a hash is an in-page anchor (not a route)
  * In-page anchors include: #ref-1, #fn-1, etc.
- * Routes always start with #/
+ * Routes use paths like /tokens
  */
 export function isInPageAnchor(hash: string): boolean {
-  // Empty hash or hash that doesn't start with / is in-page
-  if (!hash || !hash.startsWith('/')) {
-    return true;
-  }
-  return false;
+  if (!hash) return false;
+  // Any hash is an in-page anchor (routes use paths now)
+  return hash.startsWith('#');
 }
 
 /**
- * Parse the current URL into a route state
+ * Parse URL pathname into a route state
  */
-function parseUrl(): RouteState {
-  const hash = window.location.hash.slice(1); // Remove #
+function parsePathname(pathname: string): RouteState {
+  // Remove leading/trailing slashes and split
+  const parts = pathname.replace(/^\/|\/$/g, '').split('/').filter(Boolean);
   
-  if (!hash) {
+  if (parts.length === 0) {
     return { nodeId: 'intro', path: ['intro'] };
   }
   
-  if (isInPageAnchor(hash)) {
-    // Don't change route for in-page anchors
-    // Return current route or default
-    return currentRoute.value;
-  }
-  
-  // URL format: #/path/to/node
-  const parts = hash.split('/').filter(Boolean);
   const nodeId = parts[parts.length - 1] || 'intro';
   
   return {
@@ -61,14 +83,32 @@ function parseUrl(): RouteState {
 }
 
 /**
- * Navigate to a content node
+ * Get the initial node ID from the page's data attribute
  */
-export function navigateTo(nodeId: string, options: { 
-  addToPath?: boolean;
-  replace?: boolean;
-} = {}): void {
+function getInitialNodeId(): string {
+  const app = document.getElementById('app');
+  return app?.dataset.initialNode || 'intro';
+}
+
+/**
+ * Navigate to a content node
+ * 
+ * Options:
+ * - addToPath: Add to breadcrumb trail (drilling down)
+ * - replace: Replace current history entry
+ * - skipFetch: Don't fetch content (used for initial load)
+ */
+export async function navigateTo(
+  nodeId: string, 
+  options: { 
+    addToPath?: boolean;
+    replace?: boolean;
+    skipFetch?: boolean;
+  } = {}
+): Promise<void> {
   const current = currentRoute.value;
   
+  // Build new path
   let newPath: string[];
   
   if (options.addToPath) {
@@ -85,16 +125,19 @@ export function navigateTo(nodeId: string, options: {
   };
   
   // Update URL
-  const hash = `#/${newPath.join('/')}`;
+  const url = `/${nodeId}`;
   
   if (options.replace) {
-    window.history.replaceState(newRoute, '', hash);
+    window.history.replaceState(newRoute, '', url);
   } else {
-    navHistory.push(current);
-    window.history.pushState(newRoute, '', hash);
+    window.history.pushState(newRoute, '', url);
   }
   
+  // Update route state (triggers re-render)
   currentRoute.value = newRoute;
+  
+  // Scroll to top on navigation
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 /**
@@ -110,58 +153,180 @@ export function navigateUp(): void {
   const newPath = current.path.slice(0, -1);
   const nodeId = newPath[newPath.length - 1] || 'intro';
   
-  navigateTo(nodeId, { replace: false });
-  currentRoute.value = { nodeId, path: newPath };
+  const newRoute: RouteState = {
+    nodeId,
+    path: newPath,
+  };
+  
+  // Update URL and history
+  window.history.pushState(newRoute, '', `/${nodeId}`);
+  currentRoute.value = newRoute;
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+/**
+ * Handle click events on links
+ * Intercepts internal links for SPA-like navigation
+ */
+function handleLinkClick(event: MouseEvent): void {
+  // Ignore if modifier keys are pressed (new tab, etc.)
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return;
+  }
+  
+  // Find the closest anchor element
+  const target = event.target as HTMLElement;
+  const anchor = target.closest('a');
+  
+  if (!anchor) return;
+  
+  const href = anchor.getAttribute('href');
+  if (!href) return;
+  
+  // Handle in-page anchors (like #ref-1)
+  if (href.startsWith('#')) {
+    // Let browser handle in-page anchor scrolling
+    return;
+  }
+  
+  // Check if it's an internal path-based link
+  if (href.startsWith('/') && !href.startsWith('//') && !href.includes('.')) {
+    const nodeId = href.slice(1).split('/')[0] || 'intro';
+    
+    // Check if it's a known internal route
+    if (isInternalPath(href) || knownNodeIds.has(nodeId)) {
+      event.preventDefault();
+      navigateTo(nodeId, { addToPath: true });
+      return;
+    }
+  }
+  
+  // Check for relative links (./path)
+  if (href.startsWith('./')) {
+    const normalizedPath = '/' + href.slice(2);
+    const nodeId = normalizedPath.slice(1).split('/')[0] || 'intro';
+    
+    if (isInternalPath(normalizedPath) || knownNodeIds.has(nodeId)) {
+      event.preventDefault();
+      navigateTo(nodeId, { addToPath: true });
+      return;
+    }
+  }
+  
+  // Check for absolute URLs to same origin
+  try {
+    const url = new URL(href, window.location.origin);
+    if (url.origin === window.location.origin && !url.pathname.includes('.')) {
+      const nodeId = url.pathname.slice(1).split('/')[0] || 'intro';
+      if (isInternalPath(url.pathname) || knownNodeIds.has(nodeId)) {
+        event.preventDefault();
+        navigateTo(nodeId, { addToPath: true });
+        return;
+      }
+    }
+  } catch {
+    // Not a valid URL, let browser handle it
+  }
+  
+  // External link - let browser handle normally
+}
+
+/**
+ * Handle popstate (browser back/forward)
+ */
+function handlePopState(event: PopStateEvent): void {
+  if (event.state) {
+    currentRoute.value = event.state as RouteState;
+  } else {
+    // Parse from URL
+    currentRoute.value = parsePathname(window.location.pathname);
+  }
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 /**
  * Initialize the router
  */
 export function initRouter(): void {
-  // Handle initial URL
-  currentRoute.value = parseUrl();
+  // Get initial node from page data attribute or URL
+  const initialNodeId = getInitialNodeId();
+  const pathname = window.location.pathname;
   
-  // Handle browser back/forward
-  window.addEventListener('popstate', (event) => {
-    // Ignore in-page anchors
-    const hash = window.location.hash.slice(1);
-    if (isInPageAnchor(hash)) {
-      return;
+  // Parse initial route
+  let initialRoute: RouteState;
+  
+  if (pathname === '/' || pathname === '') {
+    // Root URL - use initial node from data attribute
+    initialRoute = { nodeId: initialNodeId, path: [initialNodeId] };
+    // Replace URL to include the node path
+    if (initialNodeId !== 'intro') {
+      window.history.replaceState(initialRoute, '', `/${initialNodeId}`);
     }
-    
-    if (event.state) {
-      currentRoute.value = event.state as RouteState;
-    } else {
-      currentRoute.value = parseUrl();
-    }
-  });
+  } else {
+    // Parse from URL
+    initialRoute = parsePathname(pathname);
+  }
+  
+  currentRoute.value = initialRoute;
+  
+  // Store initial state
+  window.history.replaceState(initialRoute, '', window.location.pathname);
+  
+  // Set up event listeners
+  document.addEventListener('click', handleLinkClick);
+  window.addEventListener('popstate', handlePopState);
+}
+
+/**
+ * Clean up router (for testing)
+ */
+export function destroyRouter(): void {
+  document.removeEventListener('click', handleLinkClick);
+  window.removeEventListener('popstate', handlePopState);
+}
+
+/**
+ * Get the current node ID
+ */
+export function getCurrentNodeId(): string {
+  return currentRoute.value.nodeId;
 }
 
 /**
  * Prefetch a content node for faster navigation
  */
 export async function prefetchNode(nodeId: string): Promise<void> {
-  // Dynamic import to trigger bundler code-splitting
-  try {
-    await import(`../content/${nodeId}.tsx`);
-  } catch {
-    // Node doesn't exist at that path, try finding it
-    console.debug(`Prefetch: Node ${nodeId} not found at expected path`);
-  }
+  // Create a hidden link for prefetching
+  const link = document.createElement('link');
+  link.rel = 'prefetch';
+  link.href = `/${nodeId}/`;
+  document.head.appendChild(link);
 }
 
 /**
- * Effect to prefetch likely next nodes when route changes
+ * Set up prefetching for related nodes
  */
 export function setupPrefetching(getRelatedNodes: (nodeId: string) => string[]): void {
-  effect(() => {
+  // Prefetch related nodes after a delay
+  let prefetchTimeout: number;
+  
+  const doPrefetch = () => {
     const { nodeId } = currentRoute.value;
     const related = getRelatedNodes(nodeId);
     
-    // Prefetch after a short delay to not compete with current page load
-    setTimeout(() => {
-      related.forEach(prefetchNode);
-    }, 1000);
+    // Prefetch first 3 related nodes
+    related.slice(0, 3).forEach(prefetchNode);
+  };
+  
+  // Watch route changes
+  const unsubscribe = currentRoute.subscribe(() => {
+    clearTimeout(prefetchTimeout);
+    prefetchTimeout = window.setTimeout(doPrefetch, 1000);
   });
+  
+  return unsubscribe;
 }
-

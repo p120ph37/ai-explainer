@@ -4,7 +4,7 @@
  * Shows the path through the concept hierarchy.
  */
 
-import { navigateTo } from '../router.ts';
+import { navigateTo, currentRoute } from '../router.ts';
 import { getNodeMeta } from '../../content/_registry.ts';
 
 interface BreadcrumbsProps {
@@ -36,18 +36,18 @@ export function Breadcrumbs({ path }: BreadcrumbsProps) {
               </span>
             ) : (
               <a 
-                href={`#/${path.slice(0, index + 1).join('/')}`}
+                href={`/${nodeId}`}
                 className="breadcrumbs__link"
                 onClick={(e) => {
                   e.preventDefault();
-                  // Navigate by truncating path to this point
+                  // Navigate to this node with truncated path
                   const newPath = path.slice(0, index + 1);
+                  currentRoute.value = { nodeId, path: newPath };
                   window.history.pushState(
                     { nodeId, path: newPath },
                     '',
-                    `#/${newPath.join('/')}`
+                    `/${nodeId}`
                   );
-                  // Force route update would go here
                 }}
               >
                 {title}
@@ -59,4 +59,3 @@ export function Breadcrumbs({ path }: BreadcrumbsProps) {
     </nav>
   );
 }
-

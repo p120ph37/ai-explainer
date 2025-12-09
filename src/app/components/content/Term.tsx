@@ -151,7 +151,7 @@ export function Term({ id, children }: TermProps) {
       onBlur={() => showTooltip.value = false}
     >
       <a 
-        href={`#/${id}`}
+        href={`/${id}`}
         onClick={handleClick}
         tabIndex={0}
         title={tooltipTitle}

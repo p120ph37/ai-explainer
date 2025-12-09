@@ -265,8 +265,8 @@ export function useExplorationTracking({
     const contentBody = document.querySelector(contentSelector);
     if (!contentBody) return [];
     
-    // Find all anchor tags that point to internal topics
-    const links = contentBody.querySelectorAll('a[href^="#/"]');
+    // Find all anchor tags that point to internal topics (path-based URLs)
+    const links = contentBody.querySelectorAll('a[href^="/"]');
     const observers: IntersectionObserver[] = [];
     
     links.forEach((link) => {
@@ -274,10 +274,15 @@ export function useExplorationTracking({
       const href = anchor.getAttribute('href');
       if (!href || anchor.dataset.enhanced === 'true') return;
       
+      // Skip external links and file links
+      if (href.startsWith('//') || href.includes('.') || href.startsWith('/styles')) return;
+      
       // Skip if already wrapped in an internal-link (e.g., by React component)
       if (anchor.closest('.internal-link')) return;
       
-      const linkNodeId = href.replace(/^#\//, '');
+      // Extract node ID from path
+      const linkNodeId = href.slice(1).split('/')[0];
+      if (!linkNodeId) return;
       const meta = contentRegistry.getMeta(linkNodeId);
       if (!meta) return; // Not a valid internal link
       

@@ -341,7 +341,7 @@ function QuestItem({
           {info.icon}
         </button>
         <a 
-          href={`#/${node.id}`}
+          href={`/${node.id}`}
           className="progress-node-link"
           onClick={onClose}
         >

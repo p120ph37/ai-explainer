@@ -154,7 +154,7 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
       onMouseLeave={() => showTooltip.value = false}
     >
       <a 
-        href={`#/${nodeId}`}
+        href={`/${nodeId}`}
         onClick={handleClick}
         title={tooltipTitle}
         {...props}

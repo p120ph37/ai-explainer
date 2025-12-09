@@ -11,17 +11,15 @@ import { InternalLink } from './InternalLink.tsx';
 
 // Custom anchor component that detects internal links
 function CustomAnchor({ href, children, ...props }: JSX.HTMLAttributes<HTMLAnchorElement>) {
-  // Check if this is an internal link (starts with #/ or /)
-  const isInternalLink = typeof href === 'string' && (
-    href.startsWith('#/') ||
-    (href.startsWith('/') && !href.startsWith('//') && !href.includes('.'))
-  );
+  // Check if this is an internal link (starts with / but not // or file paths)
+  const isInternalLink = typeof href === 'string' && 
+    href.startsWith('/') && 
+    !href.startsWith('//') && 
+    !href.includes('.');
   
   if (isInternalLink && typeof href === 'string') {
-    // Extract node ID from href
-    // #/tokens -> tokens
-    // /tokens -> tokens
-    const nodeId = href.replace(/^#?\//, '');
+    // Extract node ID from href: /tokens -> tokens
+    const nodeId = href.slice(1).split('/')[0];
     
     return (
       <InternalLink nodeId={nodeId} {...props}>
