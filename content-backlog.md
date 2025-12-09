@@ -74,6 +74,10 @@ Cursor Agent adds suggestions here. Check to approve.
   - Note: Interactive Conway's Game of Life widget to demonstrate emergence from simple rules
   - Aside: Primordial ooze / abiogenesis as canonical example; LLM work as theoretical validation that complex systems can arise from immense numbers of simple components under consistent external steering stimuli
 
+- [ ] **reward**: How do AI systems learn what's "good"?
+  - Scope: Reward signals, RLHF, reward modeling, reward hacking, alignment implications
+  - Rationale: Core concept for understanding how models learn preferences and why alignment is hard
+
 ---
 
 ## Completed
