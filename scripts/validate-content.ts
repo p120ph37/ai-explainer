@@ -13,6 +13,9 @@
  * - Structure requirements
  */
 
+// Detect CI environment (GitHub Actions, Cursor Cloud, etc.)
+const isCI = !!process.env.CI;
+
 // Patterns that indicate AI-slop (using regex for word boundaries)
 const AI_SLOP_PATTERNS = [
   // Faux-enthusiasm openers
@@ -151,9 +154,10 @@ async function validateContent(filePath: string): Promise<ValidationResult> {
         signal: AbortSignal.timeout(5000)
       });
       if (!response.ok) {
-        // 403 often indicates bot blocking, not a broken link
-        // 429 is rate limiting
-        if (response.status === 403 || response.status === 429) {
+        // 403 often indicates bot blocking, 429 is rate limiting
+        // In CI, treat these as warnings since bot protection is common
+        // Locally, treat as errors so the user can verify manually
+        if ((response.status === 403 || response.status === 429) && isCI) {
           warnings.push(`Link returned ${response.status} (may be bot-blocked): ${link}`);
         } else {
           errors.push(`Broken link (${response.status}): ${link}`);
@@ -167,9 +171,10 @@ async function validateContent(filePath: string): Promise<ValidationResult> {
           signal: AbortSignal.timeout(5000)
         });
         if (!response.ok) {
-          // 403 often indicates bot blocking, not a broken link
-          // 429 is rate limiting
-          if (response.status === 403 || response.status === 429) {
+          // 403 often indicates bot blocking, 429 is rate limiting
+          // In CI, treat these as warnings since bot protection is common
+          // Locally, treat as errors so the user can verify manually
+          if ((response.status === 403 || response.status === 429) && isCI) {
             warnings.push(`Link returned ${response.status} (may be bot-blocked): ${link}`);
           } else {
             errors.push(`Broken link (${response.status}): ${link}`);
