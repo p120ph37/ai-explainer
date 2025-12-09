@@ -151,7 +151,13 @@ async function validateContent(filePath: string): Promise<ValidationResult> {
         signal: AbortSignal.timeout(5000)
       });
       if (!response.ok) {
-        errors.push(`Broken link (${response.status}): ${link}`);
+        // 403 often indicates bot blocking, not a broken link
+        // 429 is rate limiting
+        if (response.status === 403 || response.status === 429) {
+          warnings.push(`Link returned ${response.status} (may be bot-blocked): ${link}`);
+        } else {
+          errors.push(`Broken link (${response.status}): ${link}`);
+        }
       }
     } catch (e) {
       // Try GET if HEAD fails (some servers don't support HEAD)
@@ -161,7 +167,13 @@ async function validateContent(filePath: string): Promise<ValidationResult> {
           signal: AbortSignal.timeout(5000)
         });
         if (!response.ok) {
-          errors.push(`Broken link (${response.status}): ${link}`);
+          // 403 often indicates bot blocking, not a broken link
+          // 429 is rate limiting
+          if (response.status === 403 || response.status === 429) {
+            warnings.push(`Link returned ${response.status} (may be bot-blocked): ${link}`);
+          } else {
+            errors.push(`Broken link (${response.status}): ${link}`);
+          }
         }
       } catch (e2) {
         warnings.push(`Could not verify link: ${link}`);
@@ -184,41 +196,87 @@ async function validateContent(filePath: string): Promise<ValidationResult> {
   };
 }
 
+// Find all MDX files in src/content
+async function findMdxFiles(dir: string): Promise<string[]> {
+  const glob = new Bun.Glob('**/*.mdx');
+  const files: string[] = [];
+  for await (const file of glob.scan({ cwd: dir, absolute: true })) {
+    files.push(file);
+  }
+  return files.sort();
+}
+
 // Main
 const args = process.argv.slice(2);
+let filesToValidate: string[];
+
 if (args.length === 0) {
-  console.log('Usage: bun run scripts/validate-content.ts <file.mdx>');
-  console.log('       bun run scripts/validate-content.ts src/content/intro/what-is-llm.mdx');
-  process.exit(1);
+  // No arguments - validate all MDX files in src/content
+  console.log('\n📂 No file specified - validating all content files...\n');
+  filesToValidate = await findMdxFiles('src/content');
+  
+  if (filesToValidate.length === 0) {
+    console.log('No MDX files found in src/content/');
+    process.exit(0);
+  }
+  
+  console.log(`Found ${filesToValidate.length} MDX files to validate\n`);
+} else {
+  filesToValidate = [args[0]];
 }
 
-const filePath = args[0];
-console.log(`\n📄 Validating: ${filePath}\n`);
-console.log('─'.repeat(60));
+let allPassed = true;
+let totalErrors = 0;
+let totalWarnings = 0;
 
-const result = await validateContent(filePath);
+for (const filePath of filesToValidate) {
+  console.log(`\n📄 Validating: ${filePath}\n`);
+  console.log('─'.repeat(60));
 
-if (result.errors.length > 0) {
-  console.log('\n❌ ERRORS:');
-  for (const error of result.errors) {
-    console.log(`   • ${error}`);
+  const result = await validateContent(filePath);
+
+  if (result.errors.length > 0) {
+    console.log('\n❌ ERRORS:');
+    for (const error of result.errors) {
+      console.log(`   • ${error}`);
+    }
+    totalErrors += result.errors.length;
+  }
+
+  if (result.warnings.length > 0) {
+    console.log('\n⚠️  WARNINGS:');
+    for (const warning of result.warnings) {
+      console.log(`   • ${warning}`);
+    }
+    totalWarnings += result.warnings.length;
+  }
+
+  console.log('\n' + '─'.repeat(60));
+
+  if (result.passed) {
+    console.log('✅ PASSED\n');
+  } else {
+    console.log('❌ FAILED\n');
+    allPassed = false;
   }
 }
 
-if (result.warnings.length > 0) {
-  console.log('\n⚠️  WARNINGS:');
-  for (const warning of result.warnings) {
-    console.log(`   • ${warning}`);
-  }
+// Summary for multi-file validation
+if (filesToValidate.length > 1) {
+  console.log('\n' + '═'.repeat(60));
+  console.log('SUMMARY');
+  console.log('═'.repeat(60));
+  console.log(`Files validated: ${filesToValidate.length}`);
+  console.log(`Total errors: ${totalErrors}`);
+  console.log(`Total warnings: ${totalWarnings}`);
+  console.log('═'.repeat(60));
 }
 
-console.log('\n' + '─'.repeat(60));
-
-if (result.passed) {
-  console.log('✅ VALIDATION PASSED\n');
+if (allPassed) {
+  console.log('\n✅ VALIDATION PASSED\n');
   process.exit(0);
 } else {
-  console.log('❌ VALIDATION FAILED - Fix errors before proceeding\n');
+  console.log('\n❌ VALIDATION FAILED - Fix errors before proceeding\n');
   process.exit(1);
 }
 
