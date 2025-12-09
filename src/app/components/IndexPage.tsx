@@ -11,6 +11,7 @@ import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
 import type { ContentMeta } from '../../content/_types.ts';
 import { getNode } from '../../content/_registry.ts';
+import { resetAllProgress, progressStats } from '../progress.ts';
 
 interface NodeInfo {
   id: string;
@@ -160,6 +161,26 @@ export function IndexPage() {
             <strong>{nodes.value.length}</strong> topics across{' '}
             <strong>{grouped.size}</strong> categories
           </p>
+        </div>
+        
+        <div className="index-progress">
+          <h3>Your Progress</h3>
+          <p>
+            <strong>{progressStats.value.discovered}</strong> topics discovered,{' '}
+            <strong>{progressStats.value.fullyExplored}</strong> complete
+          </p>
+          <button 
+            className="index-reset-button"
+            onClick={() => {
+              if (confirm('Clear all progress? This will reset your discovery and reading progress.')) {
+                resetAllProgress();
+                // Force re-render by updating a signal
+                window.location.reload();
+              }
+            }}
+          >
+            Clear All Progress
+          </button>
         </div>
       </div>
     </article>

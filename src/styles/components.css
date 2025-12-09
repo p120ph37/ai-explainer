@@ -1461,6 +1461,45 @@
   text-align: center;
 }
 
+.index-progress {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.index-progress h3 {
+  margin: 0 0 var(--space-sm) 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.index-progress p {
+  margin: 0 0 var(--space-md) 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.index-reset-button {
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  background: transparent;
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.index-reset-button:hover {
+  color: var(--color-bg);
+  background: var(--color-error);
+}
+
 .index-loading,
 .index-error {
   padding: var(--space-xl);
