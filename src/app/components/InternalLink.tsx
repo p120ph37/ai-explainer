@@ -1,16 +1,18 @@
 /**
- * Term component
+ * Internal Link component
  * 
- * Renders a link to another concept with:
+ * Renders links to internal content nodes with:
  * - Progress indicator showing exploration status
- * - Tooltip showing actual page title (not just the inline text)
- * - Discovery animation when the link becomes visible
+ * - Title tooltip on hover
+ * - Discovery animation when link becomes visible
+ * 
+ * Used both directly and via MDX provider for markdown links.
  */
 
 import { useEffect, useRef } from 'preact/hooks';
 import { useSignal, useComputed } from '@preact/signals';
-import { navigateTo } from '../../router.ts';
-import { getNodeMeta } from '../../../content/_registry.ts';
+import { navigateTo } from '../router.ts';
+import { getNodeMeta } from '../../content/_registry.ts';
 import { 
   markTopicDiscovered, 
   isTopicDiscovered, 
@@ -18,23 +20,30 @@ import {
   getQuestStatus,
   questStatusInfo,
   progressState,
-} from '../../progress.ts';
-import type { TermProps } from '../../../content/_types.ts';
+} from '../progress.ts';
+import type { ComponentChildren, JSX } from 'preact';
 
-export function Term({ id, children }: TermProps) {
+interface InternalLinkProps extends Omit<JSX.HTMLAttributes<HTMLAnchorElement>, 'href'> {
+  /** The node ID this link points to */
+  nodeId: string;
+  /** Link text */
+  children: ComponentChildren;
+}
+
+export function InternalLink({ nodeId, children, className, ...props }: InternalLinkProps) {
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const hasDiscovered = useRef(false);
   const showTooltip = useSignal(false);
   
   // Get metadata for the linked node
-  const meta = getNodeMeta(id);
+  const meta = getNodeMeta(nodeId);
   
   // Reactively compute progress info (re-renders when progressState changes)
   const progressInfo = useComputed(() => {
     // Access progressState to create reactivity
     const _ = progressState.value;
-    const progress = getNodeProgress(id);
-    const status = getQuestStatus(id);
+    const progress = getNodeProgress(nodeId);
+    const status = getQuestStatus(nodeId);
     const statusData = questStatusInfo[status];
     return {
       status,
@@ -51,7 +60,7 @@ export function Term({ id, children }: TermProps) {
     if (!element) return;
     
     // Reset discovery state
-    hasDiscovered.current = isTopicDiscovered(id);
+    hasDiscovered.current = isTopicDiscovered(nodeId);
     
     // Skip if already discovered
     if (hasDiscovered.current) return;
@@ -65,12 +74,12 @@ export function Term({ id, children }: TermProps) {
           const linkElement = element.querySelector('a') || element;
           
           // Trigger discovery with animation
-          const wasNew = markTopicDiscovered(id, linkElement as HTMLElement);
+          const wasNew = markTopicDiscovered(nodeId, linkElement as HTMLElement);
           
           if (wasNew) {
-            element.classList.add('term-link--discovered');
+            element.classList.add('internal-link--discovered');
             setTimeout(() => {
-              element.classList.remove('term-link--discovered');
+              element.classList.remove('internal-link--discovered');
             }, 1500);
           }
           
@@ -87,8 +96,7 @@ export function Term({ id, children }: TermProps) {
     
     observer.observe(element);
     
-    // Also listen for parent <details> toggle events
-    // This handles the case where a link is inside an expandable
+    // Listen for parent <details> toggle events
     const checkVisibilityOnDetailsToggle = () => {
       if (hasDiscovered.current) return;
       
@@ -97,19 +105,17 @@ export function Term({ id, children }: TermProps) {
       const isInViewport = rect.top < viewportHeight && rect.bottom > 0 && rect.height > 0;
       
       if (isInViewport) {
-        // Re-trigger observation
         observer.disconnect();
         observer.observe(element);
       }
     };
     
-    // Find parent details element and listen for toggle
     const parentDetails = element.closest('details');
     if (parentDetails) {
       parentDetails.addEventListener('toggle', checkVisibilityOnDetailsToggle);
     }
     
-    // Initial visibility check after a short delay
+    // Initial visibility check
     const timeoutId = setTimeout(() => {
       if (!hasDiscovered.current) {
         const rect = element.getBoundingClientRect();
@@ -129,49 +135,50 @@ export function Term({ id, children }: TermProps) {
         parentDetails.removeEventListener('toggle', checkVisibilityOnDetailsToggle);
       }
     };
-  }, [id]);
+  }, [nodeId]);
   
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
-    navigateTo(id, { addToPath: true });
+    navigateTo(nodeId, { addToPath: true });
   };
   
-  // Build tooltip text - show actual title and progress
-  const tooltipTitle = meta?.title || id;
-  const tooltipText = `${tooltipTitle}${progressInfo.value.exploredPercent > 0 ? ` (${progressInfo.value.exploredPercent}% explored)` : ''}`;
+  // Build tooltip - show actual title
+  const tooltipTitle = meta?.title || nodeId;
   
   return (
     <span 
       ref={wrapperRef}
-      className={`term-link ${progressInfo.value.className}`}
-      data-node-id={id}
+      className={`internal-link ${progressInfo.value.className} ${className || ''}`}
+      data-node-id={nodeId}
       onMouseEnter={() => showTooltip.value = true}
       onMouseLeave={() => showTooltip.value = false}
-      onFocus={() => showTooltip.value = true}
-      onBlur={() => showTooltip.value = false}
     >
       <span 
-        className="term-link__status"
+        className="internal-link__status"
         title={progressInfo.value.label}
         aria-label={progressInfo.value.label}
       >
         {progressInfo.value.icon}
       </span>
       <a 
-        href={`#/${id}`}
+        href={`#/${nodeId}`}
         onClick={handleClick}
-        tabIndex={0}
         title={tooltipTitle}
+        {...props}
       >
         {children}
       </a>
       {showTooltip.value && meta && (
-        <span className="term-link__tooltip" role="tooltip">
+        <span className="internal-link__tooltip" role="tooltip">
           <strong>{meta.title}</strong>
-          <br />
-          <span className="term-link__tooltip-summary">{meta.summary}</span>
+          {progressInfo.value.exploredPercent > 0 && (
+            <span className="internal-link__progress">
+              {progressInfo.value.exploredPercent}% explored
+            </span>
+          )}
         </span>
       )}
     </span>
   );
 }
+

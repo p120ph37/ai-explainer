@@ -15,6 +15,7 @@ import { NavLinks } from './NavLinks.tsx';
 import { IndexPage } from './IndexPage.tsx';
 import { PrerequisitesBlock } from './PrerequisitesBlock.tsx';
 import { useExplorationTracking } from '../hooks/useExplorationTracking.ts';
+import { MDXProvider } from './MDXProvider.tsx';
 import type { ComponentType } from 'preact';
 
 interface ContentModule {
@@ -155,7 +156,9 @@ function ContentRenderer({
       )}
       
       <div className="content-node__body">
-        <ContentComponent />
+        <MDXProvider>
+          <ContentComponent />
+        </MDXProvider>
       </div>
       
       <NavLinks 

@@ -168,21 +168,199 @@
    ============================================ */
 
 .term-link {
+  position: relative;
+  display: inline;
+  cursor: pointer;
+}
+
+.term-link a {
   color: var(--color-accent);
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 0.2em;
-  cursor: pointer;
-  position: relative;
 }
 
-.term-link:hover {
+.term-link:hover a {
   text-decoration-style: solid;
 }
 
+/* Status indicator - small icon before the link */
+.term-link__status {
+  display: inline-block;
+  font-size: 0.7em;
+  margin-right: 0.15em;
+  vertical-align: middle;
+  opacity: 0.7;
+  transition: opacity var(--duration-fast);
+}
+
+.term-link:hover .term-link__status {
+  opacity: 1;
+}
+
+/* Status-based coloring */
+.term-link.status-undiscovered .term-link__status {
+  color: var(--color-text-muted);
+}
+
+.term-link.status-discovered .term-link__status {
+  color: var(--color-warning);
+}
+
+.term-link.status-in-progress .term-link__status {
+  color: var(--color-primary);
+}
+
+.term-link.status-complete .term-link__status {
+  color: var(--color-success);
+}
+
+/* Discovery animation */
+.term-link--discovered {
+  animation: term-discovered 1.5s ease;
+}
+
+@keyframes term-discovered {
+  0% {
+    background: transparent;
+  }
+  20% {
+    background: hsla(45, 100%, 60%, 0.3);
+    box-shadow: 0 0 10px hsla(45, 100%, 60%, 0.5);
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+/* Tooltip - shows page title and summary */
 .term-link__tooltip {
   position: absolute;
-  bottom: 100%;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-sm);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  max-width: 280px;
+  min-width: 180px;
+  white-space: normal;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--duration-fast) var(--ease-out);
+  z-index: var(--z-tooltip, 50);
+  pointer-events: none;
+}
+
+.term-link__tooltip strong {
+  display: block;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-xs);
+}
+
+.term-link__tooltip-summary {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Tooltip arrow */
+.term-link__tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-border);
+}
+
+.term-link:hover .term-link__tooltip,
+.term-link:focus-within .term-link__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ============================================
+   Internal Links (Markdown links to content nodes)
+   ============================================ */
+
+.internal-link {
+  position: relative;
+  display: inline;
+}
+
+.internal-link a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 0.2em;
+}
+
+.internal-link:hover a {
+  text-decoration-style: solid;
+}
+
+/* Status indicator */
+.internal-link__status {
+  display: inline-block;
+  font-size: 0.7em;
+  margin-right: 0.2em;
+  vertical-align: middle;
+  opacity: 0.7;
+  transition: opacity var(--duration-fast);
+}
+
+.internal-link:hover .internal-link__status {
+  opacity: 1;
+}
+
+/* Status-based coloring */
+.internal-link.status-undiscovered .internal-link__status {
+  color: var(--color-text-muted);
+}
+
+.internal-link.status-discovered .internal-link__status {
+  color: var(--color-warning);
+}
+
+.internal-link.status-in-progress .internal-link__status {
+  color: var(--color-primary);
+}
+
+.internal-link.status-complete .internal-link__status {
+  color: var(--color-success);
+}
+
+/* Discovery animation */
+.internal-link--discovered {
+  animation: internal-link-discovered 1.5s ease;
+}
+
+@keyframes internal-link-discovered {
+  0% {
+    background: transparent;
+  }
+  20% {
+    background: hsla(45, 100%, 60%, 0.3);
+    box-shadow: 0 0 10px hsla(45, 100%, 60%, 0.5);
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+/* Tooltip */
+.internal-link__tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   padding: var(--space-xs) var(--space-sm);
@@ -192,14 +370,37 @@
   box-shadow: var(--shadow-lg);
   font-size: var(--font-size-sm);
   white-space: nowrap;
+  text-align: center;
   opacity: 0;
   visibility: hidden;
   transition: all var(--duration-fast) var(--ease-out);
   z-index: var(--z-tooltip, 50);
+  pointer-events: none;
 }
 
-.term-link:hover .term-link__tooltip,
-.term-link:focus .term-link__tooltip {
+.internal-link__tooltip strong {
+  display: block;
+  color: var(--color-text);
+}
+
+.internal-link__progress {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.internal-link__tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-border);
+}
+
+.internal-link:hover .internal-link__tooltip {
   opacity: 1;
   visibility: visible;
 }

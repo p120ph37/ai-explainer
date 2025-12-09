@@ -16,6 +16,9 @@ const mdxPlugin = mdx({
     remarkFrontmatter,
     [remarkMdxFrontmatter, { name: 'meta' }],  // Exports frontmatter as `meta`
   ],
+  // Use the provider import source for @mdx-js/preact
+  // This tells compiled MDX to use useMDXComponents from @mdx-js/preact
+  providerImportSource: '@mdx-js/preact',
   development: process.env.NODE_ENV !== 'production',
 });
 
