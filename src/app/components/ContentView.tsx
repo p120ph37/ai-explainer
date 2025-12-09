@@ -15,7 +15,6 @@ import { NavLinks } from './NavLinks.tsx';
 import { IndexPage } from './IndexPage.tsx';
 import { PrerequisitesBlock } from './PrerequisitesBlock.tsx';
 import { useExplorationTracking } from '../hooks/useExplorationTracking.ts';
-import { CurrentPageContext } from './DiscoverableLink.tsx';
 import type { ComponentType } from 'preact';
 
 interface ContentModule {
@@ -143,29 +142,27 @@ function ContentRenderer({
   const hasPrerequisites = nodeMeta.prerequisites && nodeMeta.prerequisites.length > 0;
   
   return (
-    <CurrentPageContext.Provider value={nodeId}>
-      <article className="content-node" data-node-id={nodeId}>
-        <Breadcrumbs path={path} />
-        
-        <header className="content-node__header">
-          <h1 className="content-node__title">{nodeMeta.title}</h1>
-          <p className="content-node__summary">{nodeMeta.summary}</p>
-        </header>
-        
-        {hasPrerequisites && (
-          <PrerequisitesBlock prerequisites={nodeMeta.prerequisites!} />
-        )}
-        
-        <div className="content-node__body">
-          <ContentComponent />
-        </div>
-        
-        <NavLinks 
-          children={nodeMeta.children}
-          related={nodeMeta.related}
-        />
-      </article>
-    </CurrentPageContext.Provider>
+    <article className="content-node" data-node-id={nodeId}>
+      <Breadcrumbs path={path} />
+      
+      <header className="content-node__header">
+        <h1 className="content-node__title">{nodeMeta.title}</h1>
+        <p className="content-node__summary">{nodeMeta.summary}</p>
+      </header>
+      
+      {hasPrerequisites && (
+        <PrerequisitesBlock prerequisites={nodeMeta.prerequisites!} />
+      )}
+      
+      <div className="content-node__body">
+        <ContentComponent />
+      </div>
+      
+      <NavLinks 
+        children={nodeMeta.children}
+        related={nodeMeta.related}
+      />
+    </article>
   );
 }
 

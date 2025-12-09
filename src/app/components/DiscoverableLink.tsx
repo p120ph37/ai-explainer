@@ -7,15 +7,9 @@
  * Note: Links on the IndexPage should NOT use this - that's a cheat/shortcut.
  */
 
-import { createContext } from 'preact';
-import { useContext, useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import { markTopicDiscovered, isTopicDiscovered } from '../progress.ts';
 import type { ComponentChildren } from 'preact';
-
-/**
- * Context to provide the current page ID for discovery tracking
- */
-export const CurrentPageContext = createContext<string | null>(null);
 
 interface DiscoverableLinkProps {
   /** The node ID this link points to */
@@ -29,7 +23,6 @@ interface DiscoverableLinkProps {
 export function DiscoverableLink({ nodeId, children, className }: DiscoverableLinkProps) {
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const hasDiscovered = useRef(false);
-  const currentPageId = useContext(CurrentPageContext);
   
   useEffect(() => {
     const element = wrapperRef.current;
@@ -52,12 +45,8 @@ export function DiscoverableLink({ nodeId, children, className }: DiscoverableLi
             // Find the actual link element inside
             const linkElement = element.querySelector('a') || element;
             
-            // Trigger discovery with animation and page context
-            const wasNew = markTopicDiscovered(
-              nodeId, 
-              linkElement as HTMLElement,
-              currentPageId || undefined
-            );
+            // Trigger discovery with animation
+            const wasNew = markTopicDiscovered(nodeId, linkElement as HTMLElement);
             
             if (wasNew) {
               // Add a brief highlight class to the link
@@ -82,7 +71,7 @@ export function DiscoverableLink({ nodeId, children, className }: DiscoverableLi
     observer.observe(element);
     
     return () => observer.disconnect();
-  }, [nodeId, currentPageId]);
+  }, [nodeId]);
   
   return (
     <span 

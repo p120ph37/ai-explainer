@@ -3,7 +3,7 @@
  * 
  * Shows discovered topics with:
  * - Progress bar showing explored-percent
- * - Topics discovered count (x/y)
+ * - Topics discovered count (x/y) based on global discovery state
  * - Completion status when both are maxed
  */
 
@@ -13,6 +13,7 @@ import {
   progressState, 
   getNodeProgress,
   getQuestStatus,
+  countDiscoveredTopics,
   questStatusInfo,
   resetNodeProgress,
   markQuestComplete,
@@ -24,10 +25,7 @@ import type { ContentMeta } from '../../content/_types.ts';
 interface NodeInfo {
   id: string;
   meta: ContentMeta;
-  exploredPercent: number;
-  discoveredTopicsOnPage: number;
-  totalTopicsOnPage: number;
-  status: QuestStatus;
+  linkedTopics: string[]; // children + related
 }
 
 // All node IDs (should match registry)
@@ -55,7 +53,7 @@ export function ProgressSidebar() {
   const nodes = useSignal<NodeInfo[]>([]);
   const loading = useSignal(true);
   
-  // Load all node metadata and calculate discoverable topics per page
+  // Load all node metadata
   useEffect(() => {
     async function loadNodes() {
       const loaded: NodeInfo[] = [];
@@ -64,22 +62,15 @@ export function ProgressSidebar() {
         try {
           const module = await getNode(nodeId);
           if (module?.meta) {
-            const progress = getNodeProgress(nodeId);
-            
-            // Count discoverable topics on this page (children + related)
-            const discoverableTopics = [
+            const linkedTopics = [
               ...(module.meta.children || []),
               ...(module.meta.related || []),
             ];
-            const totalTopicsOnPage = discoverableTopics.length;
             
             loaded.push({
               id: nodeId,
               meta: module.meta,
-              exploredPercent: progress.exploredPercent,
-              discoveredTopicsOnPage: progress.discoveredTopicsOnPage.length,
-              totalTopicsOnPage,
-              status: getQuestStatus(nodeId, totalTopicsOnPage),
+              linkedTopics,
             });
           }
         } catch {
@@ -94,30 +85,21 @@ export function ProgressSidebar() {
     loadNodes();
   }, []);
   
-  // Recompute status when progress changes
+  // Compute status for each node (reactive to progress changes)
   const nodesWithStatus = useComputed(() => {
     // Subscribe to progressState to trigger recomputation
-    const state = progressState.value;
+    const _ = progressState.value;
     
     return nodes.value.map(node => {
       const progress = getNodeProgress(node.id);
-      const discoverableTopics = [
-        ...(node.meta.children || []),
-        ...(node.meta.related || []),
-      ];
-      const totalTopicsOnPage = discoverableTopics.length;
-      
-      // Count how many of the discoverable topics have been found
-      const discoveredCount = progress.discoveredTopicsOnPage.filter(
-        t => discoverableTopics.includes(t)
-      ).length;
+      const discoveredCount = countDiscoveredTopics(node.linkedTopics);
       
       return {
         ...node,
         exploredPercent: progress.exploredPercent,
-        discoveredTopicsOnPage: discoveredCount,
-        totalTopicsOnPage,
-        status: getQuestStatus(node.id, totalTopicsOnPage),
+        discoveredTopicsCount: discoveredCount,
+        totalTopicsCount: node.linkedTopics.length,
+        status: getQuestStatus(node.id, node.linkedTopics),
       };
     });
   });
@@ -131,7 +113,7 @@ export function ProgressSidebar() {
   
   // Group by category
   const groupedNodes = useComputed(() => {
-    const grouped = new Map<string, NodeInfo[]>();
+    const grouped = new Map<string, typeof nodesWithStatus.value>();
     
     for (const node of discoveredNodes.value) {
       const category = node.meta.category || 'Other';
@@ -329,16 +311,23 @@ function QuestItem({
   onCycleStatus,
   onClose,
 }: { 
-  node: NodeInfo;
+  node: {
+    id: string;
+    meta: ContentMeta;
+    exploredPercent: number;
+    discoveredTopicsCount: number;
+    totalTopicsCount: number;
+    status: QuestStatus;
+  };
   onCycleStatus: (nodeId: string, status: QuestStatus) => void;
   onClose: () => void;
 }) {
   const info = questStatusInfo[node.status];
-  const hasTopics = node.totalTopicsOnPage > 0;
+  const hasTopics = node.totalTopicsCount > 0;
   
   // Calculate if quest requirements are met
   const exploredComplete = node.exploredPercent >= 100;
-  const topicsComplete = node.discoveredTopicsOnPage >= node.totalTopicsOnPage;
+  const topicsComplete = node.discoveredTopicsCount >= node.totalTopicsCount;
   
   return (
     <li className={`progress-node ${info.className}`}>
@@ -360,8 +349,8 @@ function QuestItem({
         </a>
       </div>
       
-      {/* Progress details for non-undiscovered quests */}
-      {node.status !== 'discovered' && (
+      {/* Progress details for visited quests */}
+      {(node.status === 'in_progress' || node.status === 'complete') && (
         <div className="progress-node-details">
           {/* Explored progress bar */}
           <div className="progress-node-bar-container">
@@ -381,7 +370,7 @@ function QuestItem({
             <div className={`progress-node-topics ${topicsComplete ? 'complete' : ''}`}>
               <span className="progress-node-topics-icon">🔗</span>
               <span className="progress-node-topics-count">
-                {node.discoveredTopicsOnPage}/{node.totalTopicsOnPage}
+                {node.discoveredTopicsCount}/{node.totalTopicsCount}
               </span>
             </div>
           )}

@@ -3,15 +3,13 @@
  * 
  * Each topic/quest tracks:
  * - exploredPercent: How much of the page content has been scrolled (0-100)
- * - discoveredTopics: Which topic links have been found on this page
- * - totalTopicsOnPage: How many discoverable links exist on this page
+ * 
+ * Global tracking:
+ * - allDiscoveredTopics: Set of all topic IDs that have been discovered anywhere
  * 
  * A quest is "complete" when:
  * - exploredPercent >= 100 AND
- * - all discoverable topics on the page have been found
- * 
- * If new topics are added to a page between sessions, a previously-complete
- * quest may become incomplete.
+ * - all discoverable topics linked from the page have been discovered (globally)
  */
 
 import { signal, computed } from '@preact/signals';
@@ -21,24 +19,20 @@ export type QuestStatus = 'undiscovered' | 'discovered' | 'in_progress' | 'compl
 interface NodeProgress {
   /** How much of the page has been scrolled through (0-100) */
   exploredPercent: number;
-  /** Topic IDs that have been discovered ON this page */
-  discoveredTopicsOnPage: string[];
   /** When the node was first discovered */
   discoveredAt?: number;
   /** When the node was first visited */
   visitedAt?: number;
-  /** When the quest was completed */
-  completedAt?: number;
 }
 
 interface ProgressState {
   /** Map of nodeId -> progress data */
   nodes: Record<string, NodeProgress>;
-  /** Global set of all discovered topic IDs (regardless of where discovered) */
+  /** Global set of all discovered topic IDs */
   allDiscoveredTopics: string[];
 }
 
-const STORAGE_KEY = 'ai-explainer-progress-v3';
+const STORAGE_KEY = 'ai-explainer-progress-v4';
 
 function loadProgress(): ProgressState {
   try {
@@ -85,18 +79,28 @@ function emitDiscovery(nodeId: string, sourceElement: HTMLElement): void {
 export function getNodeProgress(nodeId: string): NodeProgress {
   return progressState.value.nodes[nodeId] || {
     exploredPercent: 0,
-    discoveredTopicsOnPage: [],
   };
 }
 
 /**
- * Get the quest status for a node
+ * Count how many of the given topic IDs have been globally discovered
  */
-export function getQuestStatus(nodeId: string, totalTopicsOnPage: number = 0): QuestStatus {
+export function countDiscoveredTopics(topicIds: string[]): number {
+  const discovered = progressState.value.allDiscoveredTopics;
+  return topicIds.filter(id => discovered.includes(id)).length;
+}
+
+/**
+ * Get the quest status for a node
+ * @param nodeId - The node to check
+ * @param linkedTopics - Array of topic IDs linked from this page (children + related)
+ */
+export function getQuestStatus(nodeId: string, linkedTopics: string[] = []): QuestStatus {
   const progress = getNodeProgress(nodeId);
+  const allDiscovered = progressState.value.allDiscoveredTopics;
   
   // Not yet discovered (never seen a link to this topic)
-  if (!progressState.value.allDiscoveredTopics.includes(nodeId)) {
+  if (!allDiscovered.includes(nodeId)) {
     return 'undiscovered';
   }
   
@@ -105,9 +109,10 @@ export function getQuestStatus(nodeId: string, totalTopicsOnPage: number = 0): Q
     return 'discovered';
   }
   
-  // Check completion: explored 100% AND all topics on page discovered
+  // Check completion: explored 100% AND all linked topics discovered
   const isFullyExplored = progress.exploredPercent >= 100;
-  const allTopicsFound = progress.discoveredTopicsOnPage.length >= totalTopicsOnPage;
+  const discoveredCount = countDiscoveredTopics(linkedTopics);
+  const allTopicsFound = linkedTopics.length === 0 || discoveredCount >= linkedTopics.length;
   
   if (isFullyExplored && allTopicsFound) {
     return 'complete';
@@ -130,62 +135,41 @@ export function isTopicDiscovered(nodeId: string): boolean {
  */
 export function markTopicDiscovered(
   nodeId: string, 
-  sourceElement?: HTMLElement,
-  currentPageId?: string
+  sourceElement?: HTMLElement
 ): boolean {
   const current = progressState.value;
   
   // Check if already globally discovered
-  const wasAlreadyDiscovered = current.allDiscoveredTopics.includes(nodeId);
-  
-  // Update global discovery list
-  const allDiscovered = wasAlreadyDiscovered 
-    ? current.allDiscoveredTopics 
-    : [...current.allDiscoveredTopics, nodeId];
-  
-  // Update the node's own progress (mark as discovered)
-  const nodeProgress = current.nodes[nodeId] || {
-    exploredPercent: 0,
-    discoveredTopicsOnPage: [],
-  };
-  
-  if (!nodeProgress.discoveredAt) {
-    nodeProgress.discoveredAt = Date.now();
+  if (current.allDiscoveredTopics.includes(nodeId)) {
+    return false;
   }
   
-  // Also track which page discovered this topic
-  let updatedNodes = { ...current.nodes };
-  updatedNodes[nodeId] = nodeProgress;
+  // Add to global discovery list
+  const allDiscovered = [...current.allDiscoveredTopics, nodeId];
   
-  // If discovered from a specific page, update that page's discovered count
-  if (currentPageId && currentPageId !== nodeId) {
-    const pageProgress = current.nodes[currentPageId] || {
-      exploredPercent: 0,
-      discoveredTopicsOnPage: [],
-    };
-    
-    if (!pageProgress.discoveredTopicsOnPage.includes(nodeId)) {
-      updatedNodes[currentPageId] = {
-        ...pageProgress,
-        discoveredTopicsOnPage: [...pageProgress.discoveredTopicsOnPage, nodeId],
-      };
-    }
-  }
+  // Initialize node progress if needed
+  const nodeProgress = current.nodes[nodeId] || { exploredPercent: 0 };
   
   const next: ProgressState = {
     allDiscoveredTopics: allDiscovered,
-    nodes: updatedNodes,
+    nodes: {
+      ...current.nodes,
+      [nodeId]: {
+        ...nodeProgress,
+        discoveredAt: nodeProgress.discoveredAt || Date.now(),
+      },
+    },
   };
   
   progressState.value = next;
   saveProgress(next);
   
-  // Emit discovery event for animation (only if NEW discovery)
-  if (!wasAlreadyDiscovered && sourceElement) {
+  // Emit discovery event for animation
+  if (sourceElement) {
     emitDiscovery(nodeId, sourceElement);
   }
   
-  return !wasAlreadyDiscovered;
+  return true;
 }
 
 /**
@@ -193,12 +177,9 @@ export function markTopicDiscovered(
  */
 export function markVisited(nodeId: string): void {
   const current = progressState.value;
-  const nodeProgress = current.nodes[nodeId] || {
-    exploredPercent: 0,
-    discoveredTopicsOnPage: [],
-  };
+  const nodeProgress = current.nodes[nodeId] || { exploredPercent: 0 };
   
-  // Already visited, don't update
+  // Already visited, don't update timestamp
   if (nodeProgress.visitedAt) return;
   
   // Also mark as discovered if not already
@@ -229,10 +210,7 @@ export function markVisited(nodeId: string): void {
  */
 export function updateExploredPercent(nodeId: string, percent: number): void {
   const current = progressState.value;
-  const nodeProgress = current.nodes[nodeId] || {
-    exploredPercent: 0,
-    discoveredTopicsOnPage: [],
-  };
+  const nodeProgress = current.nodes[nodeId] || { exploredPercent: 0 };
   
   // Only update if higher than before (can't "un-read")
   const newPercent = Math.max(nodeProgress.exploredPercent, Math.min(100, percent));
@@ -255,23 +233,27 @@ export function updateExploredPercent(nodeId: string, percent: number): void {
 }
 
 /**
- * Manually set a quest as complete
+ * Manually mark a quest as complete
  */
 export function markQuestComplete(nodeId: string): void {
   const current = progressState.value;
-  const nodeProgress = current.nodes[nodeId] || {
-    exploredPercent: 0,
-    discoveredTopicsOnPage: [],
-  };
+  const nodeProgress = current.nodes[nodeId] || { exploredPercent: 0 };
+  
+  // Also mark as discovered and visited if not already
+  const allDiscovered = current.allDiscoveredTopics.includes(nodeId)
+    ? current.allDiscoveredTopics
+    : [...current.allDiscoveredTopics, nodeId];
   
   const next: ProgressState = {
     ...current,
+    allDiscoveredTopics: allDiscovered,
     nodes: {
       ...current.nodes,
       [nodeId]: {
         ...nodeProgress,
         exploredPercent: 100,
-        completedAt: Date.now(),
+        discoveredAt: nodeProgress.discoveredAt || Date.now(),
+        visitedAt: nodeProgress.visitedAt || Date.now(),
       },
     },
   };
@@ -299,21 +281,21 @@ export function resetNodeProgress(nodeId: string): void {
 }
 
 /**
- * Get stats for the progress sidebar
+ * Get overall progress stats
  */
 export const progressStats = computed(() => {
   const state = progressState.value;
   const discovered = state.allDiscoveredTopics.length;
   
   let visited = 0;
-  let complete = 0;
+  let fullyExplored = 0;
   
-  for (const [nodeId, progress] of Object.entries(state.nodes)) {
+  for (const progress of Object.values(state.nodes)) {
     if (progress.visitedAt) visited++;
-    if (progress.exploredPercent >= 100) complete++;
+    if (progress.exploredPercent >= 100) fullyExplored++;
   }
   
-  return { discovered, visited, complete };
+  return { discovered, visited, fullyExplored };
 });
 
 /**
