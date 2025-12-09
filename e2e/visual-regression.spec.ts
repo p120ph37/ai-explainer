@@ -13,11 +13,10 @@ import { test, expect } from '@playwright/test';
 
 const isCI = !!process.env.CI;
 
-// Skip visual regression tests in CI (cross-platform baseline differences)
-// To enable in CI, generate Linux baselines and commit them
-test.describe.configure({ mode: isCI ? 'skip' : 'parallel' });
-
 test.describe('Visual Regression', () => {
+  // Skip visual regression tests in CI (cross-platform baseline differences)
+  // To enable in CI, generate Linux baselines and commit them
+  test.skip(isCI, 'Visual regression tests are skipped in CI due to cross-platform baseline differences');
   test.describe('Page Layout', () => {
     test('home page renders correctly', async ({ page }) => {
       await page.goto('/intro');
@@ -294,6 +293,8 @@ test.describe('Visual Regression', () => {
 });
 
 test.describe('Discovery Animation', () => {
+  test.skip(isCI, 'Visual regression tests are skipped in CI');
+  
   test('link discovery triggers animation canvas', async ({ page }) => {
     // Clear progress to ensure fresh discovery
     await page.goto('/intro');
@@ -310,6 +311,8 @@ test.describe('Discovery Animation', () => {
 });
 
 test.describe('Navigation', () => {
+  test.skip(isCI, 'Visual regression tests are skipped in CI');
+  
   test('clicking internal link navigates', async ({ page }) => {
     await page.goto('/intro');
     await page.waitForSelector('.content-node__body');
@@ -343,6 +346,8 @@ test.describe('Navigation', () => {
 });
 
 test.describe('Responsive Layout', () => {
+  test.skip(isCI, 'Visual regression tests are skipped in CI');
+  
   test('mobile viewport renders correctly', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/intro');
