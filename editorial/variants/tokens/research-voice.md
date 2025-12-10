@@ -1,0 +1,143 @@
+# What are Tokens? — Research Voice
+
+*Examines claims from the other variants and provides supporting evidence, related research, and additional context.*
+
+---
+
+## Core Claims and Evidence
+
+### Claim: LLMs process tokens, not characters or words
+
+**Primary explanation:** Andrej Karpathy's "Let's build the GPT Tokenizer" (2024) provides a comprehensive, code-level explanation of how tokenization works and why it's necessary: https://www.youtube.com/watch?v=zduSFxRajkE
+
+**Technical implementation:** OpenAI's tiktoken library is the reference implementation for GPT tokenization: https://github.com/openai/tiktoken
+
+**Interactive exploration:** The Tiktokenizer web tool lets you see exactly how text is split into tokens across different models: https://tiktokenizer.vercel.app
+
+---
+
+### Claim: Byte-pair encoding (BPE) is the dominant tokenization method
+
+**Original paper:** "Neural Machine Translation of Rare Words with Subword Units" (Sennrich et al., 2016) introduced BPE for neural NLP: https://arxiv.org/abs/1508.07909
+
+**Algorithm details:** BPE starts with a character-level vocabulary and iteratively merges the most frequent adjacent pairs. The paper shows this dramatically improves handling of rare and compound words.
+
+**Variations in use:**
+- GPT models use BPE with byte-level fallback
+- LLaMA uses SentencePiece with BPE
+- Some models use WordPiece (similar but scores differently)
+
+---
+
+### Claim: Typical vocabulary sizes are 50,000-100,000 tokens
+
+**Documented vocabulary sizes:**
+- GPT-2: 50,257 tokens
+- GPT-3/4: ~100,000 tokens  
+- LLaMA: 32,000 tokens
+- Claude: Exact size undisclosed but estimated 100K range
+
+**Why these numbers:** Vocabulary size trades off:
+- Larger vocabulary = more single-token words = more efficient encoding
+- Larger vocabulary = more parameters in embedding layer = more memory
+- Smaller vocabulary = more fragmentation = less efficient but more flexible
+
+---
+
+### Claim: Tokenization affects LLM performance on character-level tasks
+
+**Empirical evidence:** Multiple papers document LLM failures on character counting:
+
+"Do Language Models Know When They're Hallucinating References?" (Agrawal et al., 2023) includes examples of letter-counting failures.
+
+**Systematic study:** "Tokenization Impacts Factual Memorization More Than Model Architecture" (various authors, 2023) shows that tokenization choices significantly affect what models can recall.
+
+**Strawberry example:** The "how many r's in strawberry" failure became a widely shared example of tokenization effects. GPT-4 tokenizes "strawberry" as "str" + "awberry" (varies by version), making letter counting require inference across tokens.
+
+---
+
+### Claim: Non-English languages are often over-tokenized
+
+**Quantitative analysis:** Research shows significant efficiency gaps:
+- English text: ~1 token per word on average
+- Chinese: ~2-3 tokens per character for some models
+- Korean, Thai, other scripts: Often 3-5x more tokens per semantic unit than English
+
+**Impact study:** "All Languages Are NOT Equal: Tokenization Efficiency Across Languages" (Petrov et al., 2023) documents systematic inequities in multilingual LLM tokenization.
+
+**Practical consequence:** Over-tokenization means:
+- More tokens used per message (higher cost)
+- Faster context window exhaustion
+- More opportunities for errors during reconstruction
+
+---
+
+### Claim: Token count ≈ 3/4 word count in English
+
+**Rule of thumb verification:** OpenAI's documentation states approximately 1 token = 4 characters, or about 0.75 words for English text. This varies with content type:
+- Formal text: closer to 1 token per word
+- Code: highly variable depending on language
+- Technical text with rare terms: more tokens per word
+
+**Token counting tools:**
+- OpenAI's tokenizer: https://platform.openai.com/tokenizer
+- tiktoken library for programmatic counting
+
+---
+
+### Claim: Tokens affect API pricing
+
+**Pricing documentation:** All major LLM APIs charge per token:
+- OpenAI: https://openai.com/pricing
+- Anthropic: https://www.anthropic.com/pricing
+- Google: https://ai.google.dev/pricing
+
+**Input vs output pricing:** Most providers charge differently for input (prompt) tokens vs output (completion) tokens, with output typically costing more (2-4x) because generation is computationally more expensive.
+
+---
+
+## Additional Research and Context
+
+### Alternative tokenization approaches
+
+**SentencePiece:** Google's tokenizer that doesn't require pre-tokenization into words: https://github.com/google/sentencepiece
+
+**Character-level models:** Some research explores character-level language models, trading efficiency for fine-grained text understanding. See "ByT5: Towards a Token-Free Future with Pre-trained Byte-to-Byte Models" (Xue et al., 2021): https://arxiv.org/abs/2105.13626
+
+**Findings:** Character-level models are more robust to typos and rare words but significantly slower and less capable at high-level language understanding.
+
+### The "glitch tokens" phenomenon
+
+**Discovery:** Researchers found that certain tokens (created from unusual training data artifacts) cause strange model behavior when prompted directly.
+
+**Popular coverage:** The "SolidGoldMagikarp" incident demonstrated that tokenizer training artifacts can create unexpected failure modes.
+
+**Explanation:** Tokens learned from rare contexts may have unstable or inconsistent learned representations.
+
+### Tokenization and prompting
+
+**Practical implications for prompt engineering:**
+- Spelling out words letter-by-letter forces character-level tokenization
+- Using spaces or punctuation can change token boundaries
+- Token boundaries affect what patterns the model can recognize
+
+**Example technique:** For tasks requiring letter awareness, prompting "spell out each letter of 'strawberry' with spaces: s t r a w b e r r y" forces a representation where letters are separate tokens.
+
+---
+
+## Recommended Resources
+
+**For understanding:**
+1. Karpathy's tokenizer video (most accessible comprehensive explanation)
+2. Tiktokenizer web tool (hands-on exploration)
+3. Original BPE paper (for historical and technical context)
+
+**For implementation:**
+1. tiktoken library documentation
+2. SentencePiece documentation
+3. Hugging Face tokenizers library
+
+**For research:**
+1. Papers on tokenization efficiency across languages
+2. ByT5 paper for alternative approaches
+3. Studies on tokenization effects on model capabilities
