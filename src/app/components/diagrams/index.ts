@@ -13,6 +13,8 @@ export { TokenBoundaries } from './TokenBoundaries.tsx';
 export { LayerStack } from './LayerStack.tsx';
 export { FlowDiagram } from './FlowDiagram.tsx';
 export { DiagramPlaceholder } from './DiagramPlaceholder.tsx';
+export { TokenizerDemo } from './TokenizerDemo.tsx';
+export { PerceptronToy } from './PerceptronToy.tsx';
 
 // Re-export types
 export type { ScaleComparisonData } from './ScaleComparison.tsx';
