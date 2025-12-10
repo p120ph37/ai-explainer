@@ -1,0 +1,229 @@
+---
+id: applications
+title: "What makes an AI application?"
+summary: "LLMs are engines, not products. Applications wrap them with retrieval, tools, guardrails, system prompts, and agentic loops to create useful, safe products."
+category: Ecosystem
+order: 4
+prerequisites:
+  - intro
+  - prompt-engineering
+  - tools
+children: []
+related:
+  - rag
+  - alignment
+  - tools
+keywords:
+  - AI applications
+  - agents
+  - system prompts
+  - guardrails
+  - orchestration
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { FlowDiagram } from '../../app/components/diagrams/index.ts'
+
+**Why does the same LLM feel so different in different products?**
+
+Claude powers both a friendly chatbot and a code editor. GPT-4 runs everything from customer service bots to research assistants. The base model is the same, but the experiences feel different.
+
+The difference is the **application layer**: everything wrapped around the raw LLM to make it suitable for a specific task. LLMs are engines; applications are vehicles.
+
+**The layers of an AI application**
+
+A raw LLM API gives you completion: send text, get text back. To build a product, you add layers:
+
+<FlowDiagram
+  title="AI Application Stack"
+  steps={[
+    { id: '1', label: 'User Input', sublabel: 'Question or request', icon: '👤' },
+    { id: '2', label: 'Guardrails', sublabel: 'Input filtering', icon: '🛡️' },
+    { id: '3', label: 'System Prompt', sublabel: 'Persona & rules', icon: '📋' },
+    { id: '4', label: 'Retrieval', sublabel: 'RAG context', icon: '📚' },
+    { id: '5', label: 'LLM', sublabel: 'Core reasoning', icon: '🧠' },
+    { id: '6', label: 'Tool Loop', sublabel: 'Actions if needed', icon: '🔧' },
+    { id: '7', label: 'Output Guards', sublabel: 'Response filtering', icon: '🛡️' },
+    { id: '8', label: 'Response', sublabel: 'To user', icon: '💬' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing the layers of an AI application"
+/>
+
+Each layer shapes behavior. The combination defines the application.
+
+<Recognition>
+
+You've experienced this variety. ChatGPT feels different from Claude, which feels different from Copilot, which feels different from a customer service bot—even when powered by similar base models. The wrapping makes the difference.
+
+</Recognition>
+
+**System prompts: defining persona and behavior**
+
+The **system prompt** is invisible instructions given to the model before your message. It shapes personality, establishes rules, and provides context.
+
+```
+System prompt for a customer service bot:
+
+You are a helpful customer service agent for TechCorp.
+Be friendly, concise, and solution-oriented.
+Never discuss competitor products.
+If you can't help, offer to escalate to a human agent.
+Always greet the customer by name if known.
+```
+
+The user never sees this. But it fundamentally changes how the model responds. Same LLM, completely different behavior.
+
+<Question title="What can system prompts do?">
+
+System prompts can:
+
+- **Set persona**: Formal assistant, casual friend, domain expert
+- **Define scope**: What topics to address, what to refuse
+- **Establish rules**: Response format, length limits, required disclaimers
+- **Inject knowledge**: Company info, product details, policies
+- **Shape tone**: Enthusiastic, measured, empathetic, professional
+
+They're "soft" controls—the model usually follows them but isn't guaranteed to. For hard guarantees, you need guardrails.
+
+</Question>
+
+**Guardrails: hard rules on input and output**
+
+System prompts suggest behavior. **Guardrails** enforce it.
+
+Input guardrails check user messages before they reach the model:
+- Block prohibited content
+- Detect prompt injection attempts
+- Filter sensitive data
+- Enforce topic restrictions
+
+Output guardrails check model responses before they reach the user:
+- Remove harmful content
+- Ensure format compliance
+- Redact unintended disclosures
+- Validate factual claims
+
+Guardrails can be simple regex rules, classification models, or separate LLM calls. They provide the safety margin that soft prompts can't guarantee.
+
+<Expandable title="Why not just train the model to be safe?">
+
+Base models are trained with safety in mind. But applications need additional constraints:
+
+- **Domain-specific rules**: A legal bot shouldn't give medical advice
+- **Brand guidelines**: Responses should match company tone
+- **Regulatory compliance**: Some industries have strict requirements
+- **Liability protection**: Catch edge cases training might miss
+
+Training handles the general case. Guardrails handle the specific requirements of your application and catch the failures that slip through.
+
+</Expandable>
+
+**Retrieval: grounding in real information**
+
+RAG (Retrieval-Augmented Generation) gives the model access to specific knowledge:
+
+- **Company documentation**: Policies, procedures, product specs
+- **User data**: Account details, history, preferences
+- **Current information**: Prices, availability, recent updates
+- **Domain knowledge**: Legal precedents, medical guidelines, technical docs
+
+Without retrieval, the model answers from training—which may be outdated, incomplete, or wrong for your domain. With retrieval, answers are grounded in authoritative sources.
+
+Retrieval also enables **personalization**. The model can reference the user's history, preferences, and context without training on private data.
+
+**Tools: taking actions beyond text**
+
+Tools let the model do things:
+
+- **Search**: Web search, database queries, API calls
+- **Calculate**: Math, code execution, data analysis
+- **Act**: Send emails, create tickets, update records
+- **Create**: Generate images, produce documents, write code
+
+An application defines which tools are available. A coding assistant has different tools than a customer service bot, which has different tools than a research assistant.
+
+The tool selection shapes what the application can do. An LLM without tools can only talk. An LLM with tools can work.
+
+**Agentic loops: multi-step reasoning**
+
+Simple applications are one-shot: user asks, model answers. **Agents** are iterative: the model plans, acts, observes, and repeats until the task is done.
+
+```
+User: "Book me a flight to NYC next Tuesday, cheapest option"
+
+Agentic loop:
+1. Model plans: Need to search flights
+2. Calls flight search tool → gets options
+3. Analyzes results: Cheapest is $199 on Delta
+4. Calls booking tool → initiates reservation  
+5. Needs user confirmation → asks for approval
+6. User confirms → completes booking
+7. Returns confirmation to user
+```
+
+The model drives the process, using tools as needed, making decisions along the way. The application provides the loop structure and tools; the model provides the reasoning.
+
+<Expandable title="Agent architectures">
+
+Common patterns:
+
+- **ReAct**: Reason, Act, Observe loop—model explains thinking, takes action, processes result
+- **Plan-then-execute**: Model creates plan upfront, executes steps
+- **Hierarchical**: Planner agent coordinates specialized executor agents
+- **Tool chains**: Predefined sequences with model decisions at branch points
+
+The right architecture depends on task complexity, reliability requirements, and how much autonomy the model should have.
+
+</Expandable>
+
+<Metaphor title="A race car vs. a family sedan">
+
+An LLM is an engine—powerful, capable, but not a vehicle.
+
+Wrapping it as a customer service bot is like building a family sedan: comfortable, safe, predictable. It goes where customers need, with guardrails (literally) to keep everyone safe.
+
+Wrapping it as a research assistant is like building a race car: optimized for speed, powerful tools, fewer restrictions. It goes fast and does things sedans can't, but requires a skilled driver.
+
+Same engine, different vehicles, different experiences. The application layer—the chassis, the safety features, the controls—makes all the difference.
+
+</Metaphor>
+
+**The composition of modern AI products**
+
+A sophisticated AI application might combine:
+
+- **System prompts** establishing persona and base behavior
+- **RAG** providing knowledge from company docs
+- **Input guardrails** blocking inappropriate requests
+- **Tool access** enabling search, calculation, and actions
+- **Agentic loops** for multi-step task completion
+- **Output guardrails** ensuring safe, on-brand responses
+- **Memory** tracking conversation history and user preferences
+- **Fallbacks** escalating to humans when confidence is low
+
+Each component is a design decision. The combination defines the product.
+
+<TryThis>
+
+Compare two AI products powered by the same underlying model (or similar ones). Notice the differences: How do they introduce themselves? What topics do they refuse? What actions can they take? What's their personality? These differences aren't in the model—they're in the application layer wrapped around it.
+
+</TryThis>
+
+**Why this matters**
+
+When evaluating AI products, look beyond "which model does it use":
+
+- What knowledge does it have access to?
+- What tools can it use?
+- What guardrails protect users?
+- How is it prompted to behave?
+- What happens when it fails?
+
+The application layer often matters more than the base model. A well-wrapped smaller model can outperform a poorly-wrapped larger one for specific tasks.
+
+<Sources>
+<Citation type="docs" title="Building AI Applications" source="LangChain" url="https://python.langchain.com/docs/get_started/introduction" />
+<Citation type="article" title="AI Agents" source="Anthropic" url="https://www.anthropic.com/research" />
+<Citation type="docs" title="System Prompts" source="OpenAI" url="https://platform.openai.com/docs/guides/text-generation" />
+</Sources>

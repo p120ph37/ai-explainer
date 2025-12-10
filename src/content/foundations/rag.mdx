@@ -1,0 +1,219 @@
+---
+id: rag
+title: "What is RAG?"
+summary: Retrieval-Augmented Generation gives LLMs access to external knowledge at query time. Instead of relying only on training, the model retrieves relevant documents and reasons over them.
+category: Foundations
+order: 23
+prerequisites:
+  - intro
+  - embeddings
+  - vector-databases
+children: []
+related:
+  - tools
+  - knowledge-cutoff
+  - hallucinations
+keywords:
+  - RAG
+  - retrieval-augmented generation
+  - knowledge retrieval
+  - context injection
+  - semantic search
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+import { FlowDiagram } from '../../app/components/diagrams/index.ts'
+
+**How can an AI answer questions about documents it was never trained on?**
+
+LLMs have vast knowledge baked into their weights from training. But that knowledge is frozen at the cutoff date, may be incomplete, and can't cover private or specialized data. What if you need answers about *your* documents, *your* database, *your* codebase?
+
+**Retrieval-Augmented Generation (RAG)** solves this. Before generating a response, the system retrieves relevant information and includes it in the prompt. The model reasons over retrieved content, not just training.
+
+Suddenly the LLM can answer questions about things it never saw in training.
+
+**How RAG works**
+
+<FlowDiagram
+  title="RAG Pipeline"
+  steps={[
+    { id: '1', label: 'User Question', sublabel: '"What\'s our refund policy?"', icon: '💬' },
+    { id: '2', label: 'Embed Query', sublabel: 'Convert to vector', icon: '🔢' },
+    { id: '3', label: 'Search', sublabel: 'Find similar docs', icon: '🔍' },
+    { id: '4', label: 'Retrieve', sublabel: 'Get relevant chunks', icon: '📄' },
+    { id: '5', label: 'Generate', sublabel: 'LLM + retrieved context', icon: '✨' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing RAG pipeline from question to answer"
+/>
+
+1. **User asks a question**
+2. **Embed the query**: Convert the question to a vector (embedding)
+3. **Search the knowledge base**: Find documents with similar embeddings
+4. **Retrieve relevant chunks**: Pull the top matches
+5. **Inject into prompt**: Add retrieved text as context
+6. **Generate response**: LLM answers using the provided context
+
+The model doesn't need to "know" the answer from training. It reads the answer from retrieved text and synthesizes a response.
+
+<Recognition>
+
+You've used this when chatting with a PDF, querying a documentation site, or asking questions about your codebase. The AI reads your content on the fly and answers based on what it finds—that's RAG.
+
+</Recognition>
+
+**Why RAG instead of fine-tuning?**
+
+You could train the model on your data. But:
+
+- **Fine-tuning is expensive**: Requires compute, data preparation, training runs
+- **Knowledge becomes stale**: Need to retrain when data changes
+- **No transparency**: Can't see what knowledge the model is using
+- **Capacity limits**: Model weights can only store so much
+
+RAG offers:
+
+- **Dynamic updates**: Change documents, and answers update immediately
+- **Transparency**: You can see exactly what was retrieved
+- **Scale**: Works with millions of documents without retraining
+- **Specificity**: Retrieved context is precisely relevant to the query
+
+<Question title="How is RAG different from tool use?">
+
+Both RAG and tools give LLMs access to external information. But they work differently:
+
+**RAG (Retrieval-Augmented Generation)**:
+- Information is retrieved *before* generation
+- Relevant context is injected into the prompt
+- The model reasons over provided text
+- User query drives semantic search
+- Works automatically—no model decision required
+
+**Tool use (Function calling)**:
+- The model *decides* to call a tool during generation
+- Tools can do more than retrieve: calculate, search web, take actions
+- Results are returned mid-generation
+- Model chooses when and what to call
+- Explicit tool definitions required
+
+**When to use which**:
+- RAG: Answering from a knowledge base, document QA, grounding responses
+- Tools: Web search, calculations, actions, dynamic data fetching
+
+Many systems combine both: RAG for knowledge retrieval plus tools for calculations and actions.
+
+</Question>
+
+**Building a RAG system**
+
+**Indexing phase** (done once, updated as content changes):
+
+```
+For each document:
+1. Split into chunks (paragraphs, sections)
+2. Generate embedding for each chunk
+3. Store chunk + embedding + metadata in vector database
+```
+
+**Query phase** (every user request):
+
+```
+1. Receive user question
+2. Generate embedding for question
+3. Search vector database for top-k similar chunks
+4. Construct prompt: system instructions + retrieved chunks + question
+5. Send to LLM for generation
+```
+
+<Expandable title="Chunking strategies matter">
+
+How you split documents affects retrieval quality:
+
+- **Too small**: Chunks lack context, answers are fragmented
+- **Too large**: Chunks are diluted, irrelevant text wastes context window
+- **No overlap**: Answers split across chunks are missed
+- **With overlap**: Adjacent context preserved, some redundancy
+
+Common approaches:
+- Split by paragraphs or sections (semantic units)
+- Fixed token counts with overlap (simple, consistent)
+- Recursive splitting (try large chunks, subdivide if needed)
+
+The right strategy depends on your content. Technical docs differ from conversation logs differ from legal contracts.
+
+</Expandable>
+
+**RAG reduces hallucination**
+
+When models answer from memory, they can invent plausible-sounding details. RAG grounds responses in actual documents.
+
+```
+Without RAG:
+Q: "What's our vacation policy?"
+A: [Model invents plausible-sounding policy]
+
+With RAG:
+Q: "What's our vacation policy?"
+Retrieved: "Employees receive 15 days PTO annually..."
+A: "According to the employee handbook, you receive 15 days PTO annually..."
+```
+
+The response cites the source. The model synthesizes from evidence rather than imagination. Hallucination risk drops significantly.
+
+<Metaphor title="An open-book exam">
+
+Without RAG, the model takes a closed-book exam: answering from memory, which may be patchy, outdated, or completely absent for your specific content.
+
+RAG is an open-book exam. The model can look up relevant pages before answering. It's still doing the reasoning—understanding the question, finding the right sections, synthesizing an answer—but grounded in actual text rather than memory.
+
+A student with access to the textbook gives better answers than one relying on fuzzy recall. So does an LLM with RAG.
+
+</Metaphor>
+
+**Limitations of RAG**
+
+RAG isn't magic:
+
+- **Retrieval can fail**: Wrong chunks retrieved, right answer missed
+- **Context limits**: Can only fit so much retrieved text in the prompt
+- **Chunk boundaries**: Answer might span multiple chunks
+- **Stale indexes**: If you don't update embeddings, new content is invisible
+- **Garbage in, garbage out**: Poor source documents mean poor answers
+
+Effective RAG requires good embeddings, appropriate chunking, and well-maintained indexes.
+
+<Expandable title="Advanced RAG techniques">
+
+Beyond basic retrieval:
+
+- **Hybrid search**: Combine semantic (vector) and keyword search
+- **Reranking**: Score retrieved chunks by relevance, keep the best
+- **Query expansion**: Rephrase or expand the query for better recall
+- **HyDE**: Generate a hypothetical answer, search for similar content
+- **Multi-step retrieval**: Retrieve, then retrieve again based on initial results
+- **Contextual compression**: Summarize retrieved chunks to fit more context
+
+Production RAG systems often layer several techniques for quality.
+
+</Expandable>
+
+<TryThis>
+
+Try a RAG-enabled chat tool—many AI coding assistants (like Cursor) use RAG to answer questions about your codebase. Ask a specific question about your code. Notice how it retrieves relevant files and references them in the answer. Try the same question with a generic LLM that doesn't have your code—see the difference RAG makes.
+
+</TryThis>
+
+**The RAG + Tools combination**
+
+Modern AI applications often combine both:
+
+- **RAG** provides knowledge: company docs, product catalogs, help articles
+- **Tools** provide actions: search the web, run calculations, update databases
+
+The LLM orchestrates both—retrieving information when needed, calling tools when appropriate—to solve complex tasks neither approach handles alone.
+
+<Sources>
+<Citation type="paper" title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks" authors="Lewis et al." source="Meta AI" url="https://arxiv.org/abs/2005.11401" year={2020} />
+<Citation type="article" title="What is RAG?" source="AWS" url="https://aws.amazon.com/what-is/retrieval-augmented-generation/" />
+<Citation type="docs" title="RAG Overview" source="LangChain" url="https://python.langchain.com/docs/use_cases/question_answering/" />
+</Sources>
