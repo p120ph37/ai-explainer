@@ -1,0 +1,128 @@
+# What is an LLM? — Research Voice
+
+*This voice examines the claims made by the other three variants and provides supporting evidence, related research, and additional context.*
+
+---
+
+## Core Claims and Evidence
+
+### Claim: LLMs work by predicting the next token
+
+**Primary source:** The foundational paper for modern LLMs is "Language Models are Few-Shot Learners" (Brown et al., 2020), which describes GPT-3. The paper explicitly frames the model as computing P(token|previous tokens) — a conditional probability distribution over next tokens.
+
+**Accessible explanation:** 3Blue1Brown's "But what is a GPT? Visual intro to transformers" (2024) provides an excellent visual walkthrough of this prediction mechanism: https://www.youtube.com/watch?v=wjZofJX0v4M
+
+**Technical deep-dive:** Andrej Karpathy's "Let's build GPT: from scratch, in code" (2023) implements a small language model from scratch, showing exactly how next-token prediction works: https://www.youtube.com/watch?v=kCc8FmEb1nY
+
+---
+
+### Claim: Prediction at scale requires something like understanding
+
+**Supporting research:** "Sparks of Artificial General Intelligence: Early experiments with GPT-4" (Bubeck et al., Microsoft Research, 2023) documents capabilities that seem to require understanding — solving novel problems, explaining reasoning, transferring knowledge across domains: https://arxiv.org/abs/2303.12712
+
+**Counterpoint:** "Language Models Don't Learn What They're Trained to Learn" (various authors, 2023) argues that models may develop shortcuts that look like understanding but aren't robust generalizations.
+
+**Philosophical background:** The debate echoes John Searle's Chinese Room argument (1980), comprehensively analyzed in the Stanford Encyclopedia of Philosophy: https://plato.stanford.edu/entries/chinese-room/
+
+**Relevant Anthropic research:** "Tracing the thoughts of a large language model" (2025) uses interpretability techniques to examine what internal representations LLMs develop: https://www.anthropic.com/research/tracing-thoughts-language-model
+
+---
+
+### Claim: Scale produces qualitative changes (emergent capabilities)
+
+**Primary source:** "Emergent Abilities of Large Language Models" (Wei et al., Google Research, 2022) documents capabilities that appear suddenly at certain scales: https://arxiv.org/abs/2206.07682
+
+**Measured capabilities:** The paper identifies specific emergence thresholds:
+- Arithmetic: emerges around 10^22 training FLOPs
+- Multi-step reasoning: emerges around 10^23 training FLOPs  
+- Translation between rare language pairs: emerges at larger scales
+
+**Important counterargument:** "Are Emergent Abilities of Large Language Models a Mirage?" (Schaeffer et al., Stanford, 2023) argues that apparent emergence may be an artifact of discrete evaluation metrics, not true phase transitions: https://arxiv.org/abs/2304.15004
+
+**Historical context:** The concept of emergence in complex systems predates AI research. Wikipedia provides a good overview: https://en.wikipedia.org/wiki/Emergence
+
+---
+
+### Claim: Training data consists of "trillions of words" from diverse sources
+
+**Documentation:** While exact training data is often proprietary, Common Crawl (used in many LLM training sets) contains petabytes of web data. The Pile (open-source training dataset) is documented here: https://pile.eleuther.ai/
+
+**Scale numbers:**
+- GPT-3: trained on ~300 billion tokens (Brown et al., 2020)
+- Chinchilla: trained on 1.4 trillion tokens (Hoffmann et al., 2022)  
+- Recent frontier models: likely multiple trillions of tokens (exact numbers undisclosed)
+
+**Ethical considerations:** Training data raises copyright and consent issues. For overview, see "Foundation Models and Fair Use" (Henderson et al., 2023).
+
+---
+
+### Claim: Randomness in generation (temperature) serves a purpose
+
+**Technical explanation:** "The Curious Case of Neural Text Degeneration" (Holtzman et al., 2019) explains why greedy decoding (always picking the most likely token) produces degenerate text: https://arxiv.org/abs/1904.09751
+
+**Key finding:** The paper introduces nucleus sampling (top-p) as an alternative to temperature-based sampling, showing that some randomness dramatically improves output quality.
+
+**API documentation:** Anthropic's API documentation explains temperature and sampling parameters: https://docs.anthropic.com/en/api/messages
+
+---
+
+### Claim: Models have parameter counts in the billions to trillions
+
+**Documented parameter counts:**
+- GPT-3: 175 billion parameters (Brown et al., 2020)
+- Chinchilla: 70 billion parameters (Hoffmann et al., 2022)
+- PaLM: 540 billion parameters (Chowdhery et al., 2022)
+- GPT-4: Unconfirmed, estimated 1+ trillion (mixture of experts)
+
+**What parameters are:** 3Blue1Brown's neural network series provides visual explanations: https://www.youtube.com/watch?v=aircAruvnKk
+
+---
+
+### Claim: Models can make confident mistakes (hallucinations)
+
+**Survey:** "A Survey on Hallucination in Large Language Models" (Huang et al., 2023) provides comprehensive coverage of the hallucination problem: https://arxiv.org/abs/2311.05232
+
+**Measurement:** "TruthfulQA: Measuring How Models Mimic Human Falsehoods" (Lin et al., 2021) provides a benchmark for measuring factual accuracy: https://arxiv.org/abs/2109.07958
+
+**Contributing factor:** "Sycophancy in Language Models" (Sharma et al., Anthropic, 2023) shows how training for helpfulness can encourage agreeing with users even when wrong: https://arxiv.org/abs/2310.08639
+
+---
+
+## Additional Context Not in Primary Variants
+
+### The Transformer architecture
+
+All major LLMs use the Transformer architecture introduced in "Attention Is All You Need" (Vaswani et al., 2017): https://arxiv.org/abs/1706.03762
+
+Jay Alammar's "The Illustrated Transformer" provides an accessible visual guide: https://jalammar.github.io/illustrated-transformer/
+
+### Scaling laws
+
+"Scaling Laws for Neural Language Models" (Kaplan et al., OpenAI, 2020) discovered that performance improves predictably with scale: https://arxiv.org/abs/2001.08361
+
+"Training Compute-Optimal Large Language Models" (Hoffmann et al., DeepMind, 2022) refined these laws, showing that many models were undertrained relative to their size: https://arxiv.org/abs/2203.15556
+
+### Interpretability research
+
+Anthropic's interpretability research aims to understand what's happening inside these models:
+- "Interpretability: Understanding how AI models think" (video, 2025): https://www.youtube.com/watch?v=fGKNUvivvnc
+- Technical papers available at https://www.anthropic.com/research
+
+### Alignment and safety
+
+The question of making LLMs helpful, harmless, and honest is addressed in:
+- "Training language models to follow instructions with human feedback" (Ouyang et al., OpenAI, 2022): https://arxiv.org/abs/2203.02155
+- "Constitutional AI" (Bai et al., Anthropic, 2022): https://arxiv.org/abs/2212.08073
+
+---
+
+## Recommended Learning Path
+
+For readers wanting to go deeper:
+
+1. **Visual introduction:** 3Blue1Brown's transformer video
+2. **Hands-on understanding:** Karpathy's "Let's build GPT" 
+3. **Original research:** "Attention Is All You Need" (readable even without ML background)
+4. **Current capabilities:** "Sparks of AGI" paper
+5. **Limitations:** TruthfulQA and hallucination survey papers
+6. **Open questions:** Stanford Encyclopedia entry on Chinese Room
