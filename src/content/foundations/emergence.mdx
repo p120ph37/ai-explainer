@@ -3,13 +3,15 @@ id: emergence
 title: "What is emergent behavior?"
 summary: Emergence is when simple rules produce complex behavior. In LLMs, capabilities like reasoning appear spontaneously at scale, not from explicit programming.
 category: Foundations
-order: 15
+order: 3
 prerequisites:
-  - why-large
+  - intro
 children: []
 related:
+  - scale
   - training
   - neural-network
+  - understanding
 keywords:
   - emergence
   - emergent capabilities
@@ -25,6 +27,16 @@ import { GameOfLife } from '../../app/components/diagrams/index.ts'
 You might expect AI capabilities to improve smoothly as models get bigger. Instead, some abilities are absent in smaller models, then suddenly present in larger ones. Like flipping a switch.
 
 This is **emergence**: capabilities that arise from scale without being explicitly programmed. The model wasn't trained to do arithmetic. Yet at sufficient size, it can. Nobody taught it to translate between languages it rarely saw paired. Yet it does.
+
+<Question title="How does scale enable emergence?">
+
+Emergence in LLMs is tied to **scale**—more parameters, more training data, more compute. Researchers discovered that model capabilities improve predictably as you scale up, following mathematical "scaling laws."
+
+But while improvement is predictable, *which* capabilities emerge isn't. Below certain scale thresholds, a capability is absent. Above it, the capability appears—sometimes suddenly. The scaling laws tell us loss will improve; they don't tell us what new abilities will crystallize at each threshold.
+
+→ [Why scale matters](/scale)
+
+</Question>
 
 **Emergence beyond AI**
 
@@ -126,6 +138,18 @@ Emergence is partly why AI capabilities are hard to forecast. We can predict los
 This makes frontier AI development partly exploratory. You build bigger models partly to discover what they can do. The capabilities weren't specified in advance; they're found empirically.
 
 This is both exciting and concerning. Exciting because new capabilities await discovery. Concerning because we can't anticipate what capabilities might appear, including potentially dangerous ones.
+
+<Question title="Is this 'true' intelligence or just sophisticated pattern matching?">
+
+A fascinating open question. Emergent capabilities look like reasoning, but the underlying process is still next-token prediction trained on patterns in text.
+
+Some argue these capabilities are genuine: the model has learned representations that support actual reasoning. Others argue they're sophisticated mimicry: pattern matching that fails on edge cases outside training distribution.
+
+The honest answer: we don't fully know. The capabilities are real and useful. Whether they constitute "understanding" in any deep sense remains genuinely open.
+
+→ [Do LLMs understand?](/understanding)
+
+</Question>
 
 <Sources>
 <Citation type="paper" title="Emergent Abilities of Large Language Models" authors="Wei et al." source="Google Research" url="https://arxiv.org/abs/2206.07682" year={2022} />

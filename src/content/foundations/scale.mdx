@@ -1,0 +1,157 @@
+---
+id: scale
+title: "Why does scale matter?"
+summary: "LLMs develop surprising capabilities at scale. What starts as text prediction becomes reasoning, coding, and translation. Scaling laws predict this: more parameters, data, and compute yield better models."
+category: Foundations
+order: 2
+prerequisites:
+  - intro
+children: []
+related:
+  - emergence
+  - parameters
+  - training
+  - local
+keywords:
+  - scaling laws
+  - emergent capabilities
+  - parameters
+  - compute
+  - Chinchilla
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**Why is "large" in the name? What's special about size?**
+
+Your phone's keyboard predictor and GPT-4 do fundamentally the same thing: predict the next word given context. But the phone suggests "you" after "thank" while GPT-4 writes coherent essays, debugs code, and explains quantum physics.
+
+The difference is scale. Frontier models have hundreds of billions to trillions of parameters compared to millions for a phone predictor. They train on trillions of words rather than curated phrase lists. They consider vast amounts of context rather than a few words.
+
+This isn't just "bigger and more." Scale creates **qualitative changes**. Capabilities appear that didn't exist in smaller models and weren't programmed in.
+
+<Recognition>
+
+You've seen something like this in other domains. A village isn't a small city. A puddle isn't a small lake. At certain scales, new dynamics emerge: ecosystems form, specialization becomes possible, complexity self-organizes. Language models cross similar thresholds.
+
+</Recognition>
+
+**What changes at scale?**
+
+Small models learn surface patterns: "Paris" often follows "The capital of France is." Larger models learn something deeper—the *pattern* of factual recall itself. They can answer questions about capitals they saw only rarely in training.
+
+Scale further and capabilities appear:
+
+- **Multi-step reasoning**: Breaking complex problems into parts
+- **Code generation**: Writing programs that actually run
+- **Cross-lingual transfer**: Translating between languages rarely paired in training
+- **Analogical thinking**: Applying patterns from one domain to another
+
+None of these were specifically programmed. They crystallized from the pressure to predict text at sufficient scale.
+
+<Question title="What is emergence, and how does it relate to scale?">
+
+**Emergence** is when simple rules produce complex behavior—capabilities arising spontaneously that weren't programmed in.
+
+In LLMs, emergent capabilities often appear suddenly at certain scale thresholds. Below the threshold: failure. Above it: success. Multi-step arithmetic, chain-of-thought reasoning, code execution—these emerge at scale rather than being explicitly taught.
+
+This is why scaling matters beyond just "more is better." Scale unlocks qualitatively new capabilities, not just incremental improvement on existing ones.
+
+→ [More on emergence](/emergence)
+
+</Question>
+
+**The scaling laws: predictable relationships**
+
+In 2020, researchers discovered something remarkable: model performance improves predictably with scale. These **scaling laws** show mathematical relationships between resources and capability.
+
+Performance depends on three factors:
+
+- **Parameters (N)**: Model size—how many weights it has
+- **Data (D)**: How many tokens it trains on
+- **Compute (C)**: Total training computation
+
+Each doubling improves performance by a consistent fraction. The improvements compound. This predictability is why labs invest billions in larger models—the math tells you roughly what you'll get.
+
+<Expandable title="The math behind scaling">
+
+Performance improves as a power law:
+
+```
+Loss ∝ N^(-0.076) × D^(-0.095) × C^(-0.050)
+```
+
+You need roughly 10× more compute to halve the loss. Progress is possible but expensive.
+
+The **Chinchilla insight** (2022) showed that parameters and data should scale together. A 70B model trained on 1.4T tokens outperformed a 280B model trained on fewer tokens. This reshaped the field—modern models emphasize data quality and quantity alongside parameter count.
+
+</Expandable>
+
+**Why does prediction require intelligence?**
+
+This is the deep puzzle. Predicting text seems like a narrow task. Why should getting better at it produce capabilities that look like reasoning?
+
+Consider what excellent prediction requires. To predict how a legal argument continues, you must follow logical structure. To predict the next line of working code, you must understand what the code does. To predict a physics derivation, you must track mathematical relationships.
+
+The training objective is prediction, but *achieving* excellent prediction across diverse text requires developing something that resembles understanding. The model isn't trying to reason. It's trying to predict. But reasoning is useful for prediction, so reasoning-like circuits develop.
+
+<Metaphor title="The prediction pressure">
+
+Imagine a student who only has to pass one test: predict the next word in any text ever written. No points for understanding, just prediction accuracy.
+
+At first, they memorize common phrases. But the test includes scientific papers, legal documents, code in dozens of programming languages.
+
+To ace this test, the student must learn grammar, facts, reasoning patterns, programming logic—not because the test asks for these things, but because they're *useful for prediction*.
+
+Scale up the capacity to learn and the breadth of the test, and the student develops a remarkable range of capabilities, all in service of that one simple objective.
+
+</Metaphor>
+
+<Question title="How much compute does training require?">
+
+Frontier models require staggering resources:
+
+- **GPT-4**: Estimated $100M+ training cost, months on thousands of GPUs
+- **Llama 3 (405B)**: Trained on 16K GPUs for months
+
+This compute is expensive, limited in supply, and concentrated in few organizations. Scaling works, but the cost scales too. Not everyone can play at the frontier.
+
+→ [Running models locally](/local)
+
+</Question>
+
+**The limits of scale**
+
+Scaling isn't magic. Bigger models still:
+
+- Hallucinate (confidently state falsehoods)
+- Struggle with certain reasoning tasks, particularly precise counting or very long logic chains
+- Can't learn from a single conversation without fine-tuning
+
+Recent research suggests scaling may hit diminishing returns for some capabilities. The field is actively exploring what scaling can solve, what it can't, and what complementary innovations are needed.
+
+<TryThis>
+
+Ask a modern LLM to solve a logic puzzle it almost certainly hasn't seen before. Try: "A farmer has three bags. Bag A has only apples. Bag B has only oranges. Bag C has both. All labels are wrong. You can pick one fruit from one bag. How do you determine what's in each bag?" 
+
+The model's ability to reason through this, not just pattern-match, demonstrates what scale enables.
+
+</TryThis>
+
+**Scaling got us here. What's next?**
+
+Current frontiers:
+
+- **Data limits**: We may run out of quality training data before hitting compute limits
+- **Inference scaling**: Spending more compute at inference time (reasoning models) rather than just training
+- **Efficiency**: Architectural innovations that get more capability from less compute
+- **Synthetic data**: Training on model-generated data to break data limits
+
+The question isn't whether scaling works—it demonstrably does. The question is whether it continues, and what else is needed.
+
+<Sources>
+<Citation type="paper" title="Scaling Laws for Neural Language Models" authors="Kaplan et al." source="OpenAI" url="https://arxiv.org/abs/2001.08361" year={2020} />
+<Citation type="paper" title="Training Compute-Optimal Large Language Models (Chinchilla)" authors="Hoffmann et al." source="DeepMind" url="https://arxiv.org/abs/2203.15556" year={2022} />
+<Citation type="paper" title="Emergent Abilities of Large Language Models" authors="Wei et al." source="Google" url="https://arxiv.org/abs/2206.07682" year={2022} />
+<Citation type="video" title="But what is a GPT? Visual intro to transformers" source="3Blue1Brown" url="https://www.youtube.com/watch?v=wjZofJX0v4M" year={2024} />
+</Sources>
