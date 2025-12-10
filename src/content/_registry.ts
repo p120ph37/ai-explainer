@@ -52,7 +52,6 @@ const contentImports: Record<string, () => Promise<ContentModule>> = {
   'vector-databases': () => import('./foundations/vector-databases.mdx') as Promise<ContentModule>,
   'hardware': () => import('./foundations/hardware.mdx') as Promise<ContentModule>,
   'cutoff': () => import('./foundations/cutoff.mdx') as Promise<ContentModule>,
-  'rag': () => import('./foundations/rag.mdx') as Promise<ContentModule>,
   'memory': () => import('./foundations/memory.mdx') as Promise<ContentModule>,
   'multimodal': () => import('./foundations/multimodal.mdx') as Promise<ContentModule>,
   'reasoning': () => import('./foundations/reasoning.mdx') as Promise<ContentModule>,

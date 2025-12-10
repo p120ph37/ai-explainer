@@ -10,7 +10,7 @@ children: []
 related:
   - tools
   - hallucinations
-  - rag
+  - applications
 keywords:
   - vector database
   - similarity search
@@ -74,49 +74,15 @@ The right choice depends on scale, existing infrastructure, and feature needs. F
 
 </Question>
 
-**Retrieval-Augmented Generation (RAG)**
+**Powering RAG and AI applications**
 
-Vector databases power **RAG**: a pattern where LLMs retrieve relevant information before generating responses.
+Vector databases are the backbone of **Retrieval-Augmented Generation (RAG)**: a pattern where LLMs retrieve relevant information before generating responses. When you ask an AI about your documents, a vector database finds the relevant chunks to include in the prompt.
 
-```
-User: "What's our refund policy?"
+This is what enables AI to answer questions about content it was never trained on—your company docs, your codebase, your personal notes. The vector database provides the retrieval; the LLM provides the reasoning.
 
-RAG flow:
-1. Embed the question
-2. Search vector database for similar content
-3. Find: policy document section about refunds
-4. Include retrieved text in prompt to LLM
-5. LLM generates response grounded in actual policy
-```
+→ [How RAG fits into AI applications](/applications)
 
-RAG reduces hallucination by giving the model real information to work with. Instead of inventing answers, it synthesizes from retrieved sources.
-
-<Expandable title="RAG architecture details">
-
-A typical RAG system:
-
-**Indexing pipeline**:
-- Split documents into chunks (paragraphs, sections)
-- Generate embeddings for each chunk
-- Store in vector database with metadata
-
-**Query pipeline**:
-- Receive user question
-- Generate query embedding
-- Search for top-k similar chunks
-- Construct prompt with retrieved chunks as context
-- Generate response
-
-**Considerations**:
-- Chunk size affects retrieval precision
-- Overlap between chunks preserves context
-- Metadata filtering narrows search scope
-- Reranking improves relevance of retrieved chunks
-- Citation tracking enables source verification
-
-</Expandable>
-
-**Beyond search: other applications**
+**Beyond RAG: other applications**
 
 Vector databases enable many applications:
 

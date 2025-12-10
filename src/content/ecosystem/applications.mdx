@@ -10,15 +10,19 @@ prerequisites:
   - tools
 children: []
 related:
-  - rag
+  - vector-databases
   - alignment
   - tools
+  - security
+  - cutoff
 keywords:
   - AI applications
   - agents
   - system prompts
   - guardrails
   - orchestration
+  - RAG
+  - retrieval
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
@@ -119,18 +123,80 @@ Training handles the general case. Guardrails handle the specific requirements o
 
 </Expandable>
 
-**Retrieval: grounding in real information**
+**Retrieval-Augmented Generation (RAG): grounding in real information**
 
-RAG (Retrieval-Augmented Generation) gives the model access to specific knowledge:
+LLMs have vast knowledge from training—but that knowledge is frozen at the cutoff date, may be incomplete, and can't cover your private data. What if you need answers about *your* documents, *your* database, *your* codebase?
 
-- **Company documentation**: Policies, procedures, product specs
-- **User data**: Account details, history, preferences
-- **Current information**: Prices, availability, recent updates
-- **Domain knowledge**: Legal precedents, medical guidelines, technical docs
+**RAG** solves this. Before generating a response, the system retrieves relevant information and includes it in the prompt. The model reasons over retrieved content, not just training memory.
 
-Without retrieval, the model answers from training—which may be outdated, incomplete, or wrong for your domain. With retrieval, answers are grounded in authoritative sources.
+<FlowDiagram
+  title="RAG Pipeline"
+  steps={[
+    { id: '1', label: 'User Question', sublabel: '"What\'s our refund policy?"', icon: '💬' },
+    { id: '2', label: 'Embed Query', sublabel: 'Convert to vector', icon: '🔢' },
+    { id: '3', label: 'Search', sublabel: 'Find similar docs', icon: '🔍' },
+    { id: '4', label: 'Retrieve', sublabel: 'Get relevant chunks', icon: '📄' },
+    { id: '5', label: 'Generate', sublabel: 'LLM + retrieved context', icon: '✨' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing RAG pipeline from question to answer"
+/>
 
-Retrieval also enables **personalization**. The model can reference the user's history, preferences, and context without training on private data.
+The model doesn't need to "know" the answer from training. It reads the answer from retrieved text and synthesizes a response. Suddenly the LLM can answer questions about things it never saw in training.
+
+<Question title="How does retrieval actually work?">
+
+RAG typically uses **semantic search** via vector databases:
+
+1. **Index your documents**: Split into chunks, convert each to an embedding (vector), store in a vector database
+2. **At query time**: Convert the user's question to an embedding
+3. **Search**: Find document chunks with similar embeddings
+4. **Inject**: Add retrieved chunks to the prompt as context
+
+The embedding similarity captures meaning, not just keywords. "What's the refund policy?" matches documents about "return procedures" even without shared words.
+
+→ [Vector databases in depth](/vector-databases)
+
+</Question>
+
+**Why RAG instead of fine-tuning?**
+
+You could train the model on your data. But:
+
+- **Fine-tuning is expensive**: Compute, data prep, training runs
+- **Knowledge becomes stale**: Retrain when data changes
+- **No transparency**: Can't see what the model "knows"
+
+RAG offers:
+
+- **Dynamic updates**: Change documents, answers update immediately
+- **Transparency**: See exactly what was retrieved
+- **Scale**: Millions of documents without retraining
+
+**RAG reduces hallucination** by grounding responses in actual documents. Instead of inventing plausible-sounding details, the model synthesizes from retrieved evidence.
+
+<Question title="How is RAG different from tool use?">
+
+Both give LLMs access to external information, but differently:
+
+**RAG**:
+- Retrieval happens *before* generation
+- Context injected into prompt automatically
+- User query drives semantic search
+- Works without model decision
+
+**Tool use**:
+- Model *decides* to call a tool during generation
+- Tools can do more than retrieve: calculate, act, search web
+- Explicit tool definitions required
+
+**When to use which**:
+- RAG: Knowledge bases, document Q&A, grounding responses
+- Tools: Web search, calculations, actions, dynamic data
+
+Many systems combine both: RAG for knowledge, tools for actions.
+
+</Question>
 
 **Tools: taking actions beyond text**
 
@@ -223,6 +289,7 @@ When evaluating AI products, look beyond "which model does it use":
 The application layer often matters more than the base model. A well-wrapped smaller model can outperform a poorly-wrapped larger one for specific tasks.
 
 <Sources>
+<Citation type="paper" title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks" authors="Lewis et al." source="Meta AI" url="https://arxiv.org/abs/2005.11401" year={2020} />
 <Citation type="docs" title="Building AI Applications" source="LangChain" url="https://python.langchain.com/docs/get_started/introduction" />
 <Citation type="article" title="AI Agents" source="Anthropic" url="https://www.anthropic.com/research" />
 <Citation type="docs" title="System Prompts" source="OpenAI" url="https://platform.openai.com/docs/guides/text-generation" />
