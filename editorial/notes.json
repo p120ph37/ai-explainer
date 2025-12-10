@@ -1,5 +1,133 @@
 {
-  "version": 1,
-  "lastUpdated": "2025-12-09T23:30:00.000Z",
+  "version": 2,
+  "lastUpdated": "2025-12-10T12:00:00.000Z",
+  "variants": {
+    "description": "Voice variants for parallel composition exercise. Each page has 5 voice variants stored in editorial/variants/[pageId]/[voice].md",
+    "voices": [
+      {
+        "id": "primary-voice",
+        "name": "Primary Voice",
+        "description": "Question-led, direct answers, clear explanations. Single-threaded narrative in the primary style from the style guide."
+      },
+      {
+        "id": "metaphor-voice",
+        "name": "Metaphor Voice",
+        "description": "Richly metaphorical, visually generative. Pushes slightly heavier than standard metaphor-aside style."
+      },
+      {
+        "id": "socratic-voice",
+        "name": "Socratic Voice",
+        "description": "Question-driven, dialogic. Personification and extension of the question-aside style, leading readers to discovery."
+      },
+      {
+        "id": "research-voice",
+        "name": "Research Voice",
+        "description": "Commentary voice examining claims from the other three voices. Provides supporting articles, videos, research, and additional facts."
+      },
+      {
+        "id": "experiential-voice",
+        "name": "Experiential Voice",
+        "description": "Commentary voice connecting concepts to first-hand experiences readers likely have. Suggests interactive toys, diagrams, and illustrations. References contemporary pop culture."
+      }
+    ],
+    "pages": [
+      {
+        "pageId": "intro",
+        "title": "What is an LLM?",
+        "path": "src/content/intro/what-is-llm.mdx",
+        "variantsPath": "editorial/variants/intro/"
+      },
+      {
+        "pageId": "tokens",
+        "title": "What are Tokens?",
+        "path": "src/content/foundations/tokens.mdx",
+        "variantsPath": "editorial/variants/tokens/"
+      },
+      {
+        "pageId": "context-window",
+        "title": "The Context Window",
+        "path": "src/content/foundations/context-window.mdx",
+        "variantsPath": "editorial/variants/context-window/"
+      },
+      {
+        "pageId": "temperature",
+        "title": "Temperature in AI",
+        "path": "src/content/foundations/temperature.mdx",
+        "variantsPath": "editorial/variants/temperature/"
+      },
+      {
+        "pageId": "training",
+        "title": "How are LLMs Trained?",
+        "path": "src/content/foundations/training.mdx",
+        "variantsPath": "editorial/variants/training/"
+      },
+      {
+        "pageId": "attention",
+        "title": "How Does Attention Work?",
+        "path": "src/content/foundations/attention.mdx",
+        "variantsPath": "editorial/variants/attention/"
+      },
+      {
+        "pageId": "inference",
+        "title": "How Does Text Generation Happen?",
+        "path": "src/content/foundations/inference.mdx",
+        "variantsPath": "editorial/variants/inference/"
+      },
+      {
+        "pageId": "embeddings",
+        "title": "How Do Tokens Become Numbers?",
+        "path": "src/content/foundations/embeddings.mdx",
+        "variantsPath": "editorial/variants/embeddings/"
+      },
+      {
+        "pageId": "hallucinations",
+        "title": "Why Do LLMs Make Things Up?",
+        "path": "src/content/foundations/hallucinations.mdx",
+        "variantsPath": "editorial/variants/hallucinations/"
+      },
+      {
+        "pageId": "neural-network",
+        "title": "What is a Neural Network?",
+        "path": "src/content/foundations/neural-network.mdx",
+        "variantsPath": "editorial/variants/neural-network/"
+      },
+      {
+        "pageId": "parameters",
+        "title": "What are Parameters?",
+        "path": "src/content/foundations/parameters.mdx",
+        "variantsPath": "editorial/variants/parameters/"
+      },
+      {
+        "pageId": "understanding",
+        "title": "Do LLMs Really Understand?",
+        "path": "src/content/foundations/understanding.mdx",
+        "variantsPath": "editorial/variants/understanding/"
+      },
+      {
+        "pageId": "emergence",
+        "title": "What is Emergent Behavior?",
+        "path": "src/content/foundations/emergence.mdx",
+        "variantsPath": "editorial/variants/emergence/"
+      },
+      {
+        "pageId": "why-large",
+        "title": "Why Does Scale Matter?",
+        "path": "src/content/foundations/why-large.mdx",
+        "variantsPath": "editorial/variants/why-large/"
+      },
+      {
+        "pageId": "prompt-engineering",
+        "title": "Communicating Effectively with LLMs",
+        "path": "src/content/foundations/prompt-engineering.mdx",
+        "variantsPath": "editorial/variants/prompt-engineering/"
+      },
+      {
+        "pageId": "transformer",
+        "title": "What is a Transformer?",
+        "path": "src/content/foundations/transformer.mdx",
+        "variantsPath": "editorial/variants/transformer/"
+      }
+    ]
+  },
   "notes": []
 }

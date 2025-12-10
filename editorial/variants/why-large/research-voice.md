@@ -1,0 +1,137 @@
+# Why Does Scale Matter? — Research Voice
+
+*Examines claims and provides supporting evidence, research, and additional context.*
+
+---
+
+## Core Claims and Evidence
+
+### Claim: Model performance improves predictably with scale
+
+**Key paper:** "Scaling Laws for Neural Language Models" (Kaplan et al., OpenAI, 2020): https://arxiv.org/abs/2001.08361
+
+**Findings:** Loss (prediction error) follows power laws with:
+- Model size (parameters)
+- Dataset size (tokens)
+- Compute budget
+
+**Equations:** L ≈ N^(-0.076) for parameters, L ≈ D^(-0.095) for data, L ≈ C^(-0.050) for compute.
+
+**Implication:** 10x more compute → ~45% reduction in loss. Progress is predictable but expensive.
+
+---
+
+### Claim: Optimal scaling requires balancing model size and data
+
+**Chinchilla paper:** "Training Compute-Optimal Large Language Models" (Hoffmann et al., DeepMind, 2022): https://arxiv.org/abs/2203.15556
+
+**Key finding:** Many models were undertrained. Chinchilla (70B params, 1.4T tokens) outperformed Gopher (280B params, 300B tokens) with the same compute.
+
+**Optimal ratio:** Roughly equal scaling of parameters and training tokens.
+
+**Industry impact:** Shifted focus from pure parameter count to training data quantity and quality.
+
+---
+
+### Claim: Scale produces emergent capabilities beyond loss improvement
+
+**Key paper:** "Emergent Abilities of Large Language Models" (Wei et al., 2022): https://arxiv.org/abs/2206.07682
+
+**Documented capabilities:**
+- Multi-step arithmetic (emerges ~10^22 FLOPs)
+- Chain-of-thought reasoning
+- Cross-lingual transfer
+- Theory of mind tasks
+
+**Loss vs. capabilities:** Loss improves smoothly with scale. Capabilities can appear suddenly. These are different phenomena.
+
+---
+
+### Claim: Scale enables generalization beyond training distribution
+
+**Evidence types:**
+- Solving novel math problems with unique numbers
+- Generating working code for new specifications
+- Reasoning about hypothetical scenarios
+
+**Reference:** "Language Models are Few-Shot Learners" (Brown et al., 2020) demonstrated in-context learning with few examples: https://arxiv.org/abs/2005.14165
+
+**Memorization test:** Novel problems that demonstrably weren't in training can be solved, indicating generalization.
+
+---
+
+### Claim: Scaling has limits and doesn't solve all problems
+
+**Persistent issues in large models:**
+- Hallucination (remains despite scale)
+- Certain reasoning errors (especially mathematical/logical)
+- Knowledge cutoffs
+- Sycophancy
+
+**Diminishing returns evidence:** Some benchmarks show slowing improvement at largest scales.
+
+**Future directions:** Architecture improvements, retrieval augmentation, tool use, better training objectives.
+
+---
+
+## Additional Research and Context
+
+### Compute requirements and costs
+
+**Estimated training costs:**
+- GPT-3 (2020): ~$5-10 million
+- GPT-4 (2023): ~$50-100 million
+- Frontier 2025 models: $100+ million
+
+**Hardware evolution:**
+- V100 → A100 → H100 progression
+- 3-5x performance per generation
+- Still can't keep pace with scale demands
+
+### Scaling vs. efficiency
+
+**Research direction:** Can we achieve large-model capabilities at smaller scale?
+
+**Approaches:**
+- Knowledge distillation
+- Mixture of experts (activate only relevant parameters)
+- Better architectures
+- Improved training data quality
+
+**Reference:** "Orca: Progressive Learning from Complex Explanation Traces" shows small models can approach large model performance with better training: https://arxiv.org/abs/2306.02707
+
+### Scaling laws for different capabilities
+
+**Observation:** Different capabilities scale differently.
+- Factual recall: Scales relatively smoothly
+- Reasoning: More threshold-like emergence
+- Creativity: Hard to measure, unclear scaling
+
+**Implication:** Aggregate metrics like loss obscure capability-specific scaling patterns.
+
+### Environmental and economic considerations
+
+**Energy use:** Training GPT-3 consumed estimated 1,287 MWh. Frontier models likely 10-100x this.
+
+**Carbon footprint:** Varies enormously with data center energy source.
+
+**Economic concentration:** Only organizations with billions in capital can train frontier models.
+
+---
+
+## Recommended Resources
+
+**For understanding:**
+1. Kaplan et al. scaling laws paper (foundational)
+2. Chinchilla paper (optimal scaling)
+3. 3Blue1Brown video "But what is a GPT?" (visual explanation)
+
+**For current state:**
+1. LMSys leaderboard for model comparisons
+2. Papers on specific capability benchmarks
+3. Provider documentation on model capabilities
+
+**For future directions:**
+1. Papers on efficient scaling
+2. Mixture of experts research
+3. Discussions of compute governance
