@@ -12,6 +12,7 @@ related:
   - prompt-engineering
   - vector-databases
   - applications
+  - agents
   - cutoff
 keywords:
   - tool use
@@ -115,24 +116,17 @@ functions = [{
 
 The model outputs structured calls matching this schema. Your code validates and executes them. This is more reliable than parsing free-form text.
 
-<Expandable title="The agent loop">
+<Question title="What are agents?">
 
-Tool use enables **agents**: systems that iteratively plan, act, and observe.
+Tool use enables **agents**: systems that iteratively plan, act, observe, and repeat until a goal is achieved.
 
-```
-Loop:
-1. Model reasons about the task
-2. Model decides to call a tool (or not)
-3. System executes the tool, returns result
-4. Model incorporates result
-5. Repeat until task complete
-```
+Instead of one tool call, an agent might make dozens—searching, analyzing, deciding, acting—in a loop driven by the model's reasoning. A research task might involve many searches; a booking might require search, comparison, and confirmation steps.
 
-This loop can run many iterations. A complex research task might involve dozens of searches, calculations, and intermediate reasoning steps.
+Tool use is the capability. Agency is the pattern that uses it across many steps.
 
-The model isn't just generating one response; it's conducting a multi-step process, using tools as needed along the way.
+→ [How agents work](/agents)
 
-</Expandable>
+</Question>
 
 **Common tool categories**
 
