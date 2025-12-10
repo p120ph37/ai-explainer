@@ -13,17 +13,29 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'preact/hooks'
 import type { JSX } from 'preact';
 
 export interface GameOfLifeProps {
-  /** Grid width in cells */
-  width?: number;
-  /** Grid height in cells */
-  height?: number;
-  /** Cell size in pixels */
-  cellSize?: number;
+  /** Initial grid width in cells */
+  initialWidth?: number;
+  /** Initial grid height in cells */
+  initialHeight?: number;
+  /** Maximum width of the grid container in pixels */
+  maxContainerWidth?: number;
   /** Title for the widget */
   title?: string;
   /** Initial preset to load */
   initialPreset?: string;
 }
+
+// Grid size presets
+const GRID_SIZES = [
+  { label: '8×8 (Tiny)', width: 8, height: 8 },
+  { label: '16×16 (Small)', width: 16, height: 16 },
+  { label: '24×24 (Medium)', width: 24, height: 24 },
+  { label: '32×24 (Default)', width: 32, height: 24 },
+  { label: '48×36 (Large)', width: 48, height: 36 },
+  { label: '64×48 (XL)', width: 64, height: 48 },
+  { label: '80×60 (XXL)', width: 80, height: 60 },
+  { label: '128×96 (Huge)', width: 128, height: 96 },
+];
 
 type Grid = boolean[][];
 
@@ -252,17 +264,28 @@ function nextGeneration(grid: Grid): Grid {
 }
 
 export function GameOfLife({
-  width = 40,
-  height = 30,
-  cellSize = 12,
+  initialWidth = 32,
+  initialHeight = 24,
+  maxContainerWidth = 600,
   title = "Conway's Game of Life",
   initialPreset = 'glider',
 }: GameOfLifeProps) {
+  // Find initial grid size preset or use custom
+  const initialSizeIndex = GRID_SIZES.findIndex(
+    s => s.width === initialWidth && s.height === initialHeight
+  );
+  
+  const [gridWidth, setGridWidth] = useState(initialWidth);
+  const [gridHeight, setGridHeight] = useState(initialHeight);
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(
+    initialSizeIndex >= 0 ? initialSizeIndex : 3 // Default to 32×24
+  );
+  
   const [grid, setGrid] = useState<Grid>(() => {
-    const emptyGrid = createEmptyGrid(width, height);
+    const emptyGrid = createEmptyGrid(initialWidth, initialHeight);
     const pattern = PATTERNS[initialPreset];
     if (pattern && pattern.pattern.length > 0) {
-      return placePattern(emptyGrid, pattern.pattern, Math.floor(width / 4), Math.floor(height / 4));
+      return placePattern(emptyGrid, pattern.pattern, Math.floor(initialWidth / 4), Math.floor(initialHeight / 4));
     }
     return emptyGrid;
   });
@@ -275,6 +298,14 @@ export function GameOfLife({
   const [dragValue, setDragValue] = useState(true);
   
   const intervalRef = useRef<number | null>(null);
+  
+  // Calculate cell size based on grid width and container
+  const cellSize = useMemo(() => {
+    const maxCellSize = 16;
+    const minCellSize = 4;
+    const calculatedSize = Math.floor((maxContainerWidth - 20) / gridWidth); // -20 for padding/borders
+    return Math.max(minCellSize, Math.min(maxCellSize, calculatedSize));
+  }, [gridWidth, maxContainerWidth]);
   
   // Calculate alive cell count
   const aliveCount = useMemo(() => {
@@ -299,29 +330,44 @@ export function GameOfLife({
   }, [isPlaying, speed, step]);
   
   // Load preset
-  const loadPreset = useCallback((presetKey: string) => {
+  const loadPreset = useCallback((presetKey: string, w: number = gridWidth, h: number = gridHeight) => {
     setIsPlaying(false);
     setGeneration(0);
     setSelectedPreset(presetKey);
     
     if (presetKey in RANDOM_PRESETS) {
       const preset = RANDOM_PRESETS[presetKey as keyof typeof RANDOM_PRESETS];
-      setGrid(createRandomGrid(width, height, preset.density));
+      setGrid(createRandomGrid(w, h, preset.density));
     } else if (presetKey in PATTERNS) {
       const pattern = PATTERNS[presetKey];
-      const emptyGrid = createEmptyGrid(width, height);
+      const emptyGrid = createEmptyGrid(w, h);
       if (pattern.pattern.length === 0) {
         setGrid(emptyGrid);
       } else {
         // Center the pattern
         const patternHeight = Math.max(...pattern.pattern.map(p => p[0])) + 1;
         const patternWidth = Math.max(...pattern.pattern.map(p => p[1])) + 1;
-        const offsetX = Math.floor((width - patternWidth) / 2);
-        const offsetY = Math.floor((height - patternHeight) / 2);
+        const offsetX = Math.floor((w - patternWidth) / 2);
+        const offsetY = Math.floor((h - patternHeight) / 2);
         setGrid(placePattern(emptyGrid, pattern.pattern, offsetX, offsetY));
       }
     }
-  }, [width, height]);
+  }, [gridWidth, gridHeight]);
+  
+  // Handle grid size change
+  const handleSizeChange = useCallback((e: JSX.TargetedEvent<HTMLSelectElement>) => {
+    const index = parseInt((e.target as HTMLSelectElement).value, 10);
+    const size = GRID_SIZES[index];
+    if (size) {
+      setSelectedSizeIndex(index);
+      setGridWidth(size.width);
+      setGridHeight(size.height);
+      setIsPlaying(false);
+      setGeneration(0);
+      // Reload the current preset with new dimensions
+      loadPreset(selectedPreset, size.width, size.height);
+    }
+  }, [selectedPreset, loadPreset]);
   
   // Cell toggle handlers
   const handleCellMouseDown = useCallback((x: number, y: number) => {
@@ -448,6 +494,24 @@ export function GameOfLife({
         </div>
       </div>
       
+      {/* Grid Size Selector */}
+      <div className="game-of-life__size-control">
+        <label className="game-of-life__size-label">
+          Grid Size:
+        </label>
+        <select
+          value={selectedSizeIndex}
+          onChange={handleSizeChange}
+          className="game-of-life__size-select"
+        >
+          {GRID_SIZES.map((size, index) => (
+            <option key={size.label} value={index}>
+              {size.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      
       {/* Grid */}
       <div 
         className="game-of-life__grid-container"
@@ -456,8 +520,8 @@ export function GameOfLife({
         <div
           className="game-of-life__grid"
           style={{
-            gridTemplateColumns: `repeat(${width}, ${cellSize}px)`,
-            gridTemplateRows: `repeat(${height}, ${cellSize}px)`,
+            gridTemplateColumns: `repeat(${gridWidth}, ${cellSize}px)`,
+            gridTemplateRows: `repeat(${gridHeight}, ${cellSize}px)`,
           }}
         >
           {grid.map((row, y) =>
