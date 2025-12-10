@@ -1,0 +1,120 @@
+# Communicating Effectively with LLMs — Research Voice
+
+*Examines claims and provides supporting evidence, research, and additional context.*
+
+---
+
+## Core Claims and Evidence
+
+### Claim: Small prompt changes can produce dramatically different outputs
+
+**Empirical evidence:** Well-documented in research and practice. Same question with different phrasing can yield different answers.
+
+**Sensitivity study:** "Calibrate Before Use: Improving Few-Shot Performance of Language Models" (Zhao et al., 2021) shows models are sensitive to example ordering, format, and surface features: https://arxiv.org/abs/2102.09690
+
+**Practical implication:** Prompt engineering is necessary; default prompts often underperform optimized ones.
+
+---
+
+### Claim: Specificity improves outputs
+
+**Mechanism:** Specificity reduces the space of probable completions. The model samples from this constrained space.
+
+**Evidence:** Provider documentation (Anthropic, OpenAI) recommends specificity. Benchmarks show improved performance with more detailed prompts.
+
+**Reference:** Anthropic Prompt Engineering Guide: https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering
+
+---
+
+### Claim: Few-shot examples (in-context learning) improve performance
+
+**Key paper:** "Language Models are Few-Shot Learners" (Brown et al., 2020): https://arxiv.org/abs/2005.14165
+
+**Finding:** GPT-3 can perform tasks with just a few examples in the prompt, without fine-tuning. Performance improves with more examples (up to a point).
+
+**Emergent capability:** In-context learning itself is emergent — small models cannot effectively use few-shot examples.
+
+---
+
+### Claim: Chain-of-thought prompting improves reasoning accuracy
+
+**Key paper:** "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models" (Wei et al., 2022): https://arxiv.org/abs/2201.11903
+
+**Finding:** Adding "Let's think step by step" or providing reasoning examples significantly improves performance on math, logic, and reasoning tasks.
+
+**Magnitude:** Up to 50%+ improvement on some benchmarks compared to direct prompting.
+
+**Why it works:** Two hypotheses:
+1. More computation through more tokens
+2. Self-consistency through visible intermediate steps
+
+---
+
+### Claim: Structured prompts improve task parsing
+
+**Best practice:** Clear section headers, bullet points, explicit labels reduce ambiguity.
+
+**Provider recommendation:** Both OpenAI and Anthropic guides recommend structured prompts with clear delimiters.
+
+**Example:** XML tags, markdown headers, numbered sections all help models parse complex prompts.
+
+---
+
+### Claim: Prompting has limits — can't create absent capabilities
+
+**Reality check:** If a model can't do arithmetic, no prompt will enable it. Prompting accesses existing capability, doesn't create new capability.
+
+**Research:** "Large Language Models Can Self-Improve" (Huang et al., 2022) shows prompting can elicit latent capabilities but not exceed them.
+
+---
+
+## Additional Research and Context
+
+### Prompt optimization research
+
+**Automatic prompt optimization:** "Large Language Models Are Human-Level Prompt Engineers" (Zhou et al., 2022): https://arxiv.org/abs/2211.01910
+
+**Finding:** LLMs can generate and optimize prompts automatically, sometimes beating human-written prompts.
+
+### System prompts
+
+**Definition:** Instructions provided before user message, shaping overall behavior.
+
+**Usage:** Persona definition, constraint setting, format specification.
+
+**Provider documentation:** System prompts are standard in ChatGPT, Claude, and most commercial APIs.
+
+### Prompt injection and security
+
+**Risk:** Malicious instructions embedded in user input or retrieved content can override system prompts.
+
+**Research:** Active area of study for prompt security and robustness.
+
+**Mitigation:** Input sanitization, output filtering, prompt design best practices.
+
+### Prompting vs. fine-tuning
+
+**Comparison:**
+- Prompting: No training, instant, flexible, limited by context window
+- Fine-tuning: Training required, persistent, more consistent, requires data
+
+**When to use each:** Prompting for flexibility and rapid iteration; fine-tuning for consistent, production behavior.
+
+---
+
+## Practical Resources
+
+**Provider guides:**
+- Anthropic: https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering
+- OpenAI: https://platform.openai.com/docs/guides/prompt-engineering
+- DAIR.AI Prompt Engineering Guide: https://www.promptingguide.ai/
+
+**Research papers:**
+- Chain-of-thought (Wei et al., 2022)
+- Few-shot learning (Brown et al., 2020)
+- Automatic prompt engineering (Zhou et al., 2022)
+
+**Tools:**
+- Prompt testing interfaces in provider consoles
+- LangChain prompt templates
+- DSPy for programmatic prompt optimization
