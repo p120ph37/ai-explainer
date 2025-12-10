@@ -11,10 +11,10 @@ prerequisites:
 children: []
 related:
   - vector-databases
-  - alignment
+  - guardrails
+  - agents
   - tools
   - security
-  - cutoff
 keywords:
   - AI applications
   - agents
@@ -94,34 +94,13 @@ They're "soft" controls—the model usually follows them but isn't guaranteed to
 
 **Guardrails: hard rules on input and output**
 
-System prompts suggest behavior. **Guardrails** enforce it.
+System prompts suggest behavior. **Guardrails** enforce it with code, not just instructions.
 
-Input guardrails check user messages before they reach the model:
-- Block prohibited content
-- Detect prompt injection attempts
-- Filter sensitive data
-- Enforce topic restrictions
+Input guardrails filter user messages before they reach the model—blocking prohibited content, detecting prompt injection, filtering sensitive data. Output guardrails check responses before they reach users—removing harmful content, ensuring format compliance, validating claims.
 
-Output guardrails check model responses before they reach the user:
-- Remove harmful content
-- Ensure format compliance
-- Redact unintended disclosures
-- Validate factual claims
+Guardrails provide the safety margin that soft prompts can't guarantee. They're how you turn "usually safe" into "reliably safe."
 
-Guardrails can be simple regex rules, classification models, or separate LLM calls. They provide the safety margin that soft prompts can't guarantee.
-
-<Expandable title="Why not just train the model to be safe?">
-
-Base models are trained with safety in mind. But applications need additional constraints:
-
-- **Domain-specific rules**: A legal bot shouldn't give medical advice
-- **Brand guidelines**: Responses should match company tone
-- **Regulatory compliance**: Some industries have strict requirements
-- **Liability protection**: Catch edge cases training might miss
-
-Training handles the general case. Guardrails handle the specific requirements of your application and catch the failures that slip through.
-
-</Expandable>
+→ [Guardrails in depth](/guardrails)
 
 **Retrieval-Augmented Generation (RAG): grounding in real information**
 
@@ -213,35 +192,11 @@ The tool selection shapes what the application can do. An LLM without tools can 
 
 **Agentic loops: multi-step reasoning**
 
-Simple applications are one-shot: user asks, model answers. **Agents** are iterative: the model plans, acts, observes, and repeats until the task is done.
+Simple applications are one-shot: user asks, model answers. **Agents** are iterative: the model plans, uses tools, observes results, and repeats until the task is complete.
 
-```
-User: "Book me a flight to NYC next Tuesday, cheapest option"
+This is what enables AI to book flights, research topics across multiple sources, or refactor code across many files—tasks requiring multiple steps and adaptive decision-making.
 
-Agentic loop:
-1. Model plans: Need to search flights
-2. Calls flight search tool → gets options
-3. Analyzes results: Cheapest is $199 on Delta
-4. Calls booking tool → initiates reservation  
-5. Needs user confirmation → asks for approval
-6. User confirms → completes booking
-7. Returns confirmation to user
-```
-
-The model drives the process, using tools as needed, making decisions along the way. The application provides the loop structure and tools; the model provides the reasoning.
-
-<Expandable title="Agent architectures">
-
-Common patterns:
-
-- **ReAct**: Reason, Act, Observe loop—model explains thinking, takes action, processes result
-- **Plan-then-execute**: Model creates plan upfront, executes steps
-- **Hierarchical**: Planner agent coordinates specialized executor agents
-- **Tool chains**: Predefined sequences with model decisions at branch points
-
-The right architecture depends on task complexity, reliability requirements, and how much autonomy the model should have.
-
-</Expandable>
+→ [How agents work](/agents)
 
 <Metaphor title="A race car vs. a family sedan">
 

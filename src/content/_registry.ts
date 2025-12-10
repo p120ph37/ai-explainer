@@ -63,11 +63,13 @@ const contentImports: Record<string, () => Promise<ContentModule>> = {
   'open': () => import('./ecosystem/open.mdx') as Promise<ContentModule>,
   'applications': () => import('./ecosystem/applications.mdx') as Promise<ContentModule>,
   'local': () => import('./ecosystem/local.mdx') as Promise<ContentModule>,
+  'agents': () => import('./ecosystem/agents.mdx') as Promise<ContentModule>,
   
   // Safety content
   'bias': () => import('./safety/bias.mdx') as Promise<ContentModule>,
   'alignment': () => import('./safety/alignment.mdx') as Promise<ContentModule>,
   'security': () => import('./safety/security.mdx') as Promise<ContentModule>,
+  'guardrails': () => import('./safety/guardrails.mdx') as Promise<ContentModule>,
   
   // TSX content example (for interactive visualizations):
   // 'tokenizer-demo': () => import('./interactive/tokenizer-demo.tsx'),
