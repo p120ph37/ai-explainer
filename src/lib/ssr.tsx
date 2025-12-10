@@ -34,6 +34,7 @@ import {
   DiagramPlaceholder,
   TokenizerDemo,
   PerceptronToy,
+  GameOfLife,
 } from '../app/components/diagrams/index.ts';
 
 // Custom components for MDX - these replace imports during SSR
@@ -59,6 +60,7 @@ const mdxComponents = {
   DiagramPlaceholder,
   TokenizerDemo,
   PerceptronToy,
+  GameOfLife,
 };
 
 // Cache compiled modules

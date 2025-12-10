@@ -15,6 +15,7 @@ export { FlowDiagram } from './FlowDiagram.tsx';
 export { DiagramPlaceholder } from './DiagramPlaceholder.tsx';
 export { TokenizerDemo } from './TokenizerDemo.tsx';
 export { PerceptronToy } from './PerceptronToy.tsx';
+export { GameOfLife } from './GameOfLife.tsx';
 
 // Re-export types
 export type { ScaleComparisonData } from './ScaleComparison.tsx';
