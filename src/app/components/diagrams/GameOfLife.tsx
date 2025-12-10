@@ -395,14 +395,8 @@ export function GameOfLife({
   const [isExtinct, setIsExtinct] = useState(false);
   
   const intervalRef = useRef<number | null>(null);
-  
-  // Calculate cell size based on grid width and container
-  const cellSize = useMemo(() => {
-    const maxCellSize = 16;
-    const minCellSize = 4;
-    const calculatedSize = Math.floor((maxContainerWidth - 20) / gridWidth); // -20 for padding/borders
-    return Math.max(minCellSize, Math.min(maxCellSize, calculatedSize));
-  }, [gridWidth, maxContainerWidth]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const hasAutoStarted = useRef(false);
   
   // Calculate alive cell count
   const aliveCount = useMemo(() => {
@@ -416,6 +410,26 @@ export function GameOfLife({
       setIsPlaying(false);
     }
   }, [aliveCount, generation]);
+  
+  // Auto-start when container scrolls into view (once only)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting && !hasAutoStarted.current) {
+          hasAutoStarted.current = true;
+          setIsPlaying(true);
+        }
+      },
+      { threshold: 0 } // Trigger when top edge enters viewport
+    );
+    
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
   
   // Step function
   const step = useCallback(() => {
@@ -564,104 +578,132 @@ export function GameOfLife({
   const currentPresetInfo = getPresetInfo(selectedPreset);
   
   return (
-    <div className="game-of-life">
+    <div 
+      ref={containerRef}
+      className="game-of-life"
+      onMouseLeave={() => setIsDragging(false)}
+    >
       {title && <div className="game-of-life__title">{title}</div>}
-      
-      {/* Compact Controls Row */}
-      <div className="game-of-life__controls">
-        <div className="game-of-life__buttons">
-          <button
-            className={`game-of-life__btn ${isPlaying ? 'game-of-life__btn--active' : ''}`}
-            onClick={() => !isExtinct && setIsPlaying(!isPlaying)}
-            disabled={isExtinct}
-            title={isExtinct ? 'Extinct' : isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? '⏸' : '▶'}
-          </button>
-          <button
-            className="game-of-life__btn"
-            onClick={step}
-            disabled={isPlaying || isExtinct}
-            title="Step"
-          >
-            ⏭
-          </button>
-          <button
-            className="game-of-life__btn"
-            onClick={() => loadPreset(selectedPreset)}
-            title="Reset"
-          >
-            ↺
-          </button>
-        </div>
-        
-        <div className="game-of-life__select-group">
-          <select
-            value={selectedPreset}
-            onChange={handlePresetChange}
-            className="game-of-life__select"
-            title={currentPresetInfo.description}
-          >
-            {PRESET_GROUPS.map(group => (
-              <optgroup key={group.label} label={group.label}>
-                {group.presets.map(key => {
-                  const info = getPresetInfo(key);
-                  return (
-                    <option key={key} value={key}>
-                      {info.name}
-                    </option>
-                  );
-                })}
-              </optgroup>
-            ))}
-          </select>
+        <div className="game-of-life__controls">
+          <div className="game-of-life__select-group">
+            <select
+              value={selectedPreset}
+              onChange={handlePresetChange}
+              className="game-of-life__select"
+              title={currentPresetInfo.description}
+            >
+              {PRESET_GROUPS.map(group => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.presets.map(key => {
+                    const info = getPresetInfo(key);
+                    return (
+                      <option key={key} value={key}>
+                        {info.name}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+              ))}
+            </select>
+            
+            <select
+              value={String(selectedSizeIndex)}
+              onChange={handleSizeChange}
+              className="game-of-life__select game-of-life__select--size"
+            >
+              {GRID_SIZES.map((size, index) => (
+                <option key={size.label} value={String(index)}>
+                  {size.label}
+                </option>
+              ))}
+            </select>
+          </div>
           
-          <select
-            value={selectedSizeIndex}
-            onChange={handleSizeChange}
-            className="game-of-life__select game-of-life__select--size"
-          >
-            {GRID_SIZES.map((size, index) => (
-              <option key={size.label} value={index}>
-                {size.label}
-              </option>
-            ))}
-          </select>
+          <div className="game-of-life__buttons">
+            <button
+              className={`game-of-life__btn ${isPlaying ? 'game-of-life__btn--active' : ''}`}
+              onClick={() => !isExtinct && setIsPlaying(!isPlaying)}
+              disabled={isExtinct}
+              title={isExtinct ? 'Extinct' : isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="5" y="4" width="5" height="16" rx="1" />
+                  <rect x="14" y="4" width="5" height="16" rx="1" />
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 4l15 8-15 8V4z" />
+                </svg>
+              )}
+            </button>
+            <button
+              className="game-of-life__btn"
+              onClick={step}
+              disabled={isPlaying || isExtinct}
+              title="Step"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4 4l10 8-10 8V4z" />
+                <rect x="16" y="4" width="4" height="16" rx="1" />
+              </svg>
+            </button>
+            <button
+              className="game-of-life__btn"
+              onClick={() => loadPreset(selectedPreset)}
+              title="Reset"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="game-of-life__speed" title="Speed (generations/sec)">
+            <span className="game-of-life__speed-value">{speed}<span className="game-of-life__speed-unit">/s</span></span>
+            <div className="game-of-life__speed-buttons">
+              <button
+                type="button"
+                className="game-of-life__speed-btn"
+                onClick={() => setSpeed(s => Math.min(60, s + 1))}
+                aria-label="Increase speed"
+              >
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                  <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="game-of-life__speed-btn"
+                onClick={() => setSpeed(s => Math.max(1, s - 1))}
+                aria-label="Decrease speed"
+              >
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div className="game-of-life__stats">
+            <span className="game-of-life__stat" title="Generation: Number of simulation steps">
+              <span className="game-of-life__stat-label">Gen</span>
+              <span className="game-of-life__stat-value">{generation}</span>
+            </span>
+            <span className="game-of-life__stat" title="Population: Number of living cells">
+              <span className="game-of-life__stat-label">Pop</span>
+              <span className="game-of-life__stat-value">{aliveCount}</span>
+              {isExtinct && <span className="game-of-life__extinct">☠</span>}
+            </span>
+          </div>
         </div>
         
-        <div className="game-of-life__speed">
-          <input
-            type="range"
-            min="1"
-            max="30"
-            value={speed}
-            onInput={handleSpeedChange}
-            className="game-of-life__slider"
-            title={`Speed: ${speed}/s`}
-          />
-        </div>
-        
-        <div className="game-of-life__stats">
-          <span className="game-of-life__stat" title="Generation">
-            <strong>{generation}</strong>
-          </span>
-          <span className="game-of-life__stat" title="Alive cells">
-            <strong>{aliveCount}</strong>
-            {isExtinct && <span className="game-of-life__extinct"> ☠</span>}
-          </span>
-        </div>
-      </div>
-      
-      {/* Grid */}
-      <div 
-        className="game-of-life__grid-container"
-        onMouseLeave={() => setIsDragging(false)}
-      >
         <div
           className="game-of-life__grid"
           style={{
-            gridTemplateColumns: `repeat(${gridWidth}, ${cellSize}px)`,
-            gridTemplateRows: `repeat(${gridHeight}, ${cellSize}px)`,
+            gridTemplateColumns: `repeat(${gridWidth}, 1fr)`,
+            maxWidth: `${gridWidth * 20 + gridWidth - 1 + 2}px`, // maxCellSize * cols + gaps + border
           }}
         >
           {grid.map((row, y) =>
@@ -675,11 +717,6 @@ export function GameOfLife({
             ))
           )}
         </div>
-      </div>
-      
-      <div className="game-of-life__hint">
-        Click or drag to toggle cells. Four simple rules → complex emergent patterns.
-      </div>
     </div>
   );
 }

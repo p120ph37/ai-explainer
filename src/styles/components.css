@@ -2847,9 +2847,12 @@
 .game-of-life {
   margin-block: var(--space-lg);
   padding: var(--space-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
   border-radius: var(--radius-lg);
+}
+
+[data-theme="dark"] .game-of-life {
+  background: var(--color-bg-muted);
 }
 
 .game-of-life__title {
@@ -2861,21 +2864,19 @@
   text-align: center;
 }
 
-/* Compact controls row */
+/* Controls row - no separate container styling */
 .game-of-life__controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-sm);
+  justify-content: space-between;
+  gap: var(--space-xs);
   margin-bottom: var(--space-sm);
-  padding: var(--space-xs) var(--space-sm);
-  background: var(--color-bg-subtle);
-  border-radius: var(--radius-md);
 }
 
 .game-of-life__buttons {
   display: flex;
-  gap: var(--space-2xs);
+  gap: 2px;
 }
 
 .game-of-life__btn {
@@ -2885,12 +2886,16 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  font-size: var(--font-size-sm);
+  color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-out);
+}
+
+.game-of-life__btn svg {
+  display: block;
 }
 
 .game-of-life__btn:hover:not(:disabled) {
@@ -2912,11 +2917,12 @@
 /* Dropdown selects group */
 .game-of-life__select-group {
   display: flex;
-  gap: var(--space-2xs);
+  gap: 2px;
 }
 
 .game-of-life__select {
-  padding: var(--space-2xs) var(--space-xs);
+  height: 32px;
+  padding: 0 2px 0 var(--space-2xs);
   font-family: var(--font-ui);
   font-size: var(--font-size-xs);
   background: var(--color-surface);
@@ -2924,7 +2930,6 @@
   border-radius: var(--radius-sm);
   color: var(--color-text);
   cursor: pointer;
-  max-width: 160px;
 }
 
 .game-of-life__select:focus {
@@ -2933,7 +2938,7 @@
 }
 
 .game-of-life__select--size {
-  max-width: 80px;
+  max-width: 100px;
 }
 
 .game-of-life__select optgroup {
@@ -2946,66 +2951,101 @@
   color: var(--color-text);
 }
 
-/* Speed slider - compact */
+/* Speed control with custom spinner buttons */
 .game-of-life__speed {
   display: flex;
-  align-items: center;
-  min-width: 60px;
-  max-width: 100px;
-  flex: 1;
-}
-
-.game-of-life__slider {
-  width: 100%;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
+  align-items: stretch;
+  height: 32px;
   background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  cursor: pointer;
+  overflow: hidden;
 }
 
-.game-of-life__slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 12px;
-  height: 12px;
-  background: var(--color-accent);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-out);
+.game-of-life__speed-value {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+  padding: 0 var(--space-2xs);
+  white-space: nowrap;
 }
 
-.game-of-life__slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+.game-of-life__speed-unit {
+  color: var(--color-text-muted);
+  margin-left: 1px;
 }
 
-.game-of-life__slider::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  background: var(--color-accent);
+.game-of-life__speed-buttons {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--color-border);
+}
+
+.game-of-life__speed-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
   border: none;
-  border-radius: 50%;
+  color: var(--color-text);
   cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
-/* Stats - compact */
+.game-of-life__speed-btn:first-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.game-of-life__speed-btn:hover {
+  background: var(--color-bg-subtle);
+}
+
+.game-of-life__speed-btn:active {
+  background: var(--color-border);
+}
+
+.game-of-life__speed-btn svg {
+  display: block;
+}
+
+/* Stats - styled like read-only input fields */
 .game-of-life__stats {
   display: flex;
-  gap: var(--space-xs);
-  margin-left: auto;
-}
-
-.game-of-life__stat {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  display: flex;
-  align-items: center;
   gap: 2px;
 }
 
-.game-of-life__stat strong {
+.game-of-life__stat {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2xs);
+  gap: 2px;
+  cursor: default;
+  transition: border-color 0.15s ease;
+}
+
+.game-of-life__stat:hover {
+  border-color: var(--color-border-strong, var(--color-text-muted));
+}
+
+.game-of-life__stat-label {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.game-of-life__stat-value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
   color: var(--color-text);
   min-width: 3ch;
   text-align: right;
@@ -3023,15 +3063,7 @@
   50% { opacity: 0.5; }
 }
 
-/* Grid container */
-.game-of-life__grid-container {
-  overflow-x: auto;
-  margin-bottom: var(--space-sm);
-  padding: var(--space-xs);
-  background: var(--color-bg-subtle);
-  border-radius: var(--radius-md);
-}
-
+/* Simulation area - contains controls + grid */
 .game-of-life__grid {
   display: grid;
   gap: 1px;
@@ -3041,10 +3073,10 @@
   overflow: hidden;
   user-select: none;
   margin: 0 auto;
-  width: fit-content;
 }
 
 .game-of-life__cell {
+  aspect-ratio: 1;
   background: var(--color-surface);
   transition: background-color 0.05s ease;
   cursor: pointer;
@@ -3064,13 +3096,6 @@
 }
 
 /* Hint - more subtle */
-.game-of-life__hint {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-subtle);
-  text-align: center;
-  padding: var(--space-xs);
-}
-
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .game-of-life__controls {
