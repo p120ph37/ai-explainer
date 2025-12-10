@@ -10,8 +10,7 @@
    EDITORIAL MODE INDICATOR
    ============================================ */
 
-body::before {
-  content: '📝 EDITORIAL MODE';
+.editorial-mode-badge {
   position: fixed;
   top: 0;
   left: 50%;
@@ -27,6 +26,13 @@ body::before {
   z-index: 10000;
   box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
   font-family: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+  pointer-events: none;
+}
+
+.editorial-mode-badge__variant {
+  font-weight: 500;
+  opacity: 0.9;
+  margin-left: 0.5em;
 }
 
 /* ============================================
@@ -688,14 +694,7 @@ body.editorial-panel-open .app-main {
   transition: margin-right 0.3s ease;
 }
 
-/* Add padding at top for the editorial mode indicator */
-body {
-  padding-top: 24px;
-}
-
-.app-header {
-  top: 24px;
-}
+/* Editorial badge overlays the header - no extra padding needed */
 
 /* ============================================
    FILTER CONTROLS
@@ -753,7 +752,7 @@ body {
    ============================================ */
 
 @media print {
-  body::before,
+  .editorial-mode-badge,
   .editorial-panel,
   .editorial-fab,
   .editorial-selection-toolbar,
@@ -765,10 +764,6 @@ body {
   .editorial-selection-highlight {
     background: none !important;
     border-bottom: none !important;
-  }
-  
-  body {
-    padding-top: 0 !important;
   }
 }
 

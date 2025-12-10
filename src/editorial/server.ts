@@ -126,6 +126,11 @@ function generateVariantHtml(options: {
   const title = `${variantLabel} | Understanding Frontier AI`;
   const description = variantDescription || `Voice variant: ${variantId}`;
   
+  // Extract a cleaner variant name (e.g., "Metaphor Voice" from "What are Tokens? — Metaphor Voice")
+  const variantDisplayName = variantLabel.includes('—') 
+    ? variantLabel.split('—').pop()?.trim() || variantId
+    : variantId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -145,6 +150,11 @@ function generateVariantHtml(options: {
   <script>window.__EDITORIAL_MODE__ = true;</script>
 </head>
 <body>
+  <!-- Editorial mode badge with variant name -->
+  <div class="editorial-mode-badge">
+    📝 EDITORIAL MODE<span class="editorial-mode-badge__variant">— ${escapeHtml(variantDisplayName)}</span>
+  </div>
+  
   <div id="app" data-initial-node="${escapeHtml(nodeId)}" data-variant="${escapeHtml(variantId)}">
     <div class="ssr-shell" data-ssr="true">
       <header class="app-header">
@@ -155,10 +165,6 @@ function generateVariantHtml(options: {
       <main class="app-main">
         <div class="content-width">
           <article class="content-node variant-content" data-node-id="${escapeHtml(nodeId)}" data-variant-id="${escapeHtml(variantId)}">
-            <header class="content-node__header">
-              <h1 class="content-node__title">${escapeHtml(variantLabel)}</h1>
-              <p class="content-node__summary">${escapeHtml(description)}</p>
-            </header>
             <div class="content-node__body">
               ${contentHtml}
             </div>
@@ -215,7 +221,14 @@ function generateEditorialHtml(options: {
     <script>window.__EDITORIAL_MODE__ = true;</script>
   `;
   
-  return baseHtml.replace('</head>', `${editorialAssets}</head>`);
+  // Inject the editorial mode badge after <body>
+  const editorialBadge = `
+  <div class="editorial-mode-badge">📝 EDITORIAL MODE</div>
+  `;
+  
+  return baseHtml
+    .replace('</head>', `${editorialAssets}</head>`)
+    .replace('<body>', `<body>${editorialBadge}`);
 }
 
 /**
@@ -514,7 +527,9 @@ const server = Bun.serve({
       
       if (variant) {
         // Render the variant's markdown/MDX content
-        const variantHtml = await renderMarkdownContent(variant.content);
+        // Strip the leading H1 since the variant name is now shown in the badge
+        const contentWithoutTitle = variant.content.replace(/^#\s+.+\n+/, '');
+        const variantHtml = await renderMarkdownContent(contentWithoutTitle);
         const meta = await getNodeMeta(nodeId);
         
         // Generate a custom HTML page for the variant (not using standard SSR wrapper)
