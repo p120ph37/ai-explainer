@@ -31,7 +31,7 @@ const contentImports: Record<string, () => Promise<ContentModule>> = {
   // MDX content - loaded directly, no compilation needed
   'intro': () => import('./intro/what-is-llm.mdx') as Promise<ContentModule>,
   'tokens': () => import('./foundations/tokens.mdx') as Promise<ContentModule>,
-  'why-large': () => import('./foundations/why-large.mdx') as Promise<ContentModule>,
+  'scale': () => import('./foundations/scale.mdx') as Promise<ContentModule>,
   'context-window': () => import('./foundations/context-window.mdx') as Promise<ContentModule>,
   'neural-network': () => import('./foundations/neural-network.mdx') as Promise<ContentModule>,
   'parameters': () => import('./foundations/parameters.mdx') as Promise<ContentModule>,
@@ -56,7 +56,6 @@ const contentImports: Record<string, () => Promise<ContentModule>> = {
   'memory': () => import('./foundations/memory.mdx') as Promise<ContentModule>,
   'multimodal': () => import('./foundations/multimodal.mdx') as Promise<ContentModule>,
   'reasoning': () => import('./foundations/reasoning.mdx') as Promise<ContentModule>,
-  'scaling': () => import('./foundations/scaling.mdx') as Promise<ContentModule>,
   'optimization': () => import('./foundations/optimization.mdx') as Promise<ContentModule>,
   
   // Ecosystem content
