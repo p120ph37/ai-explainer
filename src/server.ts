@@ -176,9 +176,8 @@ const server = Bun.serve({
     });
   },
   
-  development: {
-    console: true,
-  },
+  // Disable Bun's fancy dev console to avoid terminal clearing/escape codes
+  development: false,
 });
 
 // Clean up PID file on exit

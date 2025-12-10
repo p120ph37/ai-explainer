@@ -185,3 +185,5 @@ The bundled output uses dynamic imports to:
 - Collapsible sections work well on small screens
 - Visualizations degrade gracefully (simpler on mobile)
 
+
+

@@ -22,6 +22,30 @@ function isEditorialMode(): boolean {
 }
 
 /**
+ * Get the page ID for editorial mode
+ * For variant URLs (/nodeId/variantId), returns the base nodeId
+ */
+function getEditorialPageId(): string {
+  if (typeof window === 'undefined') return 'intro';
+  
+  // Parse first path segment as the page ID
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  return pathParts[0] || 'intro';
+}
+
+/**
+ * Check if viewing an editorial variant page
+ * Variant URLs have pattern: /nodeId/variantId
+ */
+function isViewingEditorialVariant(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (!isEditorialMode()) return false;
+  
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  return pathParts.length > 1;
+}
+
+/**
  * Lazy-loaded Editorial Layer component
  * Only loaded when editorial mode is active
  */
@@ -45,6 +69,27 @@ function EditorialLayerLoader({ pageId }: { pageId: string }) {
   
   const Component = EditorialLayer.value;
   return <Component pageId={pageId} />;
+}
+
+/**
+ * Editorial-only app for variant pages
+ * Only renders the editorial UI layer, preserving SSR content
+ */
+export function EditorialOnlyApp() {
+  useEffect(() => {
+    // Apply the main visual theme
+    document.documentElement.setAttribute('data-visual-theme', 'main');
+  }, []);
+  
+  return (
+    <>
+      {/* Progress sidebar - still useful for navigation */}
+      <ProgressSidebar />
+      
+      {/* Editorial mode layer */}
+      <EditorialLayerLoader pageId={getEditorialPageId()} />
+    </>
+  );
 }
 
 export function App() {
@@ -95,7 +140,8 @@ export function App() {
       </header>
       
       <main className="app-main">
-        <ContentView />
+        {/* For variant pages in editorial mode, don't replace SSR content */}
+        {!isViewingEditorialVariant() && <ContentView />}
         <MarginDeoverlap />
       </main>
       
@@ -119,7 +165,8 @@ export function App() {
       <DiscoveryAnimationLayer />
       
       {/* Editorial mode layer - only loaded when editorial server is running */}
-      <EditorialLayerLoader pageId={currentRoute.value.nodeId} />
+      {/* For variant URLs (/nodeId/variantId), extract the base nodeId */}
+      <EditorialLayerLoader pageId={getEditorialPageId()} />
     </div>
   );
 }

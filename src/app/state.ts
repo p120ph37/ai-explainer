@@ -76,3 +76,5 @@ export const readingProgress = computed(() => {
   return Math.round((visited / total) * 100);
 });
 
+
+

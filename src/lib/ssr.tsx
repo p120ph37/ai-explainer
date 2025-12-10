@@ -170,3 +170,43 @@ export async function getNodeMeta(nodeId: string, contentDir: string = 'src/cont
 export function clearCache(): void {
   moduleCache.clear();
 }
+
+/**
+ * Render markdown/MDX content string to HTML
+ * Used for rendering variant content in editorial mode
+ */
+export async function renderMarkdownContent(content: string): Promise<string> {
+  try {
+    const module = await compileMdx(content);
+    const Component = module.default;
+    
+    const html = renderToString(
+      <Component components={mdxComponents} />
+    );
+    
+    return html;
+  } catch (error) {
+    console.error('Failed to render markdown content:', error);
+    // Return a basic HTML rendering as fallback
+    // Convert markdown to simple HTML (basic conversion)
+    const escaped = content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    
+    const html = escaped
+      // Headers
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      // Bold and italic
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Paragraphs (double newline)
+      .replace(/\n\n/g, '</p><p>')
+      // Line breaks
+      .replace(/\n/g, '<br>');
+    
+    return `<div class="variant-content"><p>${html}</p></div>`;
+  }
+}

@@ -10,7 +10,7 @@
  */
 
 import { writeFileSync, unlinkSync, existsSync, readFileSync } from 'fs';
-import { renderMdxContent, getNodeMeta, clearCache } from '../lib/ssr.tsx';
+import { renderMdxContent, renderMarkdownContent, getNodeMeta, clearCache } from '../lib/ssr.tsx';
 import { generateHtml, generateIndexHtml } from '../lib/html-template.ts';
 import { getAllNodeIds, isValidNode, getContentPath } from '../lib/node-metadata.ts';
 import mdxPlugin from '../plugins/mdx-plugin.ts';
@@ -106,6 +106,92 @@ async function getJsBundle(): Promise<{ code: string; hash: string }> {
   console.log(`📦 JS bundle rebuilt: main.${hash}.js (editorial mode)`);
   
   return jsBundle;
+}
+
+/**
+ * Generate HTML for variant pages (without double-wrapping)
+ */
+function generateVariantHtml(options: {
+  nodeId: string;
+  variantId: string;
+  variantLabel: string;
+  variantDescription?: string;
+  contentHtml: string;
+  baseMeta: { id: string; title: string; summary: string };
+  jsPath: string;
+  cssPath: string;
+}): string {
+  const { nodeId, variantId, variantLabel, variantDescription, contentHtml, baseMeta, jsPath, cssPath } = options;
+  
+  const title = `${variantLabel} | Understanding Frontier AI`;
+  const description = variantDescription || `Voice variant: ${variantId}`;
+  
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="${escapeHtml(description)}">
+  <title>${escapeHtml(title)}</title>
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="${cssPath}/base.css">
+  <link rel="stylesheet" href="${cssPath}/components.css">
+  <link rel="stylesheet" href="${cssPath}/themes.css">
+  <link rel="stylesheet" href="${cssPath}/theme-main.css">
+  <link rel="stylesheet" href="/editorial/styles.css">
+  
+  <!-- Editorial mode -->
+  <script>window.__EDITORIAL_MODE__ = true;</script>
+</head>
+<body>
+  <div id="app" data-initial-node="${escapeHtml(nodeId)}" data-variant="${escapeHtml(variantId)}">
+    <div class="ssr-shell" data-ssr="true">
+      <header class="app-header">
+        <div class="app-header__inner">
+          <a href="/" class="app-logo">Understanding Frontier AI</a>
+        </div>
+      </header>
+      <main class="app-main">
+        <div class="content-width">
+          <article class="content-node variant-content" data-node-id="${escapeHtml(nodeId)}" data-variant-id="${escapeHtml(variantId)}">
+            <header class="content-node__header">
+              <h1 class="content-node__title">${escapeHtml(variantLabel)}</h1>
+              <p class="content-node__summary">${escapeHtml(description)}</p>
+            </header>
+            <div class="content-node__body">
+              ${contentHtml}
+            </div>
+          </article>
+        </div>
+      </main>
+      <footer class="app-footer">
+        <div class="content-width">
+          <p>An open educational resource for understanding how AI actually works.</p>
+          <nav class="footer-nav" aria-label="Footer navigation">
+            <a href="/index">Content Index</a>
+            <span class="footer-separator">·</span>
+            <a href="/${nodeId}">Back to Base Content</a>
+          </nav>
+        </div>
+      </footer>
+    </div>
+  </div>
+  
+  <script type="module" src="${jsPath}"></script>
+</body>
+</html>`;
+}
+
+/**
+ * Escape HTML special characters for variant pages
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 /**
@@ -417,8 +503,9 @@ const server = Bun.serve({
       return new Response('Not found', { status: 404 });
     }
     
-    // Check for variant parameter
-    const variantId = url.searchParams.get('variant');
+    // Check for variant in URL path: /nodeId/variantId
+    const pathParts = pathname.slice(1).split('/').filter(Boolean);
+    const variantId = pathParts.length > 1 ? pathParts[1] : null;
     
     // If viewing a variant, render variant content instead
     if (variantId) {
@@ -426,12 +513,18 @@ const server = Bun.serve({
       const variant = variants?.variants.find(v => v.id === variantId);
       
       if (variant) {
-        // TODO: Render variant content (requires MDX compilation)
-        // For now, show a placeholder
+        // Render the variant's markdown/MDX content
+        const variantHtml = await renderMarkdownContent(variant.content);
         const meta = await getNodeMeta(nodeId);
-        const html = generateEditorialHtml({
-          meta: meta || { id: nodeId, title: `${nodeId} (variant: ${variantId})`, summary: '' },
-          contentHtml: `<div class="variant-content"><p>Variant: ${variantId}</p><pre>${variant.content.slice(0, 500)}...</pre></div>`,
+        
+        // Generate a custom HTML page for the variant (not using standard SSR wrapper)
+        const html = generateVariantHtml({
+          nodeId,
+          variantId,
+          variantLabel: variant.label,
+          variantDescription: variant.description,
+          contentHtml: variantHtml,
+          baseMeta: meta || { id: nodeId, title: nodeId, summary: '' },
           jsPath,
           cssPath: '/styles',
         });
@@ -471,9 +564,8 @@ const server = Bun.serve({
     });
   },
   
-  development: {
-    console: true,
-  },
+  // Disable Bun's fancy dev console to avoid terminal clearing/escape codes
+  development: false,
 });
 
 // Clean up PID file on exit

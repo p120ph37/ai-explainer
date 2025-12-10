@@ -130,6 +130,16 @@ export async function loadPageData(pageId: string): Promise<void> {
   isLoading.value = true;
   errorMessage.value = null;
   
+  // Read variant from URL path: /nodeId/variantId
+  if (typeof window !== 'undefined') {
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    if (pathParts.length > 1) {
+      currentVariantId.value = pathParts[1];
+    } else {
+      currentVariantId.value = null;
+    }
+  }
+  
   try {
     const [pageNotes, pageVariants] = await Promise.all([
       editorialApi.getNotesForPage(pageId),
@@ -304,14 +314,17 @@ export function switchVariant(variantId: string | null): void {
   currentVariantId.value = variantId;
   selectedNoteId.value = null;
   
-  // Update URL
-  const url = new URL(window.location.href);
+  // Navigate to the variant URL (full page path)
+  const pageId = currentPageId.value;
+  if (!pageId) return;
+  
   if (variantId) {
-    url.searchParams.set('variant', variantId);
+    // Navigate to variant page: /tokens/metaphor-voice
+    window.location.href = `/${pageId}/${variantId}`;
   } else {
-    url.searchParams.delete('variant');
+    // Navigate back to base page: /tokens
+    window.location.href = `/${pageId}`;
   }
-  window.history.replaceState({}, '', url.toString());
 }
 
 /**
