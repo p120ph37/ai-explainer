@@ -38,7 +38,7 @@ You've seen something like this in other domains. A village isn't a small city. 
 
 **What changes at scale?**
 
-Small models learn surface patterns: "Paris" often follows "The capital of France is." Larger models learn something deeper—the *pattern* of factual recall itself. They can answer questions about capitals they saw only rarely in training.
+Small models learn surface patterns: "Paris" often follows "The capital of France is." Larger models learn something deeper: the *pattern* of factual recall itself. They can answer questions about capitals they saw only rarely in training.
 
 Scale further and capabilities appear:
 
@@ -51,9 +51,9 @@ None of these were specifically programmed. They crystallized from the pressure 
 
 <Question title="What is emergence, and how does it relate to scale?">
 
-**Emergence** is when simple rules produce complex behavior—capabilities arising spontaneously that weren't programmed in.
+**Emergence** is when simple rules produce complex behavior: capabilities arising spontaneously that weren't programmed in.
 
-In LLMs, emergent capabilities often appear suddenly at certain scale thresholds. Below the threshold: failure. Above it: success. Multi-step arithmetic, chain-of-thought reasoning, code execution—these emerge at scale rather than being explicitly taught.
+In LLMs, emergent capabilities often appear suddenly at certain scale thresholds. Below the threshold: failure. Above it: success. Multi-step arithmetic, chain-of-thought reasoning, code execution: these emerge at scale rather than being explicitly taught.
 
 This is why scaling matters beyond just "more is better." Scale unlocks qualitatively new capabilities, not just incremental improvement on existing ones.
 
@@ -67,11 +67,11 @@ In 2020, researchers discovered something remarkable: model performance improves
 
 Performance depends on three factors:
 
-- **Parameters (N)**: Model size—how many weights it has
+- **Parameters (N)**: Model size (how many weights it has)
 - **Data (D)**: How many tokens it trains on
 - **Compute (C)**: Total training computation
 
-Each doubling improves performance by a consistent fraction. The improvements compound. This predictability is why labs invest billions in larger models—the math tells you roughly what you'll get.
+Each doubling improves performance by a consistent fraction. The improvements compound. This predictability is why labs invest billions in larger models: the math tells you roughly what you'll get.
 
 <Expandable title="The math behind scaling">
 
@@ -83,7 +83,7 @@ Loss ∝ N^(-0.076) × D^(-0.095) × C^(-0.050)
 
 You need roughly 10× more compute to halve the loss. Progress is possible but expensive.
 
-The **Chinchilla insight** (2022) showed that parameters and data should scale together. A 70B model trained on 1.4T tokens outperformed a 280B model trained on fewer tokens. This reshaped the field—modern models emphasize data quality and quantity alongside parameter count.
+The **Chinchilla insight** (2022) showed that parameters and data should scale together. A 70B model trained on 1.4T tokens outperformed a 280B model trained on fewer tokens. This reshaped the field. Modern models emphasize data quality and quantity alongside parameter count.
 
 </Expandable>
 
@@ -101,7 +101,7 @@ Imagine a student who only has to pass one test: predict the next word in any te
 
 At first, they memorize common phrases. But the test includes scientific papers, legal documents, code in dozens of programming languages.
 
-To ace this test, the student must learn grammar, facts, reasoning patterns, programming logic—not because the test asks for these things, but because they're *useful for prediction*.
+To ace this test, the student must learn grammar, facts, reasoning patterns, programming logic. Not because the test asks for these things, but because they're *useful for prediction*.
 
 Scale up the capacity to learn and the breadth of the test, and the student develops a remarkable range of capabilities, all in service of that one simple objective.
 
@@ -147,7 +147,7 @@ Current frontiers:
 - **Efficiency**: Architectural innovations that get more capability from less compute
 - **Synthetic data**: Training on model-generated data to break data limits
 
-The question isn't whether scaling works—it demonstrably does. The question is whether it continues, and what else is needed.
+The question isn't whether scaling works; it demonstrably does. The question is whether it continues, and what else is needed.
 
 <Sources>
 <Citation type="paper" title="Scaling Laws for Neural Language Models" authors="Kaplan et al." source="OpenAI" url="https://arxiv.org/abs/2001.08361" year={2020} />

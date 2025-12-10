@@ -27,7 +27,7 @@ import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation
 
 **How can a language model understand pictures?**
 
-Early LLMs only processed text. Modern multimodal models handle images, audio, video, and more. The trick: convert everything into the same format the model already understands—tokens and embeddings.
+Early LLMs only processed text. Modern multimodal models handle images, audio, video, and more. The trick: convert everything into the same format the model already understands, tokens and embeddings.
 
 An image becomes a sequence of visual tokens. Audio becomes a sequence of audio tokens. The transformer processes them just like text, learning relationships between modalities.
 
@@ -49,13 +49,13 @@ The model attends across all tokens, finding which image patches are relevant to
 
 <Recognition>
 
-You've used this if you've uploaded an image to ChatGPT or Claude and asked questions about it. The model isn't running separate image analysis—it's processing image patches and text together, understanding their relationships.
+You've used this if you've uploaded an image to ChatGPT or Claude and asked questions about it. The model isn't running separate image analysis. It's processing image patches and text together, understanding their relationships.
 
 </Recognition>
 
 **Vision encoders**
 
-Converting images to useful tokens requires a vision encoder—a neural network that understands visual content.
+Converting images to useful tokens requires a vision encoder, a neural network that understands visual content.
 
 Common approaches:
 
@@ -130,7 +130,7 @@ The model learns to connect modalities: that "red" in text corresponds to certai
 
 Teaching vision to a language model is like a blind person gaining sight.
 
-They already understand the world through language and concepts. They know what "red" means, what "above" means, what a "cat" is. The new visual sense doesn't replace their conceptual understanding—it adds a new input channel.
+They already understand the world through language and concepts. They know what "red" means, what "above" means, what a "cat" is. The new visual sense doesn't replace their conceptual understanding. It adds a new input channel.
 
 Visual tokens flow into the same brain that processes language. The model connects what it sees to what it already knows. It doesn't start over; it extends.
 
@@ -150,7 +150,7 @@ The same reasoning capabilities that work for text now work for any tokenizable 
 
 <TryThis>
 
-Upload an image with text in it (a sign, a document, a screenshot) to a multimodal AI. Ask it to read the text, describe the layout, and explain the content. Notice how it handles both the visual structure and the textual content together—that's multimodal processing in action.
+Upload an image with text in it (a sign, a document, a screenshot) to a multimodal AI. Ask it to read the text, describe the layout, and explain the content. Notice how it handles both the visual structure and the textual content together. That's multimodal processing in action.
 
 </TryThis>
 
@@ -169,5 +169,5 @@ Progress is rapid, but modalities beyond text remain harder. Text is the native 
 <Sources>
 <Citation type="paper" title="Learning Transferable Visual Models From Natural Language Supervision (CLIP)" authors="Radford et al." source="OpenAI" url="https://arxiv.org/abs/2103.00020" year={2021} />
 <Citation type="paper" title="An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale (ViT)" authors="Dosovitskiy et al." source="Google" url="https://arxiv.org/abs/2010.11929" year={2020} />
-<Citation type="docs" title="Vision" source="OpenAI" url="https://platform.openai.com/docs/guides/vision" />
+<Citation type="docs" title="Vision with Claude" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/vision" />
 </Sources>

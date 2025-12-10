@@ -33,7 +33,7 @@ Frontier models are massive: hundreds of billions of parameters, requiring clust
 
 **Model optimization** techniques shrink models for deployment. The two most important: **distillation** (training a smaller model to mimic a larger one) and **quantization** (reducing numerical precision).
 
-Both involve trade-offs. Smaller means faster and cheaper—but also less capable.
+Both involve trade-offs. Smaller means faster and cheaper, but also less capable.
 
 **Distillation: teaching smaller models**
 
@@ -52,7 +52,7 @@ The probability distribution contains information about similarity and uncertain
 
 <Recognition>
 
-Many smaller models you use are distilled. Whisper's tiny variants, smaller Llama models, efficient code assistants—often trained with help from larger teachers rather than purely from scratch.
+Many smaller models you use are distilled. Whisper's tiny variants, smaller Llama models, efficient code assistants: often trained with help from larger teachers rather than purely from scratch.
 
 </Recognition>
 
@@ -89,7 +89,7 @@ Neural networks are trained with 32-bit or 16-bit floating-point numbers. Each p
 - INT8 (8-bit integer): 1 byte per parameter  
 - INT4 (4-bit integer): 0.5 bytes per parameter
 
-A 70B model at INT4 needs ~35GB—fits on high-end consumer GPUs.
+A 70B model at INT4 needs ~35GB, which fits on high-end consumer GPUs.
 
 ```
 FP32: 32 bits → Full precision, slowest, most memory
@@ -162,7 +162,7 @@ This means:
 
 <TryThis>
 
-Compare a full-precision large model (via API) with a quantized local version of the same model. Try tasks requiring precision: complex math, subtle reasoning, detailed code. Notice where the quantized version shows artifacts—rounded reasoning, missed details, off-by-one errors. That's the quantization tax.
+Compare a full-precision large model (via API) with a quantized local version of the same model. Try tasks requiring precision: complex math, subtle reasoning, detailed code. Notice where the quantized version shows artifacts (rounded reasoning, missed details, off-by-one errors). That's the quantization tax.
 
 </TryThis>
 
@@ -172,9 +172,9 @@ Understanding optimization helps you:
 
 - **Set realistic expectations**: Local models are smaller AND less capable
 - **Choose appropriately**: Simple tasks can use aggressive optimization; complex tasks need precision
-- **Understand trade-offs**: Fast/cheap/good—pick two
+- **Understand trade-offs**: Fast, cheap, good: pick two
 
-The path from frontier research to practical deployment runs through optimization. These techniques make AI accessible beyond the data center—with appropriate capability trade-offs understood.
+The path from frontier research to practical deployment runs through optimization. These techniques make AI accessible beyond the data center, with appropriate capability trade-offs understood.
 
 <Sources>
 <Citation type="paper" title="Distilling the Knowledge in a Neural Network" authors="Hinton et al." source="Google" url="https://arxiv.org/abs/1503.02531" year={2015} />
