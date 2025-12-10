@@ -21,7 +21,7 @@ describe('TokenizerDemo', () => {
     });
 
     test('common words become single tokens', () => {
-      // "Hello" should be a single token in GPT-4o encoding
+      // "Hello" should be a single token in o200k_base encoding (GPT-5, GPT-4o, etc.)
       const tokens = encode('Hello');
       expect(tokens.length).toBe(1);
     });
@@ -80,7 +80,7 @@ describe('TokenizerDemo', () => {
     test('calculates correct token count', () => {
       const text = 'Hello, how are you?';
       const tokens = encode(text);
-      expect(tokens.length).toBe(6); // Based on GPT-4o tokenization
+      expect(tokens.length).toBe(6); // Based on o200k_base tokenization (GPT-5, GPT-4o)
     });
 
     test('calculates chars per token ratio', () => {

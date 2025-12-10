@@ -8,7 +8,7 @@
 import { useState, useCallback, useMemo } from 'preact/hooks';
 import type { JSX } from 'preact';
 
-// Import the o200k_base encoding (used by GPT-4o and modern models)
+// Import the o200k_base encoding (used by GPT-5, GPT-4o, o1, o3, and other modern OpenAI models)
 import { encode, decode } from 'gpt-tokenizer';
 
 export interface TokenizerDemoProps {
