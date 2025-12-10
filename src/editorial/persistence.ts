@@ -258,21 +258,69 @@ export async function getNotesForPage(
 
 /**
  * Load variants for a page
+ * 
+ * Variants can come from two sources:
+ * 1. JSON file: editorial/variants/{pageId}.json (for editable variants)
+ * 2. Markdown files: editorial/variants/{pageId}/*.md (for voice samples)
  */
 export async function loadVariants(pageId: string): Promise<PageVariants | null> {
   ensureDirectories();
   
-  const file = Bun.file(`${VARIANTS_DIR}/${pageId}.json`);
-  if (!await file.exists()) {
+  const variants: PageVariant[] = [];
+  
+  // 1. Load from JSON file if it exists
+  const jsonFile = Bun.file(`${VARIANTS_DIR}/${pageId}.json`);
+  if (await jsonFile.exists()) {
+    try {
+      const jsonData = await jsonFile.json() as PageVariants;
+      if (jsonData.variants) {
+        variants.push(...jsonData.variants);
+      }
+    } catch (error) {
+      console.error(`Failed to load JSON variants for ${pageId}:`, error);
+    }
+  }
+  
+  // 2. Load from markdown files in subdirectory if it exists
+  const voiceDir = `${VARIANTS_DIR}/${pageId}`;
+  if (existsSync(voiceDir)) {
+    try {
+      const files = readdirSync(voiceDir);
+      for (const file of files) {
+        if (file.endsWith('.md')) {
+          const variantId = file.replace('.md', '');
+          // Skip if already loaded from JSON
+          if (variants.some(v => v.id === variantId)) continue;
+          
+          const content = await Bun.file(`${voiceDir}/${file}`).text();
+          // Extract label from first line if it's a heading
+          const firstLine = content.split('\n')[0];
+          const labelMatch = firstLine.match(/^#\s+(.+)/);
+          const label = labelMatch ? labelMatch[1] : variantId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          
+          variants.push({
+            id: variantId,
+            label,
+            description: `Voice variant: ${variantId}`,
+            content,
+            createdAt: now(),
+            updatedAt: now(),
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to load voice variants for ${pageId}:`, error);
+    }
+  }
+  
+  if (variants.length === 0) {
     return null;
   }
   
-  try {
-    return await file.json();
-  } catch (error) {
-    console.error(`Failed to load variants for ${pageId}:`, error);
-    return null;
-  }
+  return {
+    pageId,
+    variants,
+  };
 }
 
 /**
