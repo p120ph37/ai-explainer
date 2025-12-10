@@ -7,6 +7,7 @@
  * - Generation counter
  * - Multiple presets (random densities + classic patterns)
  * - Click to toggle cells manually
+ * - Auto-sizing grid to fit selected patterns
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'preact/hooks';
@@ -27,183 +28,245 @@ export interface GameOfLifeProps {
 
 // Grid size presets
 const GRID_SIZES = [
-  { label: '8×8 (Tiny)', width: 8, height: 8 },
-  { label: '16×16 (Small)', width: 16, height: 16 },
-  { label: '24×24 (Medium)', width: 24, height: 24 },
-  { label: '32×24 (Default)', width: 32, height: 24 },
-  { label: '48×36 (Large)', width: 48, height: 36 },
-  { label: '64×48 (XL)', width: 64, height: 48 },
-  { label: '80×60 (XXL)', width: 80, height: 60 },
-  { label: '128×96 (Huge)', width: 128, height: 96 },
+  { label: '8×8', width: 8, height: 8 },
+  { label: '16×16', width: 16, height: 16 },
+  { label: '24×24', width: 24, height: 24 },
+  { label: '32×24', width: 32, height: 24 },
+  { label: '48×36', width: 48, height: 36 },
+  { label: '64×48', width: 64, height: 48 },
+  { label: '80×60', width: 80, height: 60 },
+  { label: '128×96', width: 128, height: 96 },
 ];
 
 type Grid = boolean[][];
 
-// Classic Game of Life patterns
-const PATTERNS: Record<string, { name: string; pattern: number[][]; description: string }> = {
+type PatternCategory = 'basic' | 'spaceship' | 'oscillator' | 'still' | 'methuselah' | 'gun';
+
+interface PatternDef {
+  name: string;
+  pattern: number[][];
+  description: string;
+  category: PatternCategory;
+  minWidth: number;
+  minHeight: number;
+}
+
+/**
+ * Parse an ASCII pattern into coordinate array.
+ * Uses 'O' or 'o' for alive cells, any other character for dead cells.
+ * Whitespace-only lines at start/end are trimmed.
+ */
+function parseAscii(ascii: string): number[][] {
+  const lines = ascii.split('\n');
+  // Find first and last non-empty lines
+  let start = 0;
+  let end = lines.length - 1;
+  while (start < lines.length && lines[start]?.trim() === '') start++;
+  while (end >= 0 && lines[end]?.trim() === '') end--;
+  
+  const coords: number[][] = [];
+  for (let row = start; row <= end; row++) {
+    const line = lines[row] ?? '';
+    for (let col = 0; col < line.length; col++) {
+      if (line[col] === 'O' || line[col] === 'o') {
+        coords.push([row - start, col]);
+      }
+    }
+  }
+  return coords;
+}
+
+/** Calculate minimum grid size from pattern coordinates (pattern size + 4 cells padding) */
+function getPatternSize(pattern: number[][]): { minWidth: number; minHeight: number } {
+  if (pattern.length === 0) return { minWidth: 8, minHeight: 8 };
+  const maxRow = Math.max(...pattern.map(p => p[0] ?? 0));
+  const maxCol = Math.max(...pattern.map(p => p[1] ?? 0));
+  return { 
+    minWidth: maxCol + 1 + 4, 
+    minHeight: maxRow + 1 + 4 
+  };
+}
+
+/** Create a pattern definition from ASCII art */
+function pat(
+  name: string,
+  description: string,
+  category: PatternCategory,
+  ascii: string,
+  minSizeOverride?: { minWidth: number; minHeight: number }
+): PatternDef {
+  const pattern = parseAscii(ascii);
+  const size = minSizeOverride ?? getPatternSize(pattern);
+  return { name, description, category, pattern, ...size };
+}
+
+// =============================================================================
+// PATTERNS - Using ASCII art for readability
+// Legend: O = alive cell, . = dead cell
+// =============================================================================
+
+const PATTERNS: Record<string, PatternDef> = {
+  
+  // ---------------------------------------------------------------------------
+  // BASIC
+  // ---------------------------------------------------------------------------
   empty: {
-    name: 'Empty',
+    name: 'Empty Grid',
     pattern: [],
     description: 'Start with a blank canvas',
+    category: 'basic',
+    minWidth: 8,
+    minHeight: 8,
   },
-  glider: {
-    name: 'Glider',
-    pattern: [
-      [0, 1],
-      [1, 2],
-      [2, 0], [2, 1], [2, 2],
-    ],
-    description: 'The smallest spaceship',
-  },
-  lwss: {
-    name: 'Lightweight Spaceship',
-    pattern: [
-      [0, 1], [0, 4],
-      [1, 0],
-      [2, 0], [2, 4],
-      [3, 0], [3, 1], [3, 2], [3, 3],
-    ],
-    description: 'A larger traveling pattern',
-  },
-  blinker: {
-    name: 'Blinker',
-    pattern: [
-      [0, 0], [0, 1], [0, 2],
-    ],
-    description: 'Simplest oscillator (period 2)',
-  },
-  toad: {
-    name: 'Toad',
-    pattern: [
-      [0, 1], [0, 2], [0, 3],
-      [1, 0], [1, 1], [1, 2],
-    ],
-    description: 'Period 2 oscillator',
-  },
-  beacon: {
-    name: 'Beacon',
-    pattern: [
-      [0, 0], [0, 1],
-      [1, 0], [1, 1],
-      [2, 2], [2, 3],
-      [3, 2], [3, 3],
-    ],
-    description: 'Period 2 oscillator',
-  },
-  pulsar: {
-    name: 'Pulsar',
-    pattern: [
-      // Top section
-      [0, 2], [0, 3], [0, 4], [0, 8], [0, 9], [0, 10],
-      [2, 0], [2, 5], [2, 7], [2, 12],
-      [3, 0], [3, 5], [3, 7], [3, 12],
-      [4, 0], [4, 5], [4, 7], [4, 12],
-      [5, 2], [5, 3], [5, 4], [5, 8], [5, 9], [5, 10],
-      // Bottom section (mirrored)
-      [7, 2], [7, 3], [7, 4], [7, 8], [7, 9], [7, 10],
-      [8, 0], [8, 5], [8, 7], [8, 12],
-      [9, 0], [9, 5], [9, 7], [9, 12],
-      [10, 0], [10, 5], [10, 7], [10, 12],
-      [12, 2], [12, 3], [12, 4], [12, 8], [12, 9], [12, 10],
-    ],
-    description: 'Period 3 oscillator',
-  },
-  pentadecathlon: {
-    name: 'Pentadecathlon',
-    pattern: [
-      [0, 1],
-      [1, 1],
-      [2, 0], [2, 2],
-      [3, 1],
-      [4, 1],
-      [5, 1],
-      [6, 1],
-      [7, 0], [7, 2],
-      [8, 1],
-      [9, 1],
-    ],
-    description: 'Period 15 oscillator',
-  },
-  gliderGun: {
-    name: 'Gosper Glider Gun',
-    pattern: [
-      // Left square
-      [4, 0], [4, 1],
-      [5, 0], [5, 1],
-      // Left part
-      [4, 10],
-      [5, 10], [5, 11],
-      [6, 10], [6, 11],
-      [3, 12], [7, 12],
-      [2, 14], [3, 14], [7, 14], [8, 14],
-      [5, 16],
-      [3, 17], [7, 17],
-      [4, 18], [5, 18], [6, 18],
-      [5, 19],
-      // Right part
-      [2, 20], [3, 20], [4, 20],
-      [2, 21], [3, 21], [4, 21],
-      [1, 22], [5, 22],
-      [0, 24], [1, 24], [5, 24], [6, 24],
-      // Right square
-      [2, 34], [3, 34],
-      [2, 35], [3, 35],
-    ],
-    description: 'Produces gliders indefinitely',
-  },
-  rPentomino: {
-    name: 'R-pentomino',
-    pattern: [
-      [0, 1], [0, 2],
-      [1, 0], [1, 1],
-      [2, 1],
-    ],
-    description: 'Chaotic long-lived pattern',
-  },
-  acorn: {
-    name: 'Acorn',
-    pattern: [
-      [0, 1],
-      [1, 3],
-      [2, 0], [2, 1], [2, 4], [2, 5], [2, 6],
-    ],
-    description: 'Evolves for 5206 generations',
-  },
-  diehard: {
-    name: 'Diehard',
-    pattern: [
-      [0, 6],
-      [1, 0], [1, 1],
-      [2, 1], [2, 5], [2, 6], [2, 7],
-    ],
-    description: 'Disappears after 130 generations',
-  },
-  block: {
-    name: 'Block (Still Life)',
-    pattern: [
-      [0, 0], [0, 1],
-      [1, 0], [1, 1],
-    ],
-    description: 'Simplest still life',
-  },
-  beehive: {
-    name: 'Beehive (Still Life)',
-    pattern: [
-      [0, 1], [0, 2],
-      [1, 0], [1, 3],
-      [2, 1], [2, 2],
-    ],
-    description: 'Common still life',
-  },
+
+  // ---------------------------------------------------------------------------
+  // SPACESHIPS
+  // ---------------------------------------------------------------------------
+  glider: pat('Glider', 'The smallest spaceship - travels diagonally', 'spaceship', `
+.O.
+..O
+OOO
+`),
+
+  lwss: pat('Lightweight Spaceship', 'Travels horizontally', 'spaceship', `
+.O..O
+O....
+O...O
+OOOO.
+`),
+
+  // ---------------------------------------------------------------------------
+  // OSCILLATORS
+  // ---------------------------------------------------------------------------
+  blinker: pat('Blinker', 'Simplest oscillator (period 2)', 'oscillator', `
+OOO
+`),
+
+  toad: pat('Toad', 'Period 2 oscillator', 'oscillator', `
+.OOO
+OOO.
+`),
+
+  beacon: pat('Beacon', 'Two blocks blinking (period 2)', 'oscillator', `
+OO..
+OO..
+..OO
+..OO
+`),
+
+  pulsar: pat('Pulsar', 'Beautiful period 3 oscillator', 'oscillator', `
+..OOO...OOO..
+.............
+O....O.O....O
+O....O.O....O
+O....O.O....O
+..OOO...OOO..
+.............
+..OOO...OOO..
+O....O.O....O
+O....O.O....O
+O....O.O....O
+.............
+..OOO...OOO..
+`, { minWidth: 21, minHeight: 21 }), // Expands during oscillation
+
+  pentadecathlon: pat('Pentadecathlon', 'Period 15 oscillator', 'oscillator', `
+.O.
+.O.
+O.O
+.O.
+.O.
+.O.
+.O.
+O.O
+.O.
+.O.
+`, { minWidth: 9, minHeight: 22 }), // Extends 3 cells on each end during oscillation
+
+  // ---------------------------------------------------------------------------
+  // STILL LIFES
+  // ---------------------------------------------------------------------------
+  block: pat('Block', 'Simplest still life', 'still', `
+OO
+OO
+`),
+
+  beehive: pat('Beehive', 'Common 6-cell still life', 'still', `
+.OO.
+O..O
+.OO.
+`),
+
+  loaf: pat('Loaf', '7-cell still life', 'still', `
+.OO.
+O..O
+.O.O
+..O.
+`),
+
+  // ---------------------------------------------------------------------------
+  // METHUSELAHS (long-lived patterns)
+  // ---------------------------------------------------------------------------
+  rPentomino: pat('R-pentomino', 'Chaotic - stabilizes after 1103 gens on an infinite grid', 'methuselah', `
+.OO
+OO.
+.O.
+`, { minWidth: 64, minHeight: 48 }),
+
+  acorn: pat('Acorn', 'Evolves for 5206 gens on an infinite grid', 'methuselah', `
+.O.....
+...O...
+OO..OOO
+`, { minWidth: 128, minHeight: 96 }),
+
+  diehard: pat('Diehard', 'Dies after exactly 130 generations', 'methuselah', `
+......O.
+OO......
+.O...OOO
+`, { minWidth: 48, minHeight: 36 }),
+
+  // ---------------------------------------------------------------------------
+  // GUNS
+  // ---------------------------------------------------------------------------
+  gliderGun: pat('Gosper Glider Gun', 'Produces gliders every 30 generations', 'gun', `
+........................O...........
+......................O.O...........
+............OO......OO............OO
+...........O...O....OO............OO
+OO........O.....O...OO..............
+OO........O...O.OO....O.O...........
+..........O.....O.......O...........
+...........O...O....................
+............OO......................
+`, { minWidth: 48, minHeight: 24 }),
+
 };
 
 // Random preset generators
-const RANDOM_PRESETS = {
-  sparse: { name: 'Sparse Random', density: 0.15, description: '~15% cells alive' },
-  medium: { name: 'Medium Random', density: 0.3, description: '~30% cells alive' },
-  dense: { name: 'Dense Random', density: 0.5, description: '~50% cells alive' },
-  full: { name: 'Full', density: 1.0, description: 'All cells alive' },
+interface RandomPresetDef {
+  name: string;
+  density: number;
+  description: string;
+  category: 'basic';
+  minWidth: number;
+  minHeight: number;
+}
+
+const RANDOM_PRESETS: Record<string, RandomPresetDef> = {
+  sparse: { name: 'Random (Sparse)', density: 0.15, description: '~15% cells alive', category: 'basic', minWidth: 8, minHeight: 8 },
+  medium: { name: 'Random (Medium)', density: 0.3, description: '~30% cells alive', category: 'basic', minWidth: 8, minHeight: 8 },
+  dense: { name: 'Random (Dense)', density: 0.5, description: '~50% cells alive', category: 'basic', minWidth: 8, minHeight: 8 },
 };
+
+// Organized preset groups for the dropdown
+const PRESET_GROUPS = [
+  { label: 'Starting Points', presets: ['empty', 'sparse', 'medium', 'dense'] },
+  { label: 'Spaceships', presets: ['glider', 'lwss'] },
+  { label: 'Oscillators', presets: ['blinker', 'toad', 'beacon', 'pulsar', 'pentadecathlon'] },
+  { label: 'Still Lifes', presets: ['block', 'beehive', 'loaf'] },
+  { label: 'Methuselahs', presets: ['rPentomino', 'diehard', 'acorn'] },
+  { label: 'Guns', presets: ['gliderGun'] },
+];
 
 function createEmptyGrid(width: number, height: number): Grid {
   return Array(height).fill(null).map(() => Array(width).fill(false));
@@ -217,11 +280,16 @@ function createRandomGrid(width: number, height: number, density: number): Grid 
 
 function placePattern(grid: Grid, pattern: number[][], offsetX: number, offsetY: number): Grid {
   const newGrid = grid.map(row => [...row]);
-  for (const [y, x] of pattern) {
+  const firstRow = newGrid[0];
+  if (!firstRow) return newGrid;
+  for (const coord of pattern) {
+    const y = coord[0] ?? 0;
+    const x = coord[1] ?? 0;
     const ny = offsetY + y;
     const nx = offsetX + x;
-    if (ny >= 0 && ny < newGrid.length && nx >= 0 && nx < newGrid[0].length) {
-      newGrid[ny][nx] = true;
+    if (ny >= 0 && ny < newGrid.length && nx >= 0 && nx < firstRow.length) {
+      const row = newGrid[ny];
+      if (row) row[nx] = true;
     }
   }
   return newGrid;
@@ -229,7 +297,9 @@ function placePattern(grid: Grid, pattern: number[][], offsetX: number, offsetY:
 
 function countNeighbors(grid: Grid, x: number, y: number): number {
   const height = grid.length;
-  const width = grid[0].length;
+  const firstRow = grid[0];
+  if (!firstRow) return 0;
+  const width = firstRow.length;
   let count = 0;
   
   for (let dy = -1; dy <= 1; dy++) {
@@ -237,7 +307,8 @@ function countNeighbors(grid: Grid, x: number, y: number): number {
       if (dx === 0 && dy === 0) continue;
       const ny = (y + dy + height) % height; // Wrap around (toroidal)
       const nx = (x + dx + width) % width;
-      if (grid[ny][nx]) count++;
+      const row = grid[ny];
+      if (row && row[nx]) count++;
     }
   }
   return count;
@@ -245,7 +316,9 @@ function countNeighbors(grid: Grid, x: number, y: number): number {
 
 function nextGeneration(grid: Grid): Grid {
   const height = grid.length;
-  const width = grid[0].length;
+  const firstRow = grid[0];
+  if (!firstRow) return grid;
+  const width = firstRow.length;
   
   return grid.map((row, y) =>
     row.map((cell, x) => {
@@ -261,6 +334,25 @@ function nextGeneration(grid: Grid): Grid {
       }
     })
   );
+}
+
+// Helper to get minimum grid size needed for a preset
+function getMinGridSize(presetKey: string): { minWidth: number; minHeight: number } {
+  const pattern = PATTERNS[presetKey];
+  if (pattern) {
+    return { minWidth: pattern.minWidth, minHeight: pattern.minHeight };
+  }
+  const randomPreset = RANDOM_PRESETS[presetKey];
+  if (randomPreset) {
+    return { minWidth: randomPreset.minWidth, minHeight: randomPreset.minHeight };
+  }
+  return { minWidth: 8, minHeight: 8 };
+}
+
+// Find smallest grid size preset that fits the required dimensions
+function findSuitableGridSize(minWidth: number, minHeight: number): number {
+  const index = GRID_SIZES.findIndex(s => s.width >= minWidth && s.height >= minHeight);
+  return index >= 0 ? index : GRID_SIZES.length - 1; // Fall back to largest
 }
 
 export function GameOfLife({
@@ -285,7 +377,11 @@ export function GameOfLife({
     const emptyGrid = createEmptyGrid(initialWidth, initialHeight);
     const pattern = PATTERNS[initialPreset];
     if (pattern && pattern.pattern.length > 0) {
-      return placePattern(emptyGrid, pattern.pattern, Math.floor(initialWidth / 4), Math.floor(initialHeight / 4));
+      const patternHeight = Math.max(...pattern.pattern.map(p => (p[0] ?? 0))) + 1;
+      const patternWidth = Math.max(...pattern.pattern.map(p => (p[1] ?? 0))) + 1;
+      const offsetX = Math.floor((initialWidth - patternWidth) / 2);
+      const offsetY = Math.floor((initialHeight - patternHeight) / 2);
+      return placePattern(emptyGrid, pattern.pattern, offsetX, offsetY);
     }
     return emptyGrid;
   });
@@ -296,6 +392,7 @@ export function GameOfLife({
   const [selectedPreset, setSelectedPreset] = useState(initialPreset);
   const [isDragging, setIsDragging] = useState(false);
   const [dragValue, setDragValue] = useState(true);
+  const [isExtinct, setIsExtinct] = useState(false);
   
   const intervalRef = useRef<number | null>(null);
   
@@ -312,47 +409,88 @@ export function GameOfLife({
     return grid.reduce((sum, row) => sum + row.filter(Boolean).length, 0);
   }, [grid]);
   
+  // Detect extinction and stop simulation
+  useEffect(() => {
+    if (aliveCount === 0 && generation > 0) {
+      setIsExtinct(true);
+      setIsPlaying(false);
+    }
+  }, [aliveCount, generation]);
+  
   // Step function
   const step = useCallback(() => {
-    setGrid(g => nextGeneration(g));
+    if (isExtinct) return; // Don't step if extinct
+    setGrid(g => {
+      const next = nextGeneration(g);
+      return next;
+    });
     setGeneration(g => g + 1);
-  }, []);
+  }, [isExtinct]);
   
   // Play/pause effect
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !isExtinct) {
       const interval = 1000 / speed;
       intervalRef.current = window.setInterval(step, interval);
       return () => {
         if (intervalRef.current) clearInterval(intervalRef.current);
       };
     }
-  }, [isPlaying, speed, step]);
+  }, [isPlaying, isExtinct, speed, step]);
   
-  // Load preset
-  const loadPreset = useCallback((presetKey: string, w: number = gridWidth, h: number = gridHeight) => {
+  // Load preset with auto-resize
+  const loadPreset = useCallback((presetKey: string, forceWidth?: number, forceHeight?: number) => {
     setIsPlaying(false);
     setGeneration(0);
+    setIsExtinct(false);
     setSelectedPreset(presetKey);
     
+    // Determine grid dimensions - auto-resize if needed
+    let w = forceWidth ?? gridWidth;
+    let h = forceHeight ?? gridHeight;
+    
+    if (forceWidth === undefined && forceHeight === undefined) {
+      // Check if current grid is large enough
+      const { minWidth, minHeight } = getMinGridSize(presetKey);
+      if (w < minWidth || h < minHeight) {
+        const newSizeIndex = findSuitableGridSize(minWidth, minHeight);
+        const newSize = GRID_SIZES[newSizeIndex];
+        if (newSize) {
+          w = newSize.width;
+          h = newSize.height;
+          setGridWidth(w);
+          setGridHeight(h);
+          setSelectedSizeIndex(newSizeIndex);
+        }
+      }
+    }
+    
     if (presetKey in RANDOM_PRESETS) {
-      const preset = RANDOM_PRESETS[presetKey as keyof typeof RANDOM_PRESETS];
-      setGrid(createRandomGrid(w, h, preset.density));
+      const preset = RANDOM_PRESETS[presetKey];
+      if (preset) {
+        setGrid(createRandomGrid(w, h, preset.density));
+      }
     } else if (presetKey in PATTERNS) {
       const pattern = PATTERNS[presetKey];
       const emptyGrid = createEmptyGrid(w, h);
-      if (pattern.pattern.length === 0) {
+      if (!pattern || pattern.pattern.length === 0) {
         setGrid(emptyGrid);
       } else {
         // Center the pattern
-        const patternHeight = Math.max(...pattern.pattern.map(p => p[0])) + 1;
-        const patternWidth = Math.max(...pattern.pattern.map(p => p[1])) + 1;
+        const patternHeight = Math.max(...pattern.pattern.map(p => (p[0] ?? 0))) + 1;
+        const patternWidth = Math.max(...pattern.pattern.map(p => (p[1] ?? 0))) + 1;
         const offsetX = Math.floor((w - patternWidth) / 2);
         const offsetY = Math.floor((h - patternHeight) / 2);
         setGrid(placePattern(emptyGrid, pattern.pattern, offsetX, offsetY));
       }
     }
   }, [gridWidth, gridHeight]);
+  
+  // Handle preset change from dropdown
+  const handlePresetChange = useCallback((e: JSX.TargetedEvent<HTMLSelectElement>) => {
+    const presetKey = (e.target as HTMLSelectElement).value;
+    loadPreset(presetKey);
+  }, [loadPreset]);
   
   // Handle grid size change
   const handleSizeChange = useCallback((e: JSX.TargetedEvent<HTMLSelectElement>) => {
@@ -364,6 +502,7 @@ export function GameOfLife({
       setGridHeight(size.height);
       setIsPlaying(false);
       setGeneration(0);
+      setIsExtinct(false);
       // Reload the current preset with new dimensions
       loadPreset(selectedPreset, size.width, size.height);
     }
@@ -372,11 +511,14 @@ export function GameOfLife({
   // Cell toggle handlers
   const handleCellMouseDown = useCallback((x: number, y: number) => {
     setIsDragging(true);
-    const newValue = !grid[y][x];
+    setIsExtinct(false); // Clear extinction on manual edit
+    const row = grid[y];
+    const newValue = row ? !row[x] : true;
     setDragValue(newValue);
     setGrid(g => {
-      const newGrid = g.map(row => [...row]);
-      newGrid[y][x] = newValue;
+      const newGrid = g.map(r => [...r]);
+      const targetRow = newGrid[y];
+      if (targetRow) targetRow[x] = newValue;
       return newGrid;
     });
   }, [grid]);
@@ -384,8 +526,9 @@ export function GameOfLife({
   const handleCellMouseEnter = useCallback((x: number, y: number) => {
     if (isDragging) {
       setGrid(g => {
-        const newGrid = g.map(row => [...row]);
-        newGrid[y][x] = dragValue;
+        const newGrid = g.map(r => [...r]);
+        const targetRow = newGrid[y];
+        if (targetRow) targetRow[x] = dragValue;
         return newGrid;
       });
     }
@@ -405,58 +548,40 @@ export function GameOfLife({
     setSpeed(parseFloat((e.target as HTMLInputElement).value));
   }, []);
   
-  // Group presets by category
-  const presetCategories = useMemo(() => [
-    {
-      label: 'Basics',
-      presets: ['empty', 'sparse', 'medium', 'dense', 'full'],
-    },
-    {
-      label: 'Spaceships',
-      presets: ['glider', 'lwss'],
-    },
-    {
-      label: 'Oscillators',
-      presets: ['blinker', 'toad', 'beacon', 'pulsar', 'pentadecathlon'],
-    },
-    {
-      label: 'Still Lifes',
-      presets: ['block', 'beehive'],
-    },
-    {
-      label: 'Methuselahs',
-      presets: ['rPentomino', 'acorn', 'diehard'],
-    },
-    {
-      label: 'Guns',
-      presets: ['gliderGun'],
-    },
-  ], []);
-  
-  const getPresetInfo = (key: string) => {
-    if (key in PATTERNS) return PATTERNS[key];
-    if (key in RANDOM_PRESETS) return RANDOM_PRESETS[key as keyof typeof RANDOM_PRESETS];
+  // Get preset info for display
+  const getPresetInfo = (key: string): { name: string; description: string } => {
+    if (key in PATTERNS) {
+      const p = PATTERNS[key];
+      if (p) return { name: p.name, description: p.description };
+    }
+    if (key in RANDOM_PRESETS) {
+      const r = RANDOM_PRESETS[key];
+      if (r) return { name: r.name, description: r.description };
+    }
     return { name: key, description: '' };
   };
+  
+  const currentPresetInfo = getPresetInfo(selectedPreset);
   
   return (
     <div className="game-of-life">
       {title && <div className="game-of-life__title">{title}</div>}
       
-      {/* Controls */}
+      {/* Compact Controls Row */}
       <div className="game-of-life__controls">
         <div className="game-of-life__buttons">
           <button
             className={`game-of-life__btn ${isPlaying ? 'game-of-life__btn--active' : ''}`}
-            onClick={() => setIsPlaying(!isPlaying)}
-            title={isPlaying ? 'Pause' : 'Play'}
+            onClick={() => !isExtinct && setIsPlaying(!isPlaying)}
+            disabled={isExtinct}
+            title={isExtinct ? 'Extinct' : isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? '⏸' : '▶'}
           </button>
           <button
             className="game-of-life__btn"
             onClick={step}
-            disabled={isPlaying}
+            disabled={isPlaying || isExtinct}
             title="Step"
           >
             ⏭
@@ -470,10 +595,41 @@ export function GameOfLife({
           </button>
         </div>
         
+        <div className="game-of-life__select-group">
+          <select
+            value={selectedPreset}
+            onChange={handlePresetChange}
+            className="game-of-life__select"
+            title={currentPresetInfo.description}
+          >
+            {PRESET_GROUPS.map(group => (
+              <optgroup key={group.label} label={group.label}>
+                {group.presets.map(key => {
+                  const info = getPresetInfo(key);
+                  return (
+                    <option key={key} value={key}>
+                      {info.name}
+                    </option>
+                  );
+                })}
+              </optgroup>
+            ))}
+          </select>
+          
+          <select
+            value={selectedSizeIndex}
+            onChange={handleSizeChange}
+            className="game-of-life__select game-of-life__select--size"
+          >
+            {GRID_SIZES.map((size, index) => (
+              <option key={size.label} value={index}>
+                {size.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        
         <div className="game-of-life__speed">
-          <label className="game-of-life__speed-label">
-            Speed: <strong>{speed}</strong>/s
-          </label>
           <input
             type="range"
             min="1"
@@ -481,35 +637,19 @@ export function GameOfLife({
             value={speed}
             onInput={handleSpeedChange}
             className="game-of-life__slider"
+            title={`Speed: ${speed}/s`}
           />
         </div>
         
         <div className="game-of-life__stats">
-          <span className="game-of-life__stat">
-            Gen: <strong>{generation}</strong>
+          <span className="game-of-life__stat" title="Generation">
+            <strong>{generation}</strong>
           </span>
-          <span className="game-of-life__stat">
-            Alive: <strong>{aliveCount}</strong>
+          <span className="game-of-life__stat" title="Alive cells">
+            <strong>{aliveCount}</strong>
+            {isExtinct && <span className="game-of-life__extinct"> ☠</span>}
           </span>
         </div>
-      </div>
-      
-      {/* Grid Size Selector */}
-      <div className="game-of-life__size-control">
-        <label className="game-of-life__size-label">
-          Grid Size:
-        </label>
-        <select
-          value={selectedSizeIndex}
-          onChange={handleSizeChange}
-          className="game-of-life__size-select"
-        >
-          {GRID_SIZES.map((size, index) => (
-            <option key={size.label} value={index}>
-              {size.label}
-            </option>
-          ))}
-        </select>
       </div>
       
       {/* Grid */}
@@ -537,35 +677,8 @@ export function GameOfLife({
         </div>
       </div>
       
-      {/* Presets */}
-      <div className="game-of-life__presets">
-        <div className="game-of-life__presets-label">Presets:</div>
-        <div className="game-of-life__presets-grid">
-          {presetCategories.map(category => (
-            <div key={category.label} className="game-of-life__preset-category">
-              <span className="game-of-life__category-label">{category.label}</span>
-              <div className="game-of-life__preset-buttons">
-                {category.presets.map(key => {
-                  const info = getPresetInfo(key);
-                  return (
-                    <button
-                      key={key}
-                      className={`game-of-life__preset-btn ${selectedPreset === key ? 'game-of-life__preset-btn--active' : ''}`}
-                      onClick={() => loadPreset(key)}
-                      title={info.description}
-                    >
-                      {info.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      
       <div className="game-of-life__hint">
-        <strong>Interact:</strong> Click or drag on the grid to toggle cells. Watch how four simple rules create complex, emergent patterns.
+        Click or drag to toggle cells. Four simple rules → complex emergent patterns.
       </div>
     </div>
   );
