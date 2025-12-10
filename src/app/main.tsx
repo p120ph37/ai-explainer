@@ -4,7 +4,7 @@
  * Bootstraps the app, initializes routing, and renders the shell.
  */
 
-import { render, hydrate } from 'preact';
+import { render } from 'preact';
 import { App, EditorialOnlyApp } from './App.tsx';
 import { initializeTheme } from './theme.ts';
 
@@ -25,15 +25,14 @@ function isEditorialVariantPage(): boolean {
 const appRoot = document.getElementById('app');
 if (appRoot) {
   if (isEditorialVariantPage()) {
-    // For variant pages, only mount editorial UI without replacing content
-    // Find or create a container for editorial-only components
-    let editorialRoot = document.getElementById('editorial-root');
-    if (!editorialRoot) {
-      editorialRoot = document.createElement('div');
-      editorialRoot.id = 'editorial-root';
-      document.body.appendChild(editorialRoot);
+    // For variant pages, keep SSR shell intact and render overlay components separately
+    let overlayRoot = document.getElementById('editorial-overlay');
+    if (!overlayRoot) {
+      overlayRoot = document.createElement('div');
+      overlayRoot.id = 'editorial-overlay';
+      document.body.appendChild(overlayRoot);
     }
-    render(<EditorialOnlyApp />, editorialRoot);
+    render(<EditorialOnlyApp />, overlayRoot);
   } else {
     // Normal page - render the full app
     render(<App />, appRoot);

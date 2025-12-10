@@ -72,18 +72,96 @@ function EditorialLayerLoader({ pageId }: { pageId: string }) {
 }
 
 /**
+ * Get the current variant name from URL path
+ * Returns null if viewing base content
+ */
+function getCurrentVariantName(): string | null {
+  if (typeof window === 'undefined') return null;
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  if (pathParts.length <= 1) return null;
+  
+  // Convert kebab-case to Title Case (e.g., "metaphor-voice" -> "Metaphor Voice")
+  return pathParts[1]
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
+ * Editorial mode badge component
+ * Shows "EDITORIAL MODE" and optionally the variant name
+ */
+function EditorialBadge({ variantName }: { variantName?: string | null }) {
+  if (!isEditorialMode()) return null;
+  
+  return (
+    <div className="editorial-mode-badge">
+      📝 EDITORIAL MODE
+      {variantName && (
+        <span className="editorial-mode-badge__variant">— {variantName}</span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Shared app header component
+ */
+function AppHeader({ theme, onThemeToggle }: { theme: string; onThemeToggle: () => void }) {
+  return (
+    <header className="app-header">
+      <div className="app-header__inner">
+        <a href="/" className="app-logo">
+          Understanding Frontier AI
+        </a>
+        
+        <button 
+          className="theme-toggle" 
+          onClick={onThemeToggle}
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
+      </div>
+    </header>
+  );
+}
+
+/**
  * Editorial-only app for variant pages
- * Only renders the editorial UI layer, preserving SSR content
+ * Renders overlay components only, keeping SSR content intact
  */
 export function EditorialOnlyApp() {
+  const theme = useSignal(getEffectiveTheme());
+  const variantName = getCurrentVariantName();
+  
   useEffect(() => {
     // Apply the main visual theme
     document.documentElement.setAttribute('data-visual-theme', 'main');
+    
+    // Inject theme toggle into the existing SSR header
+    const headerInner = document.querySelector('.app-header__inner');
+    if (headerInner && !headerInner.querySelector('.theme-toggle')) {
+      const toggle = document.createElement('button');
+      toggle.className = 'theme-toggle';
+      toggle.setAttribute('aria-label', `Switch to ${getEffectiveTheme() === 'light' ? 'dark' : 'light'} theme`);
+      toggle.textContent = getEffectiveTheme() === 'light' ? '🌙' : '☀️';
+      toggle.addEventListener('click', () => {
+        toggleTheme();
+        const newTheme = getEffectiveTheme();
+        toggle.textContent = newTheme === 'light' ? '🌙' : '☀️';
+        toggle.setAttribute('aria-label', `Switch to ${newTheme === 'light' ? 'dark' : 'light'} theme`);
+      });
+      headerInner.appendChild(toggle);
+    }
   }, []);
   
   return (
     <>
-      {/* Progress sidebar - still useful for navigation */}
+      {/* Editorial badge with variant name */}
+      <EditorialBadge variantName={variantName} />
+      
+      {/* Quest log sidebar */}
       <ProgressSidebar />
       
       {/* Editorial mode layer */}
@@ -123,21 +201,9 @@ export function App() {
   
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <div className="app-header__inner">
-          <a href="/" className="app-logo">
-            Understanding Frontier AI
-          </a>
-          
-          <button 
-            className="theme-toggle" 
-            onClick={handleThemeToggle}
-            aria-label={`Switch to ${theme.value === 'light' ? 'dark' : 'light'} theme`}
-          >
-            {theme.value === 'light' ? '🌙' : '☀️'}
-          </button>
-        </div>
-      </header>
+      <EditorialBadge variantName={null} />
+      
+      <AppHeader theme={theme.value} onThemeToggle={handleThemeToggle} />
       
       <main className="app-main">
         {/* For variant pages in editorial mode, don't replace SSR content */}

@@ -114,22 +114,18 @@ async function getJsBundle(): Promise<{ code: string; hash: string }> {
 function generateVariantHtml(options: {
   nodeId: string;
   variantId: string;
+  variantTitle: string;
+  variantSummary: string;
   variantLabel: string;
-  variantDescription?: string;
   contentHtml: string;
   baseMeta: { id: string; title: string; summary: string };
   jsPath: string;
   cssPath: string;
 }): string {
-  const { nodeId, variantId, variantLabel, variantDescription, contentHtml, baseMeta, jsPath, cssPath } = options;
+  const { nodeId, variantId, variantTitle, variantSummary, variantLabel, contentHtml, baseMeta, jsPath, cssPath } = options;
   
-  const title = `${variantLabel} | Understanding Frontier AI`;
-  const description = variantDescription || `Voice variant: ${variantId}`;
-  
-  // Extract a cleaner variant name (e.g., "Metaphor Voice" from "What are Tokens? — Metaphor Voice")
-  const variantDisplayName = variantLabel.includes('—') 
-    ? variantLabel.split('—').pop()?.trim() || variantId
-    : variantId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const pageTitle = `${variantTitle} | Understanding Frontier AI`;
+  const description = variantSummary || `Voice variant: ${variantId}`;
   
   return `<!DOCTYPE html>
 <html lang="en">
@@ -137,7 +133,7 @@ function generateVariantHtml(options: {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="${escapeHtml(description)}">
-  <title>${escapeHtml(title)}</title>
+  <title>${escapeHtml(pageTitle)}</title>
   
   <!-- Stylesheets -->
   <link rel="stylesheet" href="${cssPath}/base.css">
@@ -150,11 +146,6 @@ function generateVariantHtml(options: {
   <script>window.__EDITORIAL_MODE__ = true;</script>
 </head>
 <body>
-  <!-- Editorial mode badge with variant name -->
-  <div class="editorial-mode-badge">
-    📝 EDITORIAL MODE<span class="editorial-mode-badge__variant">— ${escapeHtml(variantDisplayName)}</span>
-  </div>
-  
   <div id="app" data-initial-node="${escapeHtml(nodeId)}" data-variant="${escapeHtml(variantId)}">
     <div class="ssr-shell" data-ssr="true">
       <header class="app-header">
@@ -165,6 +156,10 @@ function generateVariantHtml(options: {
       <main class="app-main">
         <div class="content-width">
           <article class="content-node variant-content" data-node-id="${escapeHtml(nodeId)}" data-variant-id="${escapeHtml(variantId)}">
+            <header class="content-node__header">
+              <h1 class="content-node__title">${escapeHtml(variantTitle)}</h1>
+              ${variantSummary ? `<p class="content-node__summary">${escapeHtml(variantSummary)}</p>` : ''}
+            </header>
             <div class="content-node__body">
               ${contentHtml}
             </div>
@@ -221,14 +216,8 @@ function generateEditorialHtml(options: {
     <script>window.__EDITORIAL_MODE__ = true;</script>
   `;
   
-  // Inject the editorial mode badge after <body>
-  const editorialBadge = `
-  <div class="editorial-mode-badge">📝 EDITORIAL MODE</div>
-  `;
-  
-  return baseHtml
-    .replace('</head>', `${editorialAssets}</head>`)
-    .replace('<body>', `<body>${editorialBadge}`);
+  // Badge is rendered by the Preact EditorialBadge component
+  return baseHtml.replace('</head>', `${editorialAssets}</head>`);
 }
 
 /**
@@ -526,18 +515,31 @@ const server = Bun.serve({
       const variant = variants?.variants.find(v => v.id === variantId);
       
       if (variant) {
-        // Render the variant's markdown/MDX content
-        // Strip the leading H1 since the variant name is now shown in the badge
-        const contentWithoutTitle = variant.content.replace(/^#\s+.+\n+/, '');
-        const variantHtml = await renderMarkdownContent(contentWithoutTitle);
+        // Extract title and summary from the markdown content
+        // Format: # Title\n\n*Summary text*\n\n---\n\nContent...
+        const titleMatch = variant.content.match(/^#\s+(.+)\n/);
+        const variantTitle = titleMatch ? titleMatch[1] : variant.label;
+        
+        // Extract italic summary (if present) and strip header section
+        const summaryMatch = variant.content.match(/^#\s+.+\n+\*([^*]+)\*\n/);
+        const variantSummary = summaryMatch ? summaryMatch[1] : '';
+        
+        // Strip the header section (title, summary, and hr) from the body
+        const contentBody = variant.content
+          .replace(/^#\s+.+\n+/, '')           // Remove H1
+          .replace(/^\*[^*]+\*\n+/, '')        // Remove italic summary
+          .replace(/^---\n+/, '');             // Remove horizontal rule
+        
+        const variantHtml = await renderMarkdownContent(contentBody);
         const meta = await getNodeMeta(nodeId);
         
         // Generate a custom HTML page for the variant (not using standard SSR wrapper)
         const html = generateVariantHtml({
           nodeId,
           variantId,
+          variantTitle,
+          variantSummary,
           variantLabel: variant.label,
-          variantDescription: variant.description,
           contentHtml: variantHtml,
           baseMeta: meta || { id: nodeId, title: nodeId, summary: '' },
           jsPath,
