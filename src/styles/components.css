@@ -2980,6 +2980,41 @@
   font-family: var(--font-mono);
 }
 
+.game-of-life__size-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+}
+
+.game-of-life__size-label {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.game-of-life__size-select {
+  flex: 1;
+  max-width: 200px;
+  padding: var(--space-xs) var(--space-sm);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.game-of-life__size-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
 .game-of-life__grid-container {
   overflow-x: auto;
   margin-bottom: var(--space-md);
