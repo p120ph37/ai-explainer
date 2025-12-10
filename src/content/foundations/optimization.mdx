@@ -1,0 +1,183 @@
+---
+id: optimization
+title: "How are models made smaller?"
+summary: Distillation and quantization shrink models for efficiency. Distillation trains smaller models to mimic larger ones. Quantization reduces numerical precision. Both trade capability for practicality.
+category: Foundations
+order: 28
+prerequisites:
+  - intro
+  - parameters
+  - training
+  - inference
+children: []
+related:
+  - scaling
+  - local
+  - hardware
+  - inference
+keywords:
+  - distillation
+  - quantization
+  - compression
+  - efficiency
+  - INT8
+  - INT4
+  - pruning
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**How do you run AI models on less powerful hardware?**
+
+Frontier models are massive: hundreds of billions of parameters, requiring clusters of expensive GPUs. But people want to run AI on laptops, phones, and edge devices. 
+
+**Model optimization** techniques shrink models for deployment. The two most important: **distillation** (training a smaller model to mimic a larger one) and **quantization** (reducing numerical precision).
+
+Both involve trade-offs. Smaller means faster and cheaper—but also less capable.
+
+**Distillation: teaching smaller models**
+
+A large "teacher" model has learned rich representations. A smaller "student" model can learn to approximate those representations without repeating the full training process.
+
+```
+1. Run inputs through teacher model
+2. Capture teacher's outputs (logits, embeddings, behavior)
+3. Train student to match teacher's outputs
+4. Student learns from teacher's "soft labels"—not just right/wrong but probability distributions
+```
+
+Why it works: The teacher provides richer signal than raw training data. Instead of learning "this text should predict 'cat'," the student learns "this text should predict 73% cat, 15% kitten, 8% feline..."
+
+The probability distribution contains information about similarity and uncertainty that binary labels don't.
+
+<Recognition>
+
+Many smaller models you use are distilled. Whisper's tiny variants, smaller Llama models, efficient code assistants—often trained with help from larger teachers rather than purely from scratch.
+
+</Recognition>
+
+**What distillation costs**
+
+Distillation isn't free:
+
+- **Capability gap**: Students rarely fully match teachers. Some nuance is lost.
+- **Training required**: You still need compute to train the student.
+- **Teacher dependency**: You need a good teacher to begin with.
+- **Specific domains**: Students may match teachers on trained domains but generalize worse.
+
+The gap between teacher and student depends on the size difference. A 7B model distilled from 70B gets close on many tasks. A 1B model distilled from 70B has a larger gap.
+
+<Question title="How much capability is lost?">
+
+It varies dramatically by task:
+
+- **Simple classification**: Often negligible loss
+- **Common language tasks**: Student models can be surprisingly close
+- **Complex reasoning**: Larger gaps; emergent capabilities may not transfer
+- **Rare knowledge**: Students forget more of the long tail
+
+Distillation works best when the student has enough capacity for the task complexity. For simple tasks, small students work well. For frontier capabilities, small models simply can't capture what large models know.
+
+</Question>
+
+**Quantization: using less precision**
+
+Neural networks are trained with 32-bit or 16-bit floating-point numbers. Each parameter takes 2-4 bytes. A 70B model needs 140-280GB just for weights.
+
+**Quantization** reduces precision:
+- FP16 (16-bit float): 2 bytes per parameter
+- INT8 (8-bit integer): 1 byte per parameter  
+- INT4 (4-bit integer): 0.5 bytes per parameter
+
+A 70B model at INT4 needs ~35GB—fits on high-end consumer GPUs.
+
+```
+FP32: 32 bits → Full precision, slowest, most memory
+FP16: 16 bits → Training standard, good precision
+INT8:  8 bits → Deployment common, minor quality loss
+INT4:  4 bits → Aggressive, noticeable quality trade-off
+```
+
+<Expandable title="How quantization works">
+
+The core idea: map continuous floating-point values to discrete integers.
+
+**Post-training quantization**: Take a trained model, convert weights to lower precision. Fast but loses accuracy.
+
+**Quantization-aware training**: Simulate quantization during training. Model learns to be robust to lower precision. Better quality, more expensive.
+
+**Mixed precision**: Quantize some layers more than others. Keep precision where it matters most.
+
+Modern techniques like GPTQ, AWQ, and GGML have made 4-bit quantization practical with acceptable quality loss for many use cases.
+
+</Expandable>
+
+**What quantization costs**
+
+Lower precision means:
+
+- **Reduced accuracy**: Subtle distinctions are lost. The model is "fuzzier."
+- **Task-dependent impact**: Math and code suffer more than casual chat.
+- **Calibration needed**: Good quantization requires representative data.
+- **Not all architectures quantize well**: Some designs are more robust than others.
+
+INT8 quantization is nearly free in quality for most tasks. INT4 has noticeable degradation. Below 4-bit, quality drops quickly.
+
+<Metaphor title="Compressing an image">
+
+Think of quantization like JPEG compression.
+
+High quality: Large file, perfect details. Low quality: Small file, visible artifacts. In between: Acceptable trade-off for most uses.
+
+The model equivalent: Full precision captures subtle weights. Quantized precision smudges those subtleties. For many tasks, the smudging doesn't matter. For precision tasks, it shows.
+
+</Metaphor>
+
+**Other optimization techniques**
+
+Beyond distillation and quantization:
+
+**Pruning**: Remove unnecessary weights. Set small weights to zero. Model becomes sparse, potentially faster.
+
+**Architecture efficiency**: Some architectures (Mamba, RWKV) are inherently more efficient than dense transformers.
+
+**Mixture of Experts (MoE)**: Only activate part of the model per token. 100B total parameters, but only 20B active at once.
+
+**KV-cache optimization**: Reduce memory for cached attention computations during inference.
+
+Each technique has trade-offs. Modern efficient models often combine several.
+
+**The efficiency-capability trade-off**
+
+Here's the fundamental truth: **optimizations don't create capability; they trade it for efficiency.**
+
+A 7B model, however optimized, cannot match a 70B model. Quantizing a 70B model to 4-bit makes it smaller but less capable.
+
+The frontier models are already optimized. OpenAI and Anthropic use quantization, efficient architectures, and infrastructure optimization to serve their largest models. They're not leaving efficiency on the table.
+
+This means:
+- Local models will always lag frontier models in capability
+- The gap is fundamental, not just a deployment issue
+- Optimizations enable access to smaller models, not frontier ones
+
+<TryThis>
+
+Compare a full-precision large model (via API) with a quantized local version of the same model. Try tasks requiring precision: complex math, subtle reasoning, detailed code. Notice where the quantized version shows artifacts—rounded reasoning, missed details, off-by-one errors. That's the quantization tax.
+
+</TryThis>
+
+**Why this matters**
+
+Understanding optimization helps you:
+
+- **Set realistic expectations**: Local models are smaller AND less capable
+- **Choose appropriately**: Simple tasks can use aggressive optimization; complex tasks need precision
+- **Understand trade-offs**: Fast/cheap/good—pick two
+
+The path from frontier research to practical deployment runs through optimization. These techniques make AI accessible beyond the data center—with appropriate capability trade-offs understood.
+
+<Sources>
+<Citation type="paper" title="Distilling the Knowledge in a Neural Network" authors="Hinton et al." source="Google" url="https://arxiv.org/abs/1503.02531" year={2015} />
+<Citation type="paper" title="GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers" authors="Frantar et al." url="https://arxiv.org/abs/2210.17323" year={2022} />
+<Citation type="paper" title="AWQ: Activation-aware Weight Quantization for LLM Compression" authors="Lin et al." url="https://arxiv.org/abs/2306.00978" year={2023} />
+</Sources>
