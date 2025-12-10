@@ -44,9 +44,9 @@ Cursor Agent adds suggestions here. Check to approve.
 
 Ideas for interactive widgets, visualizations, and hands-on learning experiences.
 
-- [ ] **game-of-life**: Embedded Conway's Game of Life simulation
+- [x] **game-of-life**: Embedded Conway's Game of Life simulation *(2025-12-10)*
   - Related topics: `emergence`
-  - Notes: Currently referenced in emergence.mdx as external link; would be more powerful as an embedded interactive where users can see gliders, oscillators, and emergent patterns form from simple rules
+  - Notes: Interactive simulation with play/pause/step, speed control, generation counter, multiple presets (random densities, classic patterns like gliders, spaceships, oscillators, glider gun), and click-to-toggle editing
 
 - [x] **tokenizer-demo**: Real-time tokenizer visualization *(2025-12-10)*
   - Related topics: `tokens`

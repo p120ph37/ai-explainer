@@ -18,7 +18,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
-import { DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
+import { GameOfLife } from '../../app/components/diagrams/index.ts'
 
 **Why do capabilities suddenly appear at certain scales?**
 
@@ -112,11 +112,12 @@ Try Conway's Game of Life (available free online). Watch patterns evolve from ra
 
 </TryThis>
 
-<DiagramPlaceholder
-  toyId="game-of-life"
+<GameOfLife
   title="Conway's Game of Life"
-  description="Watch emergent complexity arise from four simple rules"
-  icon="🔲"
+  width={40}
+  height={25}
+  cellSize={12}
+  initialPreset="glider"
 />
 
 **Emergence and unpredictability**
