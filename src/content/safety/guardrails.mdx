@@ -27,7 +27,7 @@ import { FlowDiagram } from '../../app/components/diagrams/index.ts'
 
 System prompts tell the model how to behave. But models don't always follow instructions perfectly. They can be confused, manipulated, or simply make mistakes. When the stakes are high, "usually follows instructions" isn't good enough.
 
-**Guardrails** are hard controls—code that runs before and after the model, enforcing rules the model itself can't guarantee.
+**Guardrails** are hard controls: code that runs before and after the model, enforcing rules the model itself can't guarantee.
 
 **The difference from prompts**
 
@@ -47,7 +47,7 @@ Think of prompts as asking politely. Guardrails are locked doors.
 
 <Recognition>
 
-You've seen guardrails in action when an AI refuses a request with a generic safety message, even though a clever rephrasing might have worked with the raw model. Or when certain words are automatically redacted from responses. That's not the model being careful—it's guardrails intercepting.
+You've seen guardrails in action when an AI refuses a request with a generic safety message, even though a clever rephrasing might have worked with the raw model. Or when certain words are automatically redacted from responses. That's not the model being careful. It's guardrails intercepting.
 
 </Recognition>
 
@@ -77,14 +77,14 @@ Common input guardrails:
 
 <Question title="How do you detect prompt injection?">
 
-Prompt injection is hard to detect perfectly—it's an ongoing cat-and-mouse game. Common approaches:
+Prompt injection is hard to detect perfectly. It's an ongoing cat-and-mouse game. Common approaches:
 
 - **Pattern matching**: Catch known injection phrases ("ignore previous instructions")
 - **Classifier models**: Train a separate model to detect manipulation attempts
 - **Instruction hierarchy**: Clearly separate system vs user content
 - **Canary tokens**: Hidden markers that shouldn't appear in outputs
 
-None are foolproof. Defense in depth—layering multiple techniques—is the standard approach.
+None are foolproof. Defense in depth (layering multiple techniques) is the standard approach.
 
 → [Prompt injection and security](/security)
 
@@ -148,7 +148,7 @@ Training handles the general case. Guardrails handle your specific case.
 
 Highway guardrails don't stop drivers from driving badly. They prevent bad driving from becoming catastrophic. A car that drifts hits the guardrail and bounces back, instead of going off a cliff.
 
-AI guardrails work similarly. The model might generate something problematic. The guardrail catches it before it reaches the user. Not every drift needs to be prevented—just the dangerous ones.
+AI guardrails work similarly. The model might generate something problematic. The guardrail catches it before it reaches the user. Not every drift needs to be prevented, just the dangerous ones.
 
 The road (training) teaches good behavior. The guardrails (filters) prevent disaster when behavior fails.
 
@@ -167,7 +167,7 @@ The goal is finding the right balance: catch genuine problems without blocking l
 
 <TryThis>
 
-Try to identify guardrails in AI products you use. Ask questions that might trigger safety filters. Notice how responses differ between products—some block more aggressively, some more permissively. Those differences reflect different guardrail configurations, not just different models.
+Try to identify guardrails in AI products you use. Ask questions that might trigger safety filters. Notice how responses differ between products: some block more aggressively, some more permissively. Those differences reflect different guardrail configurations, not just different models.
 
 </TryThis>
 
@@ -187,5 +187,5 @@ No single layer is sufficient. Together, they create a robust system.
 <Sources>
 <Citation type="docs" title="Guardrails AI" source="Guardrails" url="https://www.guardrailsai.com/" />
 <Citation type="article" title="AI Safety and Content Moderation" source="Anthropic" url="https://www.anthropic.com/research" />
-<Citation type="docs" title="Content Moderation" source="OpenAI" url="https://platform.openai.com/docs/guides/moderation" />
+<Citation type="docs" title="Safety Best Practices" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/claude-safety" />
 </Sources>

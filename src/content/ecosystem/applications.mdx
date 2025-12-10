@@ -58,7 +58,7 @@ Each layer shapes behavior. The combination defines the application.
 
 <Recognition>
 
-You've experienced this variety. ChatGPT feels different from Claude, which feels different from Copilot, which feels different from a customer service bot—even when powered by similar base models. The wrapping makes the difference.
+You've experienced this variety. ChatGPT feels different from Claude, which feels different from Copilot, which feels different from a customer service bot, even when powered by similar base models. The wrapping makes the difference.
 
 </Recognition>
 
@@ -88,7 +88,7 @@ System prompts can:
 - **Inject knowledge**: Company info, product details, policies
 - **Shape tone**: Enthusiastic, measured, empathetic, professional
 
-They're "soft" controls—the model usually follows them but isn't guaranteed to. For hard guarantees, you need guardrails.
+They're "soft" controls: the model usually follows them but isn't guaranteed to. For hard guarantees, you need guardrails.
 
 </Question>
 
@@ -96,7 +96,7 @@ They're "soft" controls—the model usually follows them but isn't guaranteed to
 
 System prompts suggest behavior. **Guardrails** enforce it with code, not just instructions.
 
-Input guardrails filter user messages before they reach the model—blocking prohibited content, detecting prompt injection, filtering sensitive data. Output guardrails check responses before they reach users—removing harmful content, ensuring format compliance, validating claims.
+Input guardrails filter user messages before they reach the model: blocking prohibited content, detecting prompt injection, filtering sensitive data. Output guardrails check responses before they reach users: removing harmful content, ensuring format compliance, validating claims.
 
 Guardrails provide the safety margin that soft prompts can't guarantee. They're how you turn "usually safe" into "reliably safe."
 
@@ -104,7 +104,7 @@ Guardrails provide the safety margin that soft prompts can't guarantee. They're 
 
 **Retrieval-Augmented Generation (RAG): grounding in real information**
 
-LLMs have vast knowledge from training—but that knowledge is frozen at the cutoff date, may be incomplete, and can't cover your private data. What if you need answers about *your* documents, *your* database, *your* codebase?
+LLMs have vast knowledge from training, but that knowledge is frozen at the cutoff date, may be incomplete, and can't cover your private data. What if you need answers about *your* documents, *your* database, *your* codebase?
 
 **RAG** solves this. Before generating a response, the system retrieves relevant information and includes it in the prompt. The model reasons over retrieved content, not just training memory.
 
@@ -194,19 +194,19 @@ The tool selection shapes what the application can do. An LLM without tools can 
 
 Simple applications are one-shot: user asks, model answers. **Agents** are iterative: the model plans, uses tools, observes results, and repeats until the task is complete.
 
-This is what enables AI to book flights, research topics across multiple sources, or refactor code across many files—tasks requiring multiple steps and adaptive decision-making.
+This is what enables AI to book flights, research topics across multiple sources, or refactor code across many files. These are tasks requiring multiple steps and adaptive decision-making.
 
 → [How agents work](/agents)
 
 <Metaphor title="A race car vs. a family sedan">
 
-An LLM is an engine—powerful, capable, but not a vehicle.
+An LLM is an engine: powerful, capable, but not a vehicle.
 
 Wrapping it as a customer service bot is like building a family sedan: comfortable, safe, predictable. It goes where customers need, with guardrails (literally) to keep everyone safe.
 
 Wrapping it as a research assistant is like building a race car: optimized for speed, powerful tools, fewer restrictions. It goes fast and does things sedans can't, but requires a skilled driver.
 
-Same engine, different vehicles, different experiences. The application layer—the chassis, the safety features, the controls—makes all the difference.
+Same engine, different vehicles, different experiences. The application layer (the chassis, the safety features, the controls) makes all the difference.
 
 </Metaphor>
 
@@ -227,7 +227,7 @@ Each component is a design decision. The combination defines the product.
 
 <TryThis>
 
-Compare two AI products powered by the same underlying model (or similar ones). Notice the differences: How do they introduce themselves? What topics do they refuse? What actions can they take? What's their personality? These differences aren't in the model—they're in the application layer wrapped around it.
+Compare two AI products powered by the same underlying model (or similar ones). Notice the differences: How do they introduce themselves? What topics do they refuse? What actions can they take? What's their personality? These differences aren't in the model. They're in the application layer wrapped around it.
 
 </TryThis>
 
@@ -247,5 +247,5 @@ The application layer often matters more than the base model. A well-wrapped sma
 <Citation type="paper" title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks" authors="Lewis et al." source="Meta AI" url="https://arxiv.org/abs/2005.11401" year={2020} />
 <Citation type="docs" title="Building AI Applications" source="LangChain" url="https://python.langchain.com/docs/get_started/introduction" />
 <Citation type="article" title="AI Agents" source="Anthropic" url="https://www.anthropic.com/research" />
-<Citation type="docs" title="System Prompts" source="OpenAI" url="https://platform.openai.com/docs/guides/text-generation" />
+<Citation type="docs" title="Building with LLMs" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/overview" />
 </Sources>

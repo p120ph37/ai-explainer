@@ -28,7 +28,7 @@ import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation
 
 Ask an LLM a complex question directly, and it might fail. Ask it to explain its reasoning step by step, and it often succeeds. The same model, the same knowledge, dramatically different results.
 
-This is **chain-of-thought (CoT)** prompting: getting models to show their work. It's not a trick—it reflects something fundamental about how these models reason.
+This is **chain-of-thought (CoT)** prompting: getting models to show their work. It's not a trick. It reflects something fundamental about how these models reason.
 
 **The problem with direct answers**
 
@@ -38,7 +38,7 @@ LLMs generate token by token, left to right. Each token is based on what came be
 Q: If a train travels 60 mph for 2.5 hours, how far does it go?
 A: 150 miles
 
-The model had to "know" 150 immediately—no scratch work.
+The model had to "know" 150 immediately, with no scratch work.
 ```
 
 For simple questions, this works. For complex reasoning, it's like solving calculus in your head without writing anything down. Possible sometimes; unreliable often.
@@ -65,7 +65,7 @@ Each step becomes tokens that the model can attend to when generating the next s
 
 <Recognition>
 
-You've seen this if you've added "Let's think step by step" or "Explain your reasoning" to prompts and gotten better results. You're triggering chain-of-thought reasoning—giving the model permission and space to work through the problem.
+You've seen this if you've added "Let's think step by step" or "Explain your reasoning" to prompts and gotten better results. You're triggering chain-of-thought reasoning, giving the model permission and space to work through the problem.
 
 </Recognition>
 
@@ -83,7 +83,7 @@ Several factors:
 
 <Question title="Does the model actually 'think' more?">
 
-Not in the hidden layers. The neural network computation per token remains similar. What changes is the number of tokens generated—and thus the total computation.
+Not in the hidden layers. The neural network computation per token remains similar. What changes is the number of tokens generated, and thus the total computation.
 
 A 10-word direct answer uses ~10 forward passes. A 100-word chain-of-thought uses ~100 forward passes. More tokens, more total compute, more opportunity for the model to process the problem.
 
@@ -101,7 +101,7 @@ The model might:
 - Reconsider and revise
 - Spend many more tokens thinking than answering
 
-This "test-time compute"—computation spent during inference rather than training—significantly improves performance on hard problems.
+This "test-time compute" (computation spent during inference rather than training) significantly improves performance on hard problems.
 
 ```
 Standard model: Think briefly → Answer
@@ -141,7 +141,7 @@ Several approaches encourage reasoning:
 
 <Metaphor title="Showing your work">
 
-Remember being told to "show your work" in math class? Not just for partial credit—working through steps catches errors and structures thinking.
+Remember being told to "show your work" in math class? Not just for partial credit. Working through steps catches errors and structures thinking.
 
 An LLM forced to give immediate answers is like a student writing only final answers. Sometimes right, often wrong, hard to debug. An LLM showing its work is like a student writing out each step. Easier to verify, easier to catch mistakes, easier to learn from.
 
@@ -159,7 +159,7 @@ Chain-of-thought isn't magic:
 - **Error propagation**: Mistakes in early steps compound
 - **Problem fit**: Works best for problems with clear step structure; less helpful for intuitive leaps
 
-Reasoning improves reliability, not raw capability. A model that can't solve a problem won't solve it by thinking longer—but a model that sometimes can will succeed more often.
+Reasoning improves reliability, not raw capability. A model that can't solve a problem won't solve it by thinking longer, but a model that sometimes can will succeed more often.
 
 <TryThis>
 
@@ -181,5 +181,5 @@ The insight that inference-time computation matters is reshaping how we think ab
 <Sources>
 <Citation type="paper" title="Chain-of-Thought Prompting Elicits Reasoning in Large Language Models" authors="Wei et al." source="Google" url="https://arxiv.org/abs/2201.11903" year={2022} />
 <Citation type="paper" title="Self-Consistency Improves Chain of Thought Reasoning in Language Models" authors="Wang et al." source="Google" url="https://arxiv.org/abs/2203.11171" year={2022} />
-<Citation type="docs" title="Reasoning Models" source="OpenAI" url="https://platform.openai.com/docs/guides/reasoning" />
+<Citation type="article" title="Extended Thinking" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking" />
 </Sources>

@@ -1,7 +1,7 @@
 ---
 id: local
 title: "Can you run AI locally?"
-summary: Local models run on your hardware—private, offline, free per query. But they're fundamentally less capable than cloud frontier models, and optimizations can't close that gap.
+summary: Local models run on your hardware, offering privacy and no per-query cost. But they're fundamentally less capable than cloud frontier models, and optimizations can't close that gap.
 category: Ecosystem
 order: 5
 prerequisites:
@@ -29,7 +29,7 @@ import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation
 
 **Why can't I just run GPT-4 on my laptop?**
 
-You can run AI locally. Excellent open models work on consumer hardware. But here's the uncomfortable truth: **local models are not frontier models made portable. They're fundamentally smaller, less capable models—and that gap cannot be closed by optimization alone.**
+You can run AI locally. Excellent open models work on consumer hardware. But here's the uncomfortable truth: **local models are not frontier models made portable. They're fundamentally smaller, less capable models, and that gap cannot be closed by optimization alone.**
 
 Understanding why requires understanding what makes frontier models expensive to run.
 
@@ -44,11 +44,11 @@ Frontier models are enormous:
 | Llama 3 70B | 70B | ~140GB | 2-4 high-end GPUs |
 | Local-friendly | 7-13B | 14-26GB | Single consumer GPU |
 
-A model with 1 trillion parameters literally cannot fit in a laptop's memory. This isn't a software limitation—it's physics.
+A model with 1 trillion parameters literally cannot fit in a laptop's memory. This isn't a software limitation. It's physics.
 
 <Recognition>
 
-You've noticed this if you've compared ChatGPT or Claude to local models. The difference isn't latency or polish—it's capability. Complex reasoning, broad knowledge, nuanced understanding: frontier models simply do things local models can't.
+You've noticed this if you've compared ChatGPT or Claude to local models. The difference isn't latency or polish. It's capability. Complex reasoning, broad knowledge, nuanced understanding: frontier models simply do things local models can't.
 
 </Recognition>
 
@@ -65,7 +65,7 @@ OpenAI, Anthropic, and Google aren't running naive, unoptimized code. They use:
 - Sophisticated batching and caching
 - Every trick in the book
 
-If there were a way to run their models cheaply, they'd use it—their costs would drop. The fact that they need massive infrastructure tells you: **there's no hidden efficiency to unlock.**
+If there were a way to run their models cheaply, they'd already be using it. Their costs would drop. The fact that they need massive infrastructure tells you: **there's no hidden efficiency to unlock.**
 
 **2. Optimizations have costs**
 
@@ -113,9 +113,9 @@ A 7B model is not a 70B model that runs slower. It's a different, less capable m
 
 Despite limitations, local models excel in specific scenarios:
 
-**Privacy-sensitive tasks**: Medical notes, legal documents, personal data—never leaves your device.
+**Privacy-sensitive tasks**: Medical notes, legal documents, personal data. Nothing ever leaves your device.
 
-**High-volume simple tasks**: Summarization, classification, extraction—where you'd pay too much for API calls.
+**High-volume simple tasks**: Summarization, classification, extraction. Tasks where you'd pay too much for API calls.
 
 **Offline environments**: No internet? No problem.
 
@@ -202,7 +202,7 @@ When to use API/cloud:
 - Occasional, high-value queries
 - Latest models
 
-Many workflows use both: local for routine work, API calls for the hard parts. The choice isn't ideological—it's practical.
+Many workflows use both: local for routine work, API calls for the hard parts. The choice isn't ideological. It's practical.
 
 **The future**
 

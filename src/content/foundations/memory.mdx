@@ -1,7 +1,7 @@
 ---
 id: memory
 title: "How do LLMs remember conversations?"
-summary: LLMs are stateless—each request starts fresh. What feels like memory is the conversation history being re-sent every time. Real memory requires external systems.
+summary: LLMs are stateless. Each request starts fresh. What feels like memory is the conversation history being re-sent every time. Real memory requires external systems.
 category: Foundations
 order: 24
 prerequisites:
@@ -51,7 +51,7 @@ Assistant: Nice to meet you, Alex!
 User: What's my name?
 ```
 
-The model sees the full conversation and "remembers" by reading its own previous responses. This isn't memory—it's reading a transcript.
+The model sees the full conversation and "remembers" by reading its own previous responses. This isn't memory. It's reading a transcript.
 
 <Recognition>
 
@@ -78,7 +78,7 @@ Context windows have limits (4K, 32K, 128K+ tokens). When conversation history e
 - **Summarization**: Old content is summarized to save tokens
 - **Sliding window**: Keep recent context, drop old context
 
-Each approach loses information. The model literally forgets—those tokens are gone.
+Each approach loses information. The model literally forgets. Those tokens are gone.
 
 Long conversations eventually hit this wall. The AI contradicts itself, forgets your name, or asks questions you already answered. It's not careless; it can no longer see that information.
 
@@ -127,7 +127,7 @@ The model itself never remembers. The application manages what to tell it.
 
 <Metaphor title="Reading a script">
 
-The LLM is like an actor who reads a script fresh each scene. They don't remember filming yesterday—they read the script notes describing what happened.
+The LLM is like an actor who reads a script fresh each scene. They don't remember filming yesterday. They read the script notes describing what happened.
 
 If the script notes are incomplete, they might contradict previous scenes. If the notes are detailed, they perform consistently. The "memory" is entirely in the script, not in the actor's head.
 
@@ -155,7 +155,7 @@ Neither is truly "in" the model. Working memory is the prompt. Long-term memory 
 
 <TryThis>
 
-Start a new conversation with an AI. Tell it a specific, unusual fact: "My favorite number is 7,432." Have a long conversation about other topics. Eventually ask "What's my favorite number?" See if it remembers. Try again in a new conversation—it won't know. That's the difference between context (temporary) and memory (persistent).
+Start a new conversation with an AI. Tell it a specific, unusual fact: "My favorite number is 7,432." Have a long conversation about other topics. Eventually ask "What's my favorite number?" See if it remembers. Try again in a new conversation. It won't know. That's the difference between context (temporary) and memory (persistent).
 
 </TryThis>
 
@@ -173,5 +173,5 @@ Understanding this helps you work with AI more effectively. Want it to "remember
 
 <Sources>
 <Citation type="article" title="Memory and Context" source="LangChain" url="https://python.langchain.com/docs/modules/memory/" />
-<Citation type="docs" title="Conversation Management" source="OpenAI" url="https://platform.openai.com/docs/guides/conversation" />
+<Citation type="docs" title="Multi-turn Conversations" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching" />
 </Sources>

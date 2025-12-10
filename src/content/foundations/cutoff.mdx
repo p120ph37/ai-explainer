@@ -1,7 +1,7 @@
 ---
 id: cutoff
 title: "What is a knowledge cutoff?"
-summary: LLMs have a knowledge cutoff date—the point when their training data ends. They don't know about events, discoveries, or changes that happened after this date.
+summary: LLMs have a knowledge cutoff date, the point when their training data ends. They don't know about events, discoveries, or changes that happened after this date.
 category: Foundations
 order: 22
 prerequisites:
@@ -26,7 +26,7 @@ import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation
 
 Ask an LLM about something that happened last month. It might confidently give you outdated information, or admit it doesn't know. The reason: **knowledge cutoff**.
 
-Every LLM has a cutoff date—the point when its training data ends. The model knows nothing about the world after that date. Not because it forgot, but because it never learned.
+Every LLM has a cutoff date: the point when its training data ends. The model knows nothing about the world after that date. Not because it forgot, but because it never learned.
 
 **Why cutoffs exist**
 
@@ -60,7 +60,7 @@ The model doesn't know these things are unknown. It might hallucinate plausible-
 
 <Question title="Why not just update the model continuously?">
 
-Training is expensive. Updating a large model's knowledge requires retraining or fine-tuning on new data—a significant investment of compute, time, and money.
+Training is expensive. Updating a large model's knowledge requires retraining or fine-tuning on new data, a significant investment of compute, time, and money.
 
 Alternatives exist:
 - **Retrieval augmentation (RAG)**: Give the model access to current information at query time
@@ -106,7 +106,7 @@ Ask about an obscure pre-cutoff event it wasn't trained on, and it might halluci
 
 An LLM is like someone emerging from a time capsule. They know everything up to when they entered but nothing after. 
 
-Ask about events before their entry date, and they might know. Ask about after, and they're guessing—or correctly admitting ignorance. The problem is they can't always tell which questions fall into which category.
+Ask about events before their entry date, and they might know. Ask about after, and they're guessing (or correctly admitting ignorance). The problem is they can't always tell which questions fall into which category.
 
 Their confidence about pre-entry events and post-entry events looks the same. Only the calendar knows the difference.
 
@@ -114,7 +114,7 @@ Their confidence about pre-entry events and post-entry events looks the same. On
 
 <TryThis>
 
-Find out an LLM's knowledge cutoff by asking directly: "What is your knowledge cutoff date?" Then test it. Ask about a specific event that happened just after that date—something you know the answer to. See whether the model acknowledges uncertainty, declines to answer, or hallucinates an incorrect response.
+Find out an LLM's knowledge cutoff by asking directly: "What is your knowledge cutoff date?" Then test it. Ask about a specific event that happened just after that date, something you know the answer to. See whether the model acknowledges uncertainty, declines to answer, or hallucinates an incorrect response.
 
 </TryThis>
 
@@ -125,12 +125,12 @@ Practical strategies:
 - **Know the cutoff**: Check documentation for the model's training date
 - **State timeframes**: "As of 2024, what was..." helps the model understand context
 - **Use retrieval**: For current information, use RAG-enabled systems or web search
-- **Verify recency-sensitive facts**: Prices, statistics, current roles—anything that changes
+- **Verify recency-sensitive facts**: Prices, statistics, current roles, anything that changes
 - **Prefer timeless knowledge**: Concepts, principles, and historical facts are safer
 
-The cutoff isn't a flaw—it's a fundamental constraint of pre-trained models. Knowing about it helps you use the model appropriately.
+The cutoff isn't a flaw. It's a fundamental constraint of pre-trained models. Knowing about it helps you use the model appropriately.
 
 <Sources>
-<Citation type="docs" title="Model Card" source="OpenAI" url="https://platform.openai.com/docs/models" />
-<Citation type="article" title="Understanding AI Knowledge Cutoffs" source="Anthropic" url="https://www.anthropic.com" />
+<Citation type="docs" title="Claude Model Documentation" source="Anthropic" url="https://docs.anthropic.com/en/docs/about-claude/models" />
+<Citation type="article" title="What is a Knowledge Cutoff?" source="Hugging Face" url="https://huggingface.co/blog" />
 </Sources>
