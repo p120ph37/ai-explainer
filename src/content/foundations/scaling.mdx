@@ -1,0 +1,177 @@
+---
+id: scaling
+title: "Why do bigger models work better?"
+summary: Scaling laws show predictable relationships between model size, data, and compute. More of each consistently improves capability—which is why frontier models are so large.
+category: Foundations
+order: 27
+prerequisites:
+  - intro
+  - parameters
+  - training
+children: []
+related:
+  - why-large
+  - parameters
+  - training
+  - local
+keywords:
+  - scaling laws
+  - compute
+  - Chinchilla
+  - GPT-4
+  - emergent capabilities
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**Why is bigger always better in AI?**
+
+In 2020, researchers discovered something remarkable: neural network performance improves predictably with scale. Double the parameters, double the data, double the compute—each improvement is quantifiable and consistent.
+
+This isn't obvious. Many complex systems don't scale smoothly. But LLMs follow **scaling laws**: mathematical relationships that predict performance from resources invested.
+
+**The three axes of scaling**
+
+Performance depends on three factors:
+
+**Parameters (N)**: The size of the model—how many weights it has. More parameters = more patterns = more capability.
+
+**Data (D)**: How many tokens the model trains on. More data = more patterns to learn from = better generalization.
+
+**Compute (C)**: Total training computation. C ≈ N × D × constant. Budget determines the frontier.
+
+The key insight: all three matter, and there are optimal trade-offs between them.
+
+<Recognition>
+
+You've experienced this scaling difference. GPT-3 felt limited; GPT-4 felt qualitatively different. Claude 2 vs Claude 3. Each generation has more parameters, more training data, more compute—and clearly better capabilities. Scaling laws predicted this would work.
+
+</Recognition>
+
+**Power law relationships**
+
+Performance improves as a power law with each resource:
+
+```
+Loss ∝ N^(-0.076) × D^(-0.095) × C^(-0.050)
+```
+
+Each doubling of parameters reduces loss by a consistent fraction. Each doubling of data reduces loss by a consistent fraction. These improvements compound.
+
+This means:
+- 10× bigger model ≈ predictable improvement
+- 10× more data ≈ predictable improvement  
+- 10× more compute ≈ predictable improvement
+
+No diminishing returns yet at current scales. We haven't hit a ceiling.
+
+<Question title="What does 'loss' mean here?">
+
+Loss is how wrong the model's predictions are during training. Lower loss = better next-token prediction = better capabilities.
+
+Scaling laws describe loss, but loss correlates with downstream performance. Models with lower loss are better at tasks, more coherent, more capable.
+
+The relationship isn't linear—you need substantial loss improvements for noticeable capability gains—but it's consistent enough to drive massive investments in scale.
+
+</Question>
+
+**The Chinchilla insight**
+
+Early scaling focused on parameters: make the model bigger. GPT-3 had 175B parameters but trained on "only" 300B tokens.
+
+Chinchilla (2022) showed the optimal ratio: parameters and data should scale together. A 70B model trained on 1.4T tokens outperformed a 280B model trained on fewer tokens.
+
+**Compute-optimal training**: For a fixed compute budget, there's an optimal balance between model size and training data. Neither should dominate.
+
+This reshaped the field:
+- Llama models are smaller but trained on more data
+- Modern training runs emphasize data scaling alongside parameter scaling
+- Data quality became as important as data quantity
+
+<Expandable title="Beyond loss: emergent capabilities">
+
+Scaling produces smooth loss improvement—but capability gains can be sudden.
+
+Small models can't do multi-step math. At some scale, they suddenly can. This "emergence" appears abrupt, though it may reflect our measurement granularity rather than true discontinuity.
+
+Examples of capabilities that emerge with scale:
+- Multi-step reasoning
+- Few-shot learning
+- Code generation
+- Instruction following
+
+Scaling doesn't just make models better at existing capabilities; it unlocks new ones.
+
+</Expandable>
+
+**Why this matters for AI development**
+
+Scaling laws turned AI research into engineering:
+
+**Predictability**: You can estimate performance before training. Worth spending $100M on a training run? The math tells you roughly what you'll get.
+
+**Investment justification**: Scaling laws justify massive infrastructure investments. If 10× compute yields predictable improvement, build bigger clusters.
+
+**Race dynamics**: Whoever has more compute gets better models. This drives the concentration of frontier AI in well-funded labs.
+
+**Diminishing returns (eventual)**: Scaling laws predict improvement, not magic. Each capability increment costs more. Progress continues but gets more expensive.
+
+<Metaphor title="The telescope analogy">
+
+Scaling is like building bigger telescopes. A 10m telescope sees fainter objects than a 1m telescope—predictably, mathematically.
+
+There's no magic scale where telescopes suddenly see everything. But each increase reveals more. The relationship is smooth and quantifiable.
+
+AI scaling is similar. Bigger models "see" more patterns. The improvement is predictable. We don't know when we'll hit fundamental limits, but so far, the math keeps working.
+
+</Metaphor>
+
+**The compute scaling reality**
+
+Frontier models require enormous resources:
+
+**GPT-4**: Estimated ~$100M+ training cost, months on massive clusters
+**Claude 3**: Similar scale
+**Llama 3 (405B)**: Trained on 16K GPUs for months
+
+This compute is:
+- Expensive to acquire
+- Limited in supply (GPU shortages)
+- Concentrated in few organizations
+- Environmentally significant
+
+Scaling works, but the cost scales too. Not everyone can play at the frontier.
+
+<TryThis>
+
+Compare a small model (GPT-3.5 or a local 7B model) with a frontier model (GPT-4, Claude 3 Opus) on a complex task. Try multi-step reasoning, nuanced writing, or tricky code. Notice the capability difference. That's scaling laws in action—the bigger model had more parameters, more data, more compute, and it shows.
+
+</TryThis>
+
+**What scaling laws don't tell us**
+
+Scaling predicts loss improvement but not:
+
+- When specific capabilities emerge
+- What capabilities are possible at any scale
+- When returns truly diminish
+- Whether we're approaching AGI
+
+The laws are empirical observations, not theory. They've held so far. Whether they continue indefinitely is unknown.
+
+**The future of scaling**
+
+Current debate centers on:
+
+- **Data walls**: We may run out of quality training data before hitting compute limits
+- **Inference scaling**: Spending more compute at inference time (reasoning models) as alternative to training scaling
+- **Efficiency improvements**: Architectural innovations that get more from less
+- **Synthetic data**: Can models train on model-generated data to break data limits?
+
+Scaling got us here. The question is whether it continues, and if so, how.
+
+<Sources>
+<Citation type="paper" title="Scaling Laws for Neural Language Models" authors="Kaplan et al." source="OpenAI" url="https://arxiv.org/abs/2001.08361" year={2020} />
+<Citation type="paper" title="Training Compute-Optimal Large Language Models (Chinchilla)" authors="Hoffmann et al." source="DeepMind" url="https://arxiv.org/abs/2203.15556" year={2022} />
+<Citation type="paper" title="Emergent Abilities of Large Language Models" authors="Wei et al." source="Google" url="https://arxiv.org/abs/2206.07682" year={2022} />
+</Sources>

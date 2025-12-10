@@ -51,18 +51,25 @@ const contentImports: Record<string, () => Promise<ContentModule>> = {
   'tools': () => import('./foundations/tools.mdx') as Promise<ContentModule>,
   'vector-databases': () => import('./foundations/vector-databases.mdx') as Promise<ContentModule>,
   'hardware': () => import('./foundations/hardware.mdx') as Promise<ContentModule>,
-  'knowledge-cutoff': () => import('./foundations/knowledge-cutoff.mdx') as Promise<ContentModule>,
+  'cutoff': () => import('./foundations/cutoff.mdx') as Promise<ContentModule>,
   'rag': () => import('./foundations/rag.mdx') as Promise<ContentModule>,
+  'memory': () => import('./foundations/memory.mdx') as Promise<ContentModule>,
+  'multimodal': () => import('./foundations/multimodal.mdx') as Promise<ContentModule>,
+  'reasoning': () => import('./foundations/reasoning.mdx') as Promise<ContentModule>,
+  'scaling': () => import('./foundations/scaling.mdx') as Promise<ContentModule>,
+  'optimization': () => import('./foundations/optimization.mdx') as Promise<ContentModule>,
   
   // Ecosystem content
   'models': () => import('./ecosystem/models.mdx') as Promise<ContentModule>,
   'players': () => import('./ecosystem/players.mdx') as Promise<ContentModule>,
   'open': () => import('./ecosystem/open.mdx') as Promise<ContentModule>,
   'applications': () => import('./ecosystem/applications.mdx') as Promise<ContentModule>,
+  'local': () => import('./ecosystem/local.mdx') as Promise<ContentModule>,
   
   // Safety content
   'bias': () => import('./safety/bias.mdx') as Promise<ContentModule>,
   'alignment': () => import('./safety/alignment.mdx') as Promise<ContentModule>,
+  'security': () => import('./safety/security.mdx') as Promise<ContentModule>,
   
   // TSX content example (for interactive visualizations):
   // 'tokenizer-demo': () => import('./interactive/tokenizer-demo.tsx'),
