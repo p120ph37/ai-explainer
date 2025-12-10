@@ -51,11 +51,14 @@ const contentImports: Record<string, () => Promise<ContentModule>> = {
   'tools': () => import('./foundations/tools.mdx') as Promise<ContentModule>,
   'vector-databases': () => import('./foundations/vector-databases.mdx') as Promise<ContentModule>,
   'hardware': () => import('./foundations/hardware.mdx') as Promise<ContentModule>,
+  'knowledge-cutoff': () => import('./foundations/knowledge-cutoff.mdx') as Promise<ContentModule>,
+  'rag': () => import('./foundations/rag.mdx') as Promise<ContentModule>,
   
   // Ecosystem content
   'models': () => import('./ecosystem/models.mdx') as Promise<ContentModule>,
   'players': () => import('./ecosystem/players.mdx') as Promise<ContentModule>,
   'open': () => import('./ecosystem/open.mdx') as Promise<ContentModule>,
+  'applications': () => import('./ecosystem/applications.mdx') as Promise<ContentModule>,
   
   // Safety content
   'bias': () => import('./safety/bias.mdx') as Promise<ContentModule>,

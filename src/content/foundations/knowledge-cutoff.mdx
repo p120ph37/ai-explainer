@@ -1,0 +1,135 @@
+---
+id: knowledge-cutoff
+title: "What is a knowledge cutoff?"
+summary: LLMs have a knowledge cutoff date—the point when their training data ends. They don't know about events, discoveries, or changes that happened after this date.
+category: Foundations
+order: 22
+prerequisites:
+  - intro
+  - training
+children: []
+related:
+  - hallucinations
+  - rag
+  - tools
+keywords:
+  - knowledge cutoff
+  - training data
+  - outdated information
+  - temporal limitations
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
+
+**Why doesn't the AI know about recent events?**
+
+Ask an LLM about something that happened last month. It might confidently give you outdated information, or admit it doesn't know. The reason: **knowledge cutoff**.
+
+Every LLM has a cutoff date—the point when its training data ends. The model knows nothing about the world after that date. Not because it forgot, but because it never learned.
+
+**Why cutoffs exist**
+
+Training an LLM takes time. Data must be collected, cleaned, and processed. The model trains for weeks or months. By the time it launches, the training data is already outdated.
+
+Consider the timeline:
+1. Training data collected (ends at cutoff date)
+2. Data processed and cleaned (weeks)
+3. Model trained (weeks to months)
+4. Safety testing and deployment (weeks)
+
+A model launching today might have a cutoff from months ago. The gap is inevitable.
+
+<Recognition>
+
+You've encountered this. Asked an LLM about recent news, a new product launch, or current events, and received a disclaimer: "My knowledge was last updated in [date]." That's the cutoff in action.
+
+</Recognition>
+
+**What gets cut off**
+
+Everything after the date:
+
+- **Current events**: News, elections, disasters
+- **New discoveries**: Research, scientific findings
+- **Updated information**: Prices, statistics, records
+- **Changed facts**: People who've died, companies that merged, laws that passed
+- **New creations**: Recent books, movies, products, websites
+
+The model doesn't know these things are unknown. It might hallucinate plausible-sounding updates that aren't true.
+
+<Question title="Why not just update the model continuously?">
+
+Training is expensive. Updating a large model's knowledge requires retraining or fine-tuning on new data—a significant investment of compute, time, and money.
+
+Alternatives exist:
+- **Retrieval augmentation (RAG)**: Give the model access to current information at query time
+- **Tool use**: Let the model search the web for current data
+- **Periodic updates**: Train new versions with updated cutoffs
+
+These approaches complement rather than replace the base model. The core knowledge remains frozen at the cutoff; retrieval and tools bridge the gap.
+
+</Question>
+
+**How models handle the cutoff**
+
+Well-trained models acknowledge their limitations:
+
+> "My training data goes up to April 2024, so I don't have information about events after that date."
+
+But models can also fail silently. Asked about something after the cutoff, they might:
+- Generate plausible but incorrect information
+- Mix old facts with invented updates
+- Confidently describe events that never happened
+
+The confidence doesn't match the accuracy. This is why cutoff awareness matters.
+
+<Expandable title="The recency illusion">
+
+Models sometimes appear to know recent things they shouldn't. This can happen because:
+
+- **Pattern matching**: The model infers what likely happened based on patterns (e.g., "there was probably a Super Bowl in 2025")
+- **Hallucination**: The model invents details that sound plausible
+- **Training leakage**: Sometimes newer data sneaks into training sets, or fine-tuning updates include recent content
+
+Don't trust apparent recent knowledge without verification. If it's after the cutoff, treat it as potentially fabricated.
+
+</Expandable>
+
+**The asymmetry problem**
+
+Cutoffs create an asymmetry: the model knows with certainty that it doesn't know post-cutoff events, but can't distinguish this from things it never learned.
+
+Ask about an obscure pre-cutoff event it wasn't trained on, and it might hallucinate details. Ask about a major post-cutoff event, and it might correctly decline to answer. The absence of knowledge feels the same from inside the model.
+
+<Metaphor title="A time capsule">
+
+An LLM is like someone emerging from a time capsule. They know everything up to when they entered but nothing after. 
+
+Ask about events before their entry date, and they might know. Ask about after, and they're guessing—or correctly admitting ignorance. The problem is they can't always tell which questions fall into which category.
+
+Their confidence about pre-entry events and post-entry events looks the same. Only the calendar knows the difference.
+
+</Metaphor>
+
+<TryThis>
+
+Find out an LLM's knowledge cutoff by asking directly: "What is your knowledge cutoff date?" Then test it. Ask about a specific event that happened just after that date—something you know the answer to. See whether the model acknowledges uncertainty, declines to answer, or hallucinates an incorrect response.
+
+</TryThis>
+
+**Working with cutoffs**
+
+Practical strategies:
+
+- **Know the cutoff**: Check documentation for the model's training date
+- **State timeframes**: "As of 2024, what was..." helps the model understand context
+- **Use retrieval**: For current information, use RAG-enabled systems or web search
+- **Verify recency-sensitive facts**: Prices, statistics, current roles—anything that changes
+- **Prefer timeless knowledge**: Concepts, principles, and historical facts are safer
+
+The cutoff isn't a flaw—it's a fundamental constraint of pre-trained models. Knowing about it helps you use the model appropriately.
+
+<Sources>
+<Citation type="docs" title="Model Card" source="OpenAI" url="https://platform.openai.com/docs/models" />
+<Citation type="article" title="Understanding AI Knowledge Cutoffs" source="Anthropic" url="https://www.anthropic.com" />
+</Sources>
