@@ -48,17 +48,17 @@ Ideas for interactive widgets, visualizations, and hands-on learning experiences
   - Related topics: `emergence`
   - Notes: Currently referenced in emergence.mdx as external link; would be more powerful as an embedded interactive where users can see gliders, oscillators, and emergent patterns form from simple rules
 
-- [ ] **tokenizer-demo**: Real-time tokenizer visualization
+- [x] **tokenizer-demo**: Real-time tokenizer visualization *(2025-12-10)*
   - Related topics: `tokens`
-  - Notes: Already stubbed in `_registry.ts` as a TSX example; show how text gets split into tokens live as user types
+  - Notes: Interactive demo using gpt-tokenizer library; shows live tokenization as user types
 
 - [ ] **attention-viz**: Attention pattern visualizer
   - Related topics: `attention`, `transformer`
   - Notes: Currently links to BertViz; could build a simplified in-app version showing which words attend to which, how "it" finds its referent, etc.
 
-- [ ] **perceptron-toy**: Interactive single-neuron perceptron
+- [x] **perceptron-toy**: Interactive single-neuron perceptron *(2025-12-10)*
   - Related topics: `neural-network`, `parameters`
-  - Notes: Visualize a single perceptron with adjustable weights and bias; show how inputs get weighted, summed, and passed through an activation function; let users see classification boundaries shift as they tweak parameters
+  - Notes: Interactive visualization with adjustable weights, bias, and activation function; shows classification boundary and accuracy on sample points
 
 - [ ] **prompt-sandbox**: Embedded LLM prompt interface
   - Related topics: `prompt-engineering`, `emergence`, `parameters`, `why-large`

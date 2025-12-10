@@ -31,7 +31,9 @@ import {
   TokenBoundaries,
   LayerStack,
   FlowDiagram,
-  DiagramPlaceholder 
+  DiagramPlaceholder,
+  TokenizerDemo,
+  PerceptronToy,
 } from '../app/components/diagrams/index.ts';
 
 // Custom components for MDX - these replace imports during SSR
@@ -55,6 +57,8 @@ const mdxComponents = {
   LayerStack,
   FlowDiagram,
   DiagramPlaceholder,
+  TokenizerDemo,
+  PerceptronToy,
 };
 
 // Cache compiled modules

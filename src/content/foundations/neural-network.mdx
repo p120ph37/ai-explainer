@@ -21,7 +21,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
-import { LayerStack, DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
+import { LayerStack, PerceptronToy } from '../../app/components/diagrams/index.ts'
 
 **What's actually inside an AI model?**
 
@@ -41,12 +41,7 @@ weights: [w₁, w₂, w₃]
 output:  w₁·x₁ + w₂·x₂ + w₃·x₃ + bias
 ```
 
-<DiagramPlaceholder
-  toyId="perceptron-toy"
-  title="Interactive Perceptron"
-  description="Adjust weights and bias to see how a single neuron classifies inputs"
-  icon="🔘"
-/>
+<PerceptronToy title="Interactive Perceptron" />
 
 The magic is in the weights. By adjusting them, the perceptron can learn to make different decisions. High weight on an input means "pay attention to this." Low or negative weight means "ignore or invert this."
 

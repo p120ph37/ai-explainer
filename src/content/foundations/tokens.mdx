@@ -18,7 +18,7 @@ keywords:
 ---
 
 import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../../app/components/content/index.ts'
-import { TokenBoundaries, DiagramPlaceholder } from '../../app/components/diagrams/index.ts'
+import { TokenBoundaries, TokenizerDemo } from '../../app/components/diagrams/index.ts'
 
 **When you type "Hello, how are you?" what does the model actually see?**
 
@@ -74,11 +74,10 @@ Visit [tiktokenizer.vercel.app](https://tiktokenizer.vercel.app) and experiment.
 
 </TryThis>
 
-<DiagramPlaceholder
-  toyId="tokenizer-demo"
-  title="Interactive Tokenizer"
-  description="Type text and see it split into tokens in real-time"
-  icon="✂️"
+<TokenizerDemo
+  defaultText="Hello, how are you? Try typing something!"
+  title="Interactive Tokenizer (GPT-4o encoding)"
+  showIds={true}
 />
 
 **What does this mean for how the model thinks?**
