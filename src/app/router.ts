@@ -43,13 +43,26 @@ export function registerNodeId(nodeId: string): void {
 
 /**
  * Check if a path is an internal route
+ * Handles both base pages (/tokens) and variants (/tokens/metaphor-voice)
  */
 export function isInternalPath(path: string): boolean {
-  // Remove leading slash and get first segment
-  const nodeId = path.replace(/^\//, '').split('/')[0];
+  // Remove leading slash
+  const cleanPath = path.replace(/^\//, '');
+  const parts = cleanPath.split('/').filter(Boolean);
   
-  // Check if it's a known node or special page
-  return knownNodeIds.has(nodeId) || nodeId === 'index' || nodeId === '';
+  if (parts.length === 0) return true; // Root
+  
+  // Check for exact match (base page or variant)
+  const fullPath = parts.slice(0, 2).join('/');
+  if (knownNodeIds.has(fullPath)) return true;
+  
+  // Check first segment as base page
+  if (knownNodeIds.has(parts[0])) return true;
+  
+  // Special pages
+  if (parts[0] === 'index' || parts[0] === '') return true;
+  
+  return false;
 }
 
 /**
@@ -65,6 +78,8 @@ export function isInPageAnchor(hash: string): boolean {
 
 /**
  * Parse URL pathname into a route state
+ * 
+ * Handles both base pages (/tokens) and variants (/tokens/metaphor-voice)
  */
 function parsePathname(pathname: string): RouteState {
   // Remove leading/trailing slashes and split
@@ -74,7 +89,9 @@ function parsePathname(pathname: string): RouteState {
     return { nodeId: 'intro', path: ['intro'] };
   }
   
-  const nodeId = parts[parts.length - 1] || 'intro';
+  // For variants, nodeId is the full path (e.g., "tokens/metaphor-voice")
+  // For base pages, nodeId is just the page (e.g., "tokens")
+  const nodeId = parts.length >= 2 ? parts.slice(0, 2).join('/') : parts[0];
   
   return {
     nodeId,
@@ -124,7 +141,8 @@ export async function navigateTo(
     path: newPath,
   };
   
-  // Update URL
+  // Update URL - use the full nodeId (handles both base pages and variants)
+  // e.g., /tokens or /tokens/metaphor-voice
   const url = `/${nodeId}`;
   
   if (options.replace) {
@@ -193,10 +211,12 @@ function handleLinkClick(event: MouseEvent): void {
   
   // Check if it's an internal path-based link
   if (href.startsWith('/') && !href.startsWith('//') && !href.includes('.')) {
-    const nodeId = href.slice(1).split('/')[0] || 'intro';
+    // Extract nodeId - could be base page or variant
+    const parts = href.slice(1).split('/').filter(Boolean);
+    const nodeId = parts.length >= 2 ? parts.slice(0, 2).join('/') : (parts[0] || 'intro');
     
     // Check if it's a known internal route
-    if (isInternalPath(href) || knownNodeIds.has(nodeId)) {
+    if (isInternalPath(href) || knownNodeIds.has(nodeId) || knownNodeIds.has(parts[0])) {
       event.preventDefault();
       navigateTo(nodeId, { addToPath: true });
       return;
@@ -206,9 +226,10 @@ function handleLinkClick(event: MouseEvent): void {
   // Check for relative links (./path)
   if (href.startsWith('./')) {
     const normalizedPath = '/' + href.slice(2);
-    const nodeId = normalizedPath.slice(1).split('/')[0] || 'intro';
+    const parts = normalizedPath.slice(1).split('/').filter(Boolean);
+    const nodeId = parts.length >= 2 ? parts.slice(0, 2).join('/') : (parts[0] || 'intro');
     
-    if (isInternalPath(normalizedPath) || knownNodeIds.has(nodeId)) {
+    if (isInternalPath(normalizedPath) || knownNodeIds.has(nodeId) || knownNodeIds.has(parts[0])) {
       event.preventDefault();
       navigateTo(nodeId, { addToPath: true });
       return;
@@ -219,8 +240,9 @@ function handleLinkClick(event: MouseEvent): void {
   try {
     const url = new URL(href, window.location.origin);
     if (url.origin === window.location.origin && !url.pathname.includes('.')) {
-      const nodeId = url.pathname.slice(1).split('/')[0] || 'intro';
-      if (isInternalPath(url.pathname) || knownNodeIds.has(nodeId)) {
+      const parts = url.pathname.slice(1).split('/').filter(Boolean);
+      const nodeId = parts.length >= 2 ? parts.slice(0, 2).join('/') : (parts[0] || 'intro');
+      if (isInternalPath(url.pathname) || knownNodeIds.has(nodeId) || knownNodeIds.has(parts[0])) {
         event.preventDefault();
         navigateTo(nodeId, { addToPath: true });
         return;

@@ -251,7 +251,10 @@ export async function getNotesForPage(
   
   return notes.filter(n => {
     if (n.pageId !== pageId) return false;
-    if (variantId !== undefined && n.variantId !== variantId) return false;
+    // Only filter by variant if explicitly requested (not undefined)
+    // Note: url.searchParams.get() returns null when param is missing,
+    // so we need to check for both undefined and null
+    if (variantId !== undefined && variantId !== null && n.variantId !== variantId) return false;
     return true;
   });
 }

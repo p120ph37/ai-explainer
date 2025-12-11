@@ -4,12 +4,20 @@
  * Dynamically loads and renders content nodes based on the current route.
  * Also handles special routes like the index page.
  * Includes prerequisites display and scroll completion tracking.
+ * 
+ * Supports both base pages (/tokens) and variants (/tokens/metaphor-voice).
  */
 
 import { useSignal, useComputed } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { currentRoute, navigateTo } from '../router.ts';
-import { contentRegistry, getNode, getNodeMeta } from '../../content/_registry.ts';
+import { 
+  getNodeOrVariant, 
+  getNodeOrVariantMeta, 
+  isVariantId,
+  parseVariantId,
+  type VariantMeta,
+} from '../../content/_registry.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { NavLinks } from './NavLinks.tsx';
 import { IndexPage } from './IndexPage.tsx';
@@ -17,6 +25,7 @@ import { PrerequisitesBlock } from './PrerequisitesBlock.tsx';
 import { useExplorationTracking } from '../hooks/useExplorationTracking.ts';
 import { MDXProvider } from './MDXProvider.tsx';
 import type { ComponentType } from 'preact';
+import type { ContentMeta } from '../../content/_types.ts';
 
 interface ContentModule {
   default: ComponentType;
@@ -28,6 +37,13 @@ interface ContentModule {
     children?: string[];
     related?: string[];
   };
+}
+
+/**
+ * Check if metadata is for a variant
+ */
+function isVariantMeta(meta: ContentMeta | VariantMeta | undefined): meta is VariantMeta {
+  return meta !== undefined && 'isVariant' in meta && meta.isVariant === true;
 }
 
 export function ContentView() {
@@ -58,13 +74,26 @@ export function ContentView() {
       error.value = null;
       
       try {
-        const module = await getNode(nodeId.value);
+        // Use unified loader that handles both base pages and variants
+        const module = await getNodeOrVariant(nodeId.value);
         
         if (cancelled) return;
         
         if (module) {
           Content.value = module.default;
-          meta.value = module.meta;
+          // For variants, construct a compatible meta object
+          const nodeMeta = getNodeOrVariantMeta(nodeId.value);
+          if (isVariantMeta(nodeMeta)) {
+            // Variant: use variant metadata
+            meta.value = {
+              id: nodeMeta.id,
+              title: nodeMeta.title,
+              summary: nodeMeta.summary,
+              // Variants don't have children/related/prerequisites
+            };
+          } else {
+            meta.value = module.meta;
+          }
         } else {
           error.value = `Content node "${nodeId.value}" not found`;
           Content.value = null;
@@ -146,17 +175,27 @@ function ContentRenderer({
   path: string[];
 }) {
   // Track exploration progress (scroll position, expandables)
-  useExplorationTracking({ nodeId });
+  // For variants, track the base page
+  const trackingId = isVariantId(nodeId) ? parseVariantId(nodeId)?.basePageId || nodeId : nodeId;
+  useExplorationTracking({ nodeId: trackingId });
   
   const hasPrerequisites = nodeMeta.prerequisites && nodeMeta.prerequisites.length > 0;
+  const isVariant = isVariantId(nodeId);
+  const variantInfo = isVariant ? parseVariantId(nodeId) : null;
   
   return (
-    <article className="content-node" data-node-id={nodeId}>
+    <article 
+      className={`content-node ${isVariant ? 'variant-content' : ''}`} 
+      data-node-id={nodeId}
+      data-variant-id={variantInfo?.variantId}
+    >
       <Breadcrumbs path={path} />
       
       <header className="content-node__header">
         <h1 className="content-node__title">{nodeMeta.title}</h1>
-        <p className="content-node__summary">{nodeMeta.summary}</p>
+        {nodeMeta.summary && (
+          <p className="content-node__summary">{nodeMeta.summary}</p>
+        )}
       </header>
       
       {hasPrerequisites && (
@@ -169,10 +208,13 @@ function ContentRenderer({
         </MDXProvider>
       </div>
       
-      <NavLinks 
-        children={nodeMeta.children}
-        related={nodeMeta.related}
-      />
+      {/* Only show nav links for base pages, not variants */}
+      {!isVariant && (
+        <NavLinks 
+          children={nodeMeta.children}
+          related={nodeMeta.related}
+        />
+      )}
     </article>
   );
 }

@@ -130,6 +130,9 @@ export async function loadPageData(pageId: string): Promise<void> {
   isLoading.value = true;
   errorMessage.value = null;
   
+  // Restore panel state from previous page
+  restorePanelState();
+  
   // Read variant from URL path: /nodeId/variantId
   if (typeof window !== 'undefined') {
     const pathParts = window.location.pathname.split('/').filter(Boolean);
@@ -308,23 +311,27 @@ export async function markNoteAddressed(
 }
 
 /**
- * Switch to a different variant
+ * Switch to a different variant using the router
+ * 
+ * Now that variants are first-class content nodes in the registry,
+ * switching variants is just regular SPA navigation via the router.
  */
-export function switchVariant(variantId: string | null): void {
-  currentVariantId.value = variantId;
-  selectedNoteId.value = null;
-  
-  // Navigate to the variant URL (full page path)
+export async function switchVariant(variantId: string | null): Promise<void> {
   const pageId = currentPageId.value;
   if (!pageId) return;
   
-  if (variantId) {
-    // Navigate to variant page: /tokens/metaphor-voice
-    window.location.href = `/${pageId}/${variantId}`;
-  } else {
-    // Navigate back to base page: /tokens
-    window.location.href = `/${pageId}`;
-  }
+  selectedNoteId.value = null;
+  
+  // Build the node ID for navigation
+  const nodeId = variantId ? `${pageId}/${variantId}` : pageId;
+  
+  // Update our local state
+  currentVariantId.value = variantId;
+  
+  // Use the router for SPA navigation
+  // Dynamic import to avoid circular dependencies
+  const { navigateTo } = await import('../../app/router.ts');
+  navigateTo(nodeId, { replace: false });
 }
 
 /**
@@ -386,6 +393,10 @@ export async function deleteVariant(variantId: string): Promise<void> {
 export function openPanel(): void {
   panelOpen.value = true;
   document.body.classList.add('editorial-panel-open');
+  // Persist panel state across page navigations
+  try {
+    sessionStorage.setItem('editorial-panel-open', 'true');
+  } catch {}
 }
 
 /**
@@ -394,6 +405,22 @@ export function openPanel(): void {
 export function closePanel(): void {
   panelOpen.value = false;
   document.body.classList.remove('editorial-panel-open');
+  try {
+    sessionStorage.setItem('editorial-panel-open', 'false');
+  } catch {}
+}
+
+/**
+ * Restore panel state from session storage
+ */
+export function restorePanelState(): void {
+  try {
+    const wasOpen = sessionStorage.getItem('editorial-panel-open') === 'true';
+    if (wasOpen) {
+      panelOpen.value = true;
+      document.body.classList.add('editorial-panel-open');
+    }
+  } catch {}
 }
 
 /**

@@ -2,9 +2,10 @@
  * CreateNotePopover component
  * 
  * A popover form for creating a new editorial note attached to a text selection.
+ * Fixed position and draggable.
  */
 
-import { useState } from 'preact/hooks';
+import { useState, useRef, useEffect } from 'preact/hooks';
 import {
   isCreatingNote,
   pendingSelection,
@@ -25,11 +26,47 @@ export function CreateNotePopover() {
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState<NotePriority>('medium');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
+  const [currentPosition, setCurrentPosition] = useState<{ x: number; y: number } | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   
-  const position = createPopoverPosition.value;
+  const initialPosition = createPopoverPosition.value;
   const selection = pendingSelection.value;
   
-  if (!isCreatingNote.value || !position || !selection) return null;
+  // Reset position when popover opens with new initial position
+  useEffect(() => {
+    if (initialPosition && isCreatingNote.value) {
+      // Center horizontally in viewport, position near top
+      const x = Math.max(20, Math.min(initialPosition.x - 150, window.innerWidth - 340));
+      const y = Math.max(80, Math.min(initialPosition.y, window.innerHeight - 350));
+      setCurrentPosition({ x, y });
+    }
+  }, [initialPosition?.x, initialPosition?.y, isCreatingNote.value]);
+  
+  // Handle drag
+  useEffect(() => {
+    if (!dragOffset) return;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - 320));
+      const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - 100));
+      setCurrentPosition({ x: newX, y: newY });
+    };
+    
+    const handleMouseUp = () => {
+      setDragOffset(null);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragOffset]);
+  
+  if (!isCreatingNote.value || !initialPosition || !selection || !currentPosition) return null;
   
   const handleCreate = async () => {
     if (!content.trim()) return;
@@ -51,19 +88,34 @@ export function CreateNotePopover() {
     setContent('');
   };
   
-  // Calculate position, ensuring it stays within viewport
+  const handleDragStart = (e: MouseEvent) => {
+    if (!popoverRef.current) return;
+    const rect = popoverRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+    e.preventDefault();
+  };
+  
   const style: Record<string, string> = {
-    left: `${Math.min(position.x, window.innerWidth - 320)}px`,
-    top: `${Math.min(position.y, window.innerHeight - 300)}px`,
+    left: `${currentPosition.x}px`,
+    top: `${currentPosition.y}px`,
   };
   
   return (
     <div 
+      ref={popoverRef}
       className="editorial-create-popover"
       style={style}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="editorial-create-popover__header">
+      <div 
+        className="editorial-create-popover__header"
+        onMouseDown={handleDragStart}
+        style={{ cursor: dragOffset ? 'grabbing' : 'grab' }}
+      >
+        <span className="editorial-create-popover__drag-hint">⋮⋮</span>
         Add Editorial Note
       </div>
       

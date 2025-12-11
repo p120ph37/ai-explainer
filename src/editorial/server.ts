@@ -14,6 +14,7 @@ import { renderMdxContent, renderMarkdownContent, getNodeMeta, clearCache } from
 import { generateHtml, generateIndexHtml } from '../lib/html-template.ts';
 import { getAllNodeIds, isValidNode, getContentPath } from '../lib/node-metadata.ts';
 import mdxPlugin from '../plugins/mdx-plugin.ts';
+import variantsPlugin from '../plugins/variants-plugin.ts';
 import {
   loadNotes,
   saveNotes,
@@ -76,7 +77,7 @@ async function getJsBundle(): Promise<{ code: string; hash: string }> {
     outdir: './dist',
     minify: false,
     splitting: false,
-    plugins: [mdxPlugin],
+    plugins: [mdxPlugin, variantsPlugin],
     target: 'browser',
     define: {
       'process.env.NODE_ENV': '"development"',

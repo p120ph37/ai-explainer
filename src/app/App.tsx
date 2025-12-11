@@ -33,17 +33,6 @@ function getEditorialPageId(): string {
   return pathParts[0] || 'intro';
 }
 
-/**
- * Check if viewing an editorial variant page
- * Variant URLs have pattern: /nodeId/variantId
- */
-function isViewingEditorialVariant(): boolean {
-  if (typeof window === 'undefined') return false;
-  if (!isEditorialMode()) return false;
-  
-  const pathParts = window.location.pathname.split('/').filter(Boolean);
-  return pathParts.length > 1;
-}
 
 /**
  * Lazy-loaded Editorial Layer component
@@ -72,16 +61,17 @@ function EditorialLayerLoader({ pageId }: { pageId: string }) {
 }
 
 /**
- * Get the current variant name from URL path
+ * Get the current variant name from the route
  * Returns null if viewing base content
  */
-function getCurrentVariantName(): string | null {
-  if (typeof window === 'undefined') return null;
-  const pathParts = window.location.pathname.split('/').filter(Boolean);
-  if (pathParts.length <= 1) return null;
+function getVariantNameFromRoute(nodeId: string): string | null {
+  if (!nodeId.includes('/')) return null;
+  
+  const variantId = nodeId.split('/')[1];
+  if (!variantId) return null;
   
   // Convert kebab-case to Title Case (e.g., "metaphor-voice" -> "Metaphor Voice")
-  return pathParts[1]
+  return variantId
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
@@ -90,9 +80,12 @@ function getCurrentVariantName(): string | null {
 /**
  * Editorial mode badge component
  * Shows "EDITORIAL MODE" and optionally the variant name
+ * Reactive to route changes via the currentRoute signal
  */
-function EditorialBadge({ variantName }: { variantName?: string | null }) {
+function EditorialBadge() {
   if (!isEditorialMode()) return null;
+  
+  const variantName = getVariantNameFromRoute(currentRoute.value.nodeId);
   
   return (
     <div className="editorial-mode-badge">
@@ -127,49 +120,6 @@ function AppHeader({ theme, onThemeToggle }: { theme: string; onThemeToggle: () 
   );
 }
 
-/**
- * Editorial-only app for variant pages
- * Renders overlay components only, keeping SSR content intact
- */
-export function EditorialOnlyApp() {
-  const theme = useSignal(getEffectiveTheme());
-  const variantName = getCurrentVariantName();
-  
-  useEffect(() => {
-    // Apply the main visual theme
-    document.documentElement.setAttribute('data-visual-theme', 'main');
-    
-    // Inject theme toggle into the existing SSR header
-    const headerInner = document.querySelector('.app-header__inner');
-    if (headerInner && !headerInner.querySelector('.theme-toggle')) {
-      const toggle = document.createElement('button');
-      toggle.className = 'theme-toggle';
-      toggle.setAttribute('aria-label', `Switch to ${getEffectiveTheme() === 'light' ? 'dark' : 'light'} theme`);
-      toggle.textContent = getEffectiveTheme() === 'light' ? '🌙' : '☀️';
-      toggle.addEventListener('click', () => {
-        toggleTheme();
-        const newTheme = getEffectiveTheme();
-        toggle.textContent = newTheme === 'light' ? '🌙' : '☀️';
-        toggle.setAttribute('aria-label', `Switch to ${newTheme === 'light' ? 'dark' : 'light'} theme`);
-      });
-      headerInner.appendChild(toggle);
-    }
-  }, []);
-  
-  return (
-    <>
-      {/* Editorial badge with variant name */}
-      <EditorialBadge variantName={variantName} />
-      
-      {/* Quest log sidebar */}
-      <ProgressSidebar />
-      
-      {/* Editorial mode layer */}
-      <EditorialLayerLoader pageId={getEditorialPageId()} />
-    </>
-  );
-}
-
 export function App() {
   const theme = useSignal(getEffectiveTheme());
   
@@ -201,13 +151,12 @@ export function App() {
   
   return (
     <div className="app-shell">
-      <EditorialBadge variantName={null} />
+      <EditorialBadge />
       
       <AppHeader theme={theme.value} onThemeToggle={handleThemeToggle} />
       
       <main className="app-main">
-        {/* For variant pages in editorial mode, don't replace SSR content */}
-        {!isViewingEditorialVariant() && <ContentView />}
+        <ContentView />
         <MarginDeoverlap />
       </main>
       
