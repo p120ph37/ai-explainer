@@ -2864,14 +2864,21 @@
   text-align: center;
 }
 
-/* Controls row - no separate container styling */
+/* Controls row */
 .game-of-life__controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-xs);
+  column-gap: var(--space-xs); /* visible gap between control groups */
+  row-gap: 2px; /* tight gap between wrapped lines */
   margin-bottom: var(--space-sm);
+}
+
+/* Wrap-unit: playback controls + speed spinner */
+.game-of-life__playback-group {
+  display: flex;
+  align-items: center;
+  gap: 2px; /* tight gap within group, same as between buttons */
 }
 
 .game-of-life__buttons {
@@ -2920,33 +2927,78 @@
   gap: 2px;
 }
 
-.game-of-life__select {
+/* Custom select wrapper for pixel-perfect styling */
+.game-of-life__select-wrapper {
+  position: relative;
+  display: inline-block;
   height: 32px;
-  padding: 0 2px 0 var(--space-2xs);
-  font-family: var(--font-ui);
-  font-size: var(--font-size-xs);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color: var(--color-text);
-  cursor: pointer;
 }
 
-.game-of-life__select:focus {
-  outline: none;
+.game-of-life__select-wrapper:focus-within {
   border-color: var(--color-accent);
 }
 
-.game-of-life__select--size {
-  max-width: 100px;
+/* Sizer: invisible but takes up space to establish width from longest option */
+.game-of-life__select-sizer {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-2xs);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
 }
 
-.game-of-life__select optgroup {
+.game-of-life__select-sizer span {
+  white-space: nowrap;
+  padding-right: calc(var(--space-2xs) + 10px); /* space for chevron */
+}
+
+/* Visible facade showing current value */
+.game-of-life__select-facade {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 var(--space-2xs);
+  gap: var(--space-2xs);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.game-of-life__select-text {
+  flex: 1;
+}
+
+.game-of-life__select-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+/* Invisible native select - overlays everything for a11y & mobile */
+.game-of-life__select-native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.game-of-life__select-native optgroup {
   font-weight: 600;
   color: var(--color-text-muted);
 }
 
-.game-of-life__select option {
+.game-of-life__select-native option {
   font-weight: normal;
   color: var(--color-text);
 }
@@ -3098,27 +3150,8 @@
 /* Hint - more subtle */
 /* Responsive adjustments */
 @media (max-width: 640px) {
-  .game-of-life__controls {
-    gap: var(--space-xs);
-  }
-  
   .game-of-life__select-group {
     flex-wrap: wrap;
-  }
-  
-  .game-of-life__select {
-    flex: 1;
-    min-width: 100px;
-  }
-  
-  .game-of-life__speed {
-    order: 10;
-    min-width: 100%;
-    max-width: 100%;
-  }
-  
-  .game-of-life__stats {
-    margin-left: 0;
   }
 }
 

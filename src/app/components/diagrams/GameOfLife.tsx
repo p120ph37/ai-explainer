@@ -586,103 +586,142 @@ export function GameOfLife({
       {title && <div className="game-of-life__title">{title}</div>}
         <div className="game-of-life__controls">
           <div className="game-of-life__select-group">
-            <select
-              value={selectedPreset}
-              onChange={handlePresetChange}
-              className="game-of-life__select"
-              title={currentPresetInfo.description}
-            >
-              {PRESET_GROUPS.map(group => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.presets.map(key => {
+            {/* Preset selector with custom styling */}
+            <div className="game-of-life__select-wrapper" title={currentPresetInfo.description}>
+              {/* Sizer: renders all options invisibly to establish max width */}
+              <div className="game-of-life__select-sizer" aria-hidden="true">
+                {PRESET_GROUPS.flatMap(group => 
+                  group.presets.map(key => {
                     const info = getPresetInfo(key);
-                    return (
-                      <option key={key} value={key}>
-                        {info.name}
-                      </option>
-                    );
-                  })}
-                </optgroup>
-              ))}
-            </select>
+                    return <span key={key}>{info.name}</span>;
+                  })
+                )}
+              </div>
+              {/* Visible facade showing current value */}
+              <div className="game-of-life__select-facade">
+                <span className="game-of-life__select-text">{currentPresetInfo.name}</span>
+                <svg className="game-of-life__select-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 1L5 5L9 1"/>
+                </svg>
+              </div>
+              {/* Invisible native select for accessibility & mobile */}
+              <select
+                value={selectedPreset}
+                onChange={handlePresetChange}
+                className="game-of-life__select-native"
+              >
+                {PRESET_GROUPS.map(group => (
+                  <optgroup key={group.label} label={group.label}>
+                    {group.presets.map(key => {
+                      const info = getPresetInfo(key);
+                      return (
+                        <option key={key} value={key}>
+                          {info.name}
+                        </option>
+                      );
+                    })}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+
+            {/* Size selector with custom styling */}
+            <div className="game-of-life__select-wrapper">
+              {/* Sizer: renders all options invisibly to establish max width */}
+              <div className="game-of-life__select-sizer" aria-hidden="true">
+                {GRID_SIZES.map((size) => (
+                  <span key={size.label}>{size.label}</span>
+                ))}
+              </div>
+              {/* Visible facade showing current value */}
+              <div className="game-of-life__select-facade">
+                <span className="game-of-life__select-text">{GRID_SIZES[selectedSizeIndex]?.label}</span>
+                <svg className="game-of-life__select-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 1L5 5L9 1"/>
+                </svg>
+              </div>
+              {/* Invisible native select for accessibility & mobile */}
+              <select
+                value={String(selectedSizeIndex)}
+                onChange={handleSizeChange}
+                className="game-of-life__select-native"
+              >
+                {GRID_SIZES.map((size, index) => (
+                  <option key={size.label} value={String(index)}>
+                    {size.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {/* Wrap-unit: playback controls + speed */}
+          <div className="game-of-life__playback-group">
+            <div className="game-of-life__buttons">
+              <button
+                className={`game-of-life__btn ${isPlaying ? 'game-of-life__btn--active' : ''}`}
+                onClick={() => !isExtinct && setIsPlaying(!isPlaying)}
+                disabled={isExtinct}
+                title={isExtinct ? 'Extinct' : isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="5" y="4" width="5" height="16" rx="1" />
+                    <rect x="14" y="4" width="5" height="16" rx="1" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 4l15 8-15 8V4z" />
+                  </svg>
+                )}
+              </button>
+              <button
+                className="game-of-life__btn"
+                onClick={step}
+                disabled={isPlaying || isExtinct}
+                title="Step"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4 4l10 8-10 8V4z" />
+                  <rect x="16" y="4" width="4" height="16" rx="1" />
+                </svg>
+              </button>
+              <button
+                className="game-of-life__btn"
+                onClick={() => loadPreset(selectedPreset)}
+                title="Reset"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+              </button>
+            </div>
             
-            <select
-              value={String(selectedSizeIndex)}
-              onChange={handleSizeChange}
-              className="game-of-life__select game-of-life__select--size"
-            >
-              {GRID_SIZES.map((size, index) => (
-                <option key={size.label} value={String(index)}>
-                  {size.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="game-of-life__buttons">
-            <button
-              className={`game-of-life__btn ${isPlaying ? 'game-of-life__btn--active' : ''}`}
-              onClick={() => !isExtinct && setIsPlaying(!isPlaying)}
-              disabled={isExtinct}
-              title={isExtinct ? 'Extinct' : isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="5" y="4" width="5" height="16" rx="1" />
-                  <rect x="14" y="4" width="5" height="16" rx="1" />
-                </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6 4l15 8-15 8V4z" />
-                </svg>
-              )}
-            </button>
-            <button
-              className="game-of-life__btn"
-              onClick={step}
-              disabled={isPlaying || isExtinct}
-              title="Step"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M4 4l10 8-10 8V4z" />
-                <rect x="16" y="4" width="4" height="16" rx="1" />
-              </svg>
-            </button>
-            <button
-              className="game-of-life__btn"
-              onClick={() => loadPreset(selectedPreset)}
-              title="Reset"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-              </svg>
-            </button>
-          </div>
-          
-          <div className="game-of-life__speed" title="Speed (generations/sec)">
-            <span className="game-of-life__speed-value">{speed}<span className="game-of-life__speed-unit">/s</span></span>
-            <div className="game-of-life__speed-buttons">
-              <button
-                type="button"
-                className="game-of-life__speed-btn"
-                onClick={() => setSpeed(s => Math.min(60, s + 1))}
-                aria-label="Increase speed"
-              >
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
-                  <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="game-of-life__speed-btn"
-                onClick={() => setSpeed(s => Math.max(1, s - 1))}
-                aria-label="Decrease speed"
-              >
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
-                  <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+            <div className="game-of-life__speed" title="Speed (generations/sec)">
+              <span className="game-of-life__speed-value">{speed}<span className="game-of-life__speed-unit">/s</span></span>
+              <div className="game-of-life__speed-buttons">
+                <button
+                  type="button"
+                  className="game-of-life__speed-btn"
+                  onClick={() => setSpeed(s => Math.min(60, s + 1))}
+                  aria-label="Increase speed"
+                >
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                    <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="game-of-life__speed-btn"
+                  onClick={() => setSpeed(s => Math.max(1, s - 1))}
+                  aria-label="Decrease speed"
+                >
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
           
