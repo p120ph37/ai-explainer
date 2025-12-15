@@ -46,6 +46,7 @@ These specific phrases and patterns have become markers of low-quality LLM-gener
 
 **Performative significance:**
 - "Why does this matter?" / "Why this matters"
+- "This matters because..."
 - "This is important because..."
 - "The key takeaway here is..."
 - "What's really interesting is..."
@@ -68,6 +69,15 @@ These specific phrases and patterns have become markers of low-quality LLM-gener
 - "It's worth noting that..."
 - "It's important to understand that..."
 - "It should be mentioned that..."
+
+**Patronizing short answers:**
+- "Partially fair." / "Partly fair."
+- "It's an analogy, not a prediction."
+- "We can't—with certainty."
+- "In theory, yes; in practice, constrained."
+- "Good question!" / "Great observation!"
+
+These quips sound dismissive or condescending. They perform engagement without providing it. Begin directly with the substantive explanation.
 
 If you find yourself reaching for one of these phrases, pause and ask: what am I actually trying to say? Usually the phrase can be deleted entirely, or replaced with direct statement of the content.
 

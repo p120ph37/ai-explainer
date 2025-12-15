@@ -26,6 +26,18 @@ When a model generates text, it doesn't just pick the most likely next token. It
 
 **Temperature** is the dial that controls this randomness. Low temperature makes the distribution sharper, concentrating probability on likely tokens. High temperature flattens the distribution, giving unlikely tokens more chance.
 
+<Metaphor title="A volume dial on creativity">
+
+Temperature is like a volume dial where loud is chaos and quiet is conformity.
+
+Turn it down, and the model whispers conventional answers. It sticks close to the obvious, the safe, the well-trodden path. Safe, but predictable. Like a musician who only plays the exact notes on the page.
+
+Turn it up, and the model shouts unexpected connections, grabbing words from the margins. Exciting, but potentially nonsense. Like a jazz improviser who might transcend the melody or miss the chord entirely.
+
+Most conversations want moderate volume: enough variety to stay interesting, enough restraint to stay coherent.
+
+</Metaphor>
+
 **How temperature works**
 
 The model outputs raw scores (logits) for each possible next token. Before sampling, these scores are divided by the temperature value, then converted to probabilities.
@@ -39,9 +51,29 @@ Lower temperature means safer, more predictable text. Higher temperature means r
 
 <Recognition>
 
-You've felt this trade-off when using AI. Set temperature low for factual questions where you want consistency. Set it higher for creative writing where you want surprise. The same model behaves differently depending on this single parameter.
+**You've felt this trade-off when using AI.** If you've regenerated a response and gotten something different (sometimes better, sometimes worse, sometimes surprisingly different) that's temperature and sampling in action.
+
+Users who've used AI for both code and creative writing often develop different intuitions: "When I want code, I want it predictable. When I want stories, I want surprise." This is naturally discovering when different temperature settings are appropriate.
 
 </Recognition>
+
+<Question title="If temperature=0 always picks the most likely token, why not use that for everything?">
+
+Most likely isn't always best. At temperature=0, the model can get stuck in repetitive patterns. The same phrase keeps being the most probable continuation of itself. Output becomes mechanical and predictable.
+
+Some tasks need exploration of alternatives. When multiple good options exist, always picking one ignores equally valid paths. Temperature adds necessary variety.
+
+→ [Communicating Effectively with LLMs](/prompt-engineering)
+
+</Question>
+
+<Question title="Doesn't randomness hurt accuracy?">
+
+At low temperatures, not significantly. The model strongly favors high-probability tokens, which correlate with quality. At higher temperatures, yes: you trade accuracy for creativity.
+
+For factual tasks, use low temperature. For brainstorming, higher temperature. The control is precise: you're adjusting how much the model explores vs. exploits its best guess.
+
+</Question>
 
 **When to use different temperatures**
 
@@ -73,7 +105,15 @@ Temperature isn't the only sampling parameter.
 
 These can combine with temperature. A common setup: temperature=0.7, top_p=0.9. This provides variety while preventing very unlikely tokens.
 
-Different providers expose different parameters. Some only expose temperature; others give fine-grained control.
+Top-p is generally more adaptive than top-k. In situations with one clear best choice, it might select only a few options; when many are plausible, it includes more.
+
+</Question>
+
+<Question title="At temperature=2.0, would the model produce gibberish?">
+
+Often, yes. Very high temperatures flatten probability distributions so much that improbable tokens become too likely. You get grammatically broken text, nonsense words, bizarre tangents.
+
+Most practitioners stay in the 0.5-1.0 range for usable output. Temperature above 1.5 is experimental.
 
 </Question>
 
@@ -115,21 +155,11 @@ Too high: incoherent, random, loses the thread
 
 The sweet spot depends on the task. There's no universally optimal temperature. Experimentation reveals what works for your specific use case.
 
-<Metaphor title="The volume dial on creativity">
-
-Temperature is like a volume dial where "loud" is chaos and "quiet" is conformity.
-
-Turn it down: the model whispers conventional answers, sticking close to the obvious. Safe, but predictable.
-
-Turn it up: the model shouts unexpected connections, grabbing words from the margins. Exciting, but potentially nonsense.
-
-Most conversations want moderate volume: enough variety to stay interesting, enough restraint to stay coherent.
-
-</Metaphor>
-
 <TryThis>
 
 Ask the same creative prompt three times at temperature 0.2, then three times at 0.9. Notice the variation. Low temperature gives near-identical responses. High temperature gives different responses each time, sometimes wildly different. Feel the trade-off directly.
+
+If you've ever experienced AI getting stuck in repetitive loops, that's often low-temperature determinism in action. Regenerating (re-sampling) breaks loops.
 
 </TryThis>
 

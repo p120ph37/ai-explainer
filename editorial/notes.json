@@ -1,133 +1,115 @@
 {
-  "version": 2,
-  "lastUpdated": "2025-12-10T12:00:00.000Z",
-  "variants": {
-    "description": "Voice variants for parallel composition exercise. Each page has 5 voice variants stored in editorial/variants/[pageId]/[voice].md",
-    "voices": [
-      {
-        "id": "primary-voice",
-        "name": "Primary Voice",
-        "description": "Question-led, direct answers, clear explanations. Single-threaded narrative in the primary style from the style guide."
+  "version": 1,
+  "lastUpdated": "2025-12-15T21:00:00.000Z",
+  "notes": [
+    {
+      "id": "mj0nr47a-9aeijp",
+      "pageId": "tokens",
+      "variantId": null,
+      "anchor": {
+        "type": "page"
       },
-      {
-        "id": "metaphor-voice",
-        "name": "Metaphor Voice",
-        "description": "Richly metaphorical, visually generative. Pushes slightly heavier than standard metaphor-aside style."
+      "anchorValid": true,
+      "content": "User reaction to consider/anticipate/address: Wait, so \"tokens\" in relation to LLMs means something other than just \"credits?\"  This seems to be a common conflation: that \"tokens\" are meant in the sense of the brass slugs dropped into slots at a video-arcade, but in reality, although some providers may conflate that sense into their use of the term, the primary idea of \"tokens\" in relation to LLMs is more like game-pieces -- checkers, chess-pieces, puzzle-pieces -- small abstract objects that represent some more-complex idea and have certain semantic relationships to each-other.  Of course, arcade-tokens are one tiny subset of this in that they represent units-of-value, but to hear \"tokens\" in relation to LLMs and think that it only means \"pricing units\" is to miss the technical side of the homonym entirely.  All of this isn't helped by the fact that providers often charge for usage by counting tokens...",
+      "status": "open",
+      "priority": "medium",
+      "tags": [],
+      "createdAt": "2025-12-10T23:46:10.822Z",
+      "updatedAt": "2025-12-10T23:46:10.822Z",
+      "author": "editor",
+      "responses": []
+    },
+    {
+      "id": "mj0p74sf-89hdi8",
+      "pageId": "tokens",
+      "variantId": "research-voice",
+      "anchor": {
+        "type": "text-selection",
+        "selectedText": "Interactive exploration",
+        "startOffset": 454,
+        "endOffset": 477,
+        "containerPath": "div#app > div.ssr-shell > main.app-main > div.content-width > article.content-node.variant-content > div.content-node__body > p > strong",
+        "contextBefore": " tokenization: https://github.com/openai/tiktoken\n",
+        "contextAfter": ": The Tiktokenizer web tool lets you see exactly h"
       },
-      {
-        "id": "socratic-voice",
-        "name": "Socratic Voice",
-        "description": "Question-driven, dialogic. Personification and extension of the question-aside style, leading readers to discovery."
+      "anchorValid": true,
+      "content": "We now have our own embedable tokenizer widget, and the external playground I prefer to recommend is: https://gpt-tokenizer.dev/",
+      "status": "open",
+      "priority": "medium",
+      "tags": [],
+      "createdAt": "2025-12-11T00:26:37.695Z",
+      "updatedAt": "2025-12-11T00:26:37.695Z",
+      "author": "editor",
+      "responses": []
+    },
+    {
+      "id": "mj0pa5dc-90o60s",
+      "pageId": "tokens",
+      "variantId": "research-voice",
+      "anchor": {
+        "type": "text-selection",
+        "selectedText": "Typical vocabulary sizes are 50,000-100,000 tokens",
+        "startOffset": 1215,
+        "endOffset": 1265,
+        "containerPath": "div#app > div.ssr-shell > main.app-main > div.content-width > article.content-node.variant-content > div.content-node__body > h3",
+        "contextBefore": "rdPiece (similar but scores differently)\n\n\nClaim: ",
+        "contextAfter": "\nDocumented vocabulary sizes:\n\nGPT-2: 50,257 token"
       },
-      {
-        "id": "research-voice",
-        "name": "Research Voice",
-        "description": "Commentary voice examining claims from the other three voices. Provides supporting articles, videos, research, and additional facts."
+      "anchorValid": true,
+      "content": "Based on the \"o200k\" data from the tiktoken implementation, which is used for GPT-4o and GPT-5, we know that those use a 200k vocabulary.",
+      "status": "open",
+      "priority": "medium",
+      "tags": [],
+      "createdAt": "2025-12-11T00:28:58.416Z",
+      "updatedAt": "2025-12-11T00:28:58.416Z",
+      "author": "editor",
+      "responses": []
+    },
+    {
+      "id": "mj0pdmid-uu14vy",
+      "pageId": "tokens",
+      "variantId": "research-voice",
+      "anchor": {
+        "type": "text-selection",
+        "selectedText": "Strawberry example",
+        "startOffset": 2161,
+        "endOffset": 2179,
+        "containerPath": "div#app > div.ssr-shell > main.app-main > div.content-width > article.content-node.variant-content > div.content-node__body > p > strong",
+        "contextBefore": "ices significantly affect what models can recall.\n",
+        "contextAfter": ": The \"how many r's in strawberry\" failure became "
       },
-      {
-        "id": "experiential-voice",
-        "name": "Experiential Voice",
-        "description": "Commentary voice connecting concepts to first-hand experiences readers likely have. Suggests interactive toys, diagrams, and illustrations. References contemporary pop culture."
-      }
-    ],
-    "pages": [
-      {
-        "pageId": "intro",
-        "title": "What is an LLM?",
-        "path": "src/content/intro/what-is-llm.mdx",
-        "variantsPath": "editorial/variants/intro/"
+      "anchorValid": true,
+      "content": "conversely, the o200k model used by 4o and 5 tokenizes \"strawberry\" as a single token.  I wonder if there is any follow-up research paper or article that explores this and its implications?",
+      "status": "open",
+      "priority": "medium",
+      "tags": [],
+      "createdAt": "2025-12-11T00:31:40.598Z",
+      "updatedAt": "2025-12-11T00:31:40.598Z",
+      "author": "editor",
+      "responses": []
+    },
+    {
+      "id": "mj0pg9ae-awsmvf",
+      "pageId": "tokens",
+      "variantId": "research-voice",
+      "anchor": {
+        "type": "text-selection",
+        "selectedText": "Tiktokenizer web tool",
+        "startOffset": 5573,
+        "endOffset": 5594,
+        "containerPath": "div#app > div.ssr-shell > main.app-main > div.content-width > article.content-node.variant-content > div.content-node__body > ol > li",
+        "contextBefore": "video (most accessible comprehensive explanation)\n",
+        "contextAfter": " (hands-on exploration)\nOriginal BPE paper (for hi"
       },
-      {
-        "pageId": "tokens",
-        "title": "What are Tokens?",
-        "path": "src/content/foundations/tokens.mdx",
-        "variantsPath": "editorial/variants/tokens/"
-      },
-      {
-        "pageId": "context-window",
-        "title": "The Context Window",
-        "path": "src/content/foundations/context-window.mdx",
-        "variantsPath": "editorial/variants/context-window/"
-      },
-      {
-        "pageId": "temperature",
-        "title": "Temperature in AI",
-        "path": "src/content/foundations/temperature.mdx",
-        "variantsPath": "editorial/variants/temperature/"
-      },
-      {
-        "pageId": "training",
-        "title": "How are LLMs Trained?",
-        "path": "src/content/foundations/training.mdx",
-        "variantsPath": "editorial/variants/training/"
-      },
-      {
-        "pageId": "attention",
-        "title": "How Does Attention Work?",
-        "path": "src/content/foundations/attention.mdx",
-        "variantsPath": "editorial/variants/attention/"
-      },
-      {
-        "pageId": "inference",
-        "title": "How Does Text Generation Happen?",
-        "path": "src/content/foundations/inference.mdx",
-        "variantsPath": "editorial/variants/inference/"
-      },
-      {
-        "pageId": "embeddings",
-        "title": "How Do Tokens Become Numbers?",
-        "path": "src/content/foundations/embeddings.mdx",
-        "variantsPath": "editorial/variants/embeddings/"
-      },
-      {
-        "pageId": "hallucinations",
-        "title": "Why Do LLMs Make Things Up?",
-        "path": "src/content/foundations/hallucinations.mdx",
-        "variantsPath": "editorial/variants/hallucinations/"
-      },
-      {
-        "pageId": "neural-network",
-        "title": "What is a Neural Network?",
-        "path": "src/content/foundations/neural-network.mdx",
-        "variantsPath": "editorial/variants/neural-network/"
-      },
-      {
-        "pageId": "parameters",
-        "title": "What are Parameters?",
-        "path": "src/content/foundations/parameters.mdx",
-        "variantsPath": "editorial/variants/parameters/"
-      },
-      {
-        "pageId": "understanding",
-        "title": "Do LLMs Really Understand?",
-        "path": "src/content/foundations/understanding.mdx",
-        "variantsPath": "editorial/variants/understanding/"
-      },
-      {
-        "pageId": "emergence",
-        "title": "What is Emergent Behavior?",
-        "path": "src/content/foundations/emergence.mdx",
-        "variantsPath": "editorial/variants/emergence/"
-      },
-      {
-        "pageId": "why-large",
-        "title": "Why Does Scale Matter?",
-        "path": "src/content/foundations/why-large.mdx",
-        "variantsPath": "editorial/variants/why-large/"
-      },
-      {
-        "pageId": "prompt-engineering",
-        "title": "Communicating Effectively with LLMs",
-        "path": "src/content/foundations/prompt-engineering.mdx",
-        "variantsPath": "editorial/variants/prompt-engineering/"
-      },
-      {
-        "pageId": "transformer",
-        "title": "What is a Transformer?",
-        "path": "src/content/foundations/transformer.mdx",
-        "variantsPath": "editorial/variants/transformer/"
-      }
-    ]
-  },
-  "notes": []
+      "anchorValid": true,
+      "content": "Prefer https://gpt-tokenizer.dev/",
+      "status": "open",
+      "priority": "medium",
+      "tags": [],
+      "createdAt": "2025-12-11T00:33:43.430Z",
+      "updatedAt": "2025-12-11T00:33:43.430Z",
+      "author": "editor",
+      "responses": []
+    }
+  ]
 }

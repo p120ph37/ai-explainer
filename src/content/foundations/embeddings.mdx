@@ -27,6 +27,16 @@ When a token enters a neural network, it's immediately converted into a list of 
 
 This isn't arbitrary. The embedding positions are learned during training. Tokens with similar meanings end up with similar number patterns. The geometry of this number space captures something about meaning.
 
+<Metaphor title="A map where meaning is distance">
+
+Imagine a vast map where every word has a location. Not a geographic map. This one has thousands of directions, not just north-south and east-west.
+
+On this map, you can travel from "cold" toward "hot" by moving along a temperature direction. Travel from "walk" toward "run" along an intensity direction. Travel from "dog" toward "dogs" along a plurality direction.
+
+Every word sits at the intersection of thousands of such directions. The location encodes not a position on Earth, but a position in meaning-space. Nearby words are semantically related. Distant words are unrelated.
+
+</Metaphor>
+
 **What does the embedding space look like?**
 
 Each dimension in an embedding is like a coordinate axis. Two dimensions give you a flat plane. Three give you a 3D space. Modern embeddings have 768, 1536, or even more dimensions. You can't visualize this directly, but the math works the same way.
@@ -35,9 +45,21 @@ In this space, tokens aren't scattered randomly. "King" and "queen" are near eac
 
 <Recognition>
 
-You can almost feel this when using AI. Ask about "cats" and the model fluidly discusses "kittens," "felines," and "pets." It's not pattern-matching on the word "cat." It's working in a space where these concepts are neighbors.
+**You can almost feel this when using AI.** Ask about "cats" and the model fluidly discusses "kittens," "felines," and "pets." It's not pattern-matching on the word "cat." It's working in a space where these concepts are neighbors.
+
+Users who've tried AI-powered semantic search experience finding relevant results even when exact keywords don't match. That's embedding-based similarity in action.
 
 </Recognition>
+
+<Question title="How can hundreds of dimensions encode meaning better than 10?">
+
+More dimensions = more room to encode distinctions. In 2D, you can only separate points in a plane. In 768D, you have vastly more ways to position concepts.
+
+Related terms cluster, but "related" has many dimensions: semantic, syntactic, topical, connotative. High-dimensional space lets the model encode all these relationship types simultaneously without forcing artificial tradeoffs.
+
+→ [What are Parameters?](/parameters)
+
+</Question>
 
 **The famous example: king - man + woman = queen**
 
@@ -48,6 +70,16 @@ Take the vector for "king." Subtract the vector for "man." Add the vector for "w
 What does this mean? The direction from "man" to "woman" captures something about gender. Apply that same direction to "king" and you get the corresponding gendered royal: "queen."
 
 This isn't programmed. It emerges from training on text where these words appear in analogous contexts.
+
+<Question title="Does the king-queen arithmetic actually work, or is it cherry-picked?">
+
+It works, approximately. The classic example comes from Word2Vec research that genuinely demonstrated this arithmetic. But it's not perfect. You typically get "queen" among the top results, not exactly. And many analogies fail entirely.
+
+The example illustrates a real phenomenon (directions in embedding space encode relationships) without being universally reliable. It's a useful demonstration, not a guaranteed technique.
+
+→ [How are LLMs Trained?](/training)
+
+</Question>
 
 <Question title="How are embeddings learned?">
 
@@ -65,7 +97,25 @@ You might hope that dimension 47 means "animate" and dimension 128 means "positi
 
 Each dimension captures some statistical pattern, but these patterns rarely map to human-interpretable concepts. The meaning is distributed across many dimensions. "Animate" might be a direction in the space (a combination of many dimensions) rather than a single axis.
 
-Researchers study embedding spaces to find interpretable directions, but most dimensions remain opaque.
+<Question title="Is there any way to interpret what the model has learned?">
+
+This is active research, the field of "interpretability." Researchers probe embeddings to find meaningful directions (gender, sentiment, topic). Sometimes they succeed; often the meaning is distributed in ways that resist simple interpretation.
+
+It's like asking what each neuron in a brain "means." We can find some interpretable features, but the full picture remains elusive.
+
+→ [Do LLMs Really Understand?](/understanding)
+
+</Question>
+
+<Question title="If embeddings encode meaning, why can't we detect lies or hallucinations?">
+
+Embeddings encode statistical patterns from training text, not truth. "The Earth is flat" has a coherent embedding because that sentence exists in training data. The embedding captures that it's a claim about Earth's shape, not whether it's true.
+
+Detecting falsehood requires grounding in reality that embeddings don't provide. They encode plausibility, not accuracy.
+
+→ [Why Do LLMs Make Things Up?](/hallucinations)
+
+</Question>
 
 <Expandable title="Eigenvalues and the geometry of meaning">
 
@@ -83,19 +133,17 @@ When you see a 2D plot of word embeddings with similar words clustered together,
 
 Different models learn different embeddings. GPT-5.1's embedding for "cat" is a completely different list of numbers than BERT's embedding for "cat." The spaces aren't compatible.
 
+<Question title="What happens if I embed with one model and search with another?">
+
+Garbage. Each model's embedding space has arbitrary axes. "Cat" might be positive on dimension 47 in Model A and negative in Model B. The spaces aren't aligned without explicit transformation.
+
+Always use the same embedding model for encoding and retrieval. This is why embedding choice is an architectural decision that persists throughout a system's lifetime.
+
+</Question>
+
 This matters when building applications. If you embed text with one model and try to search with another, the geometry doesn't match. You need to use the same embedding model consistently.
 
 Some embedding models are trained specifically for retrieval: they optimize for meaningful similarity rather than text generation. These are what power semantic search.
-
-<Metaphor title="A map where meaning is distance">
-
-Imagine a vast map where every word has a location. But unlike a geographic map, this one has thousands of directions, not just north-south and east-west.
-
-On this map, you can travel from "cold" toward "hot" by moving along a temperature direction. Travel from "walk" toward "run" along an intensity direction. Travel from "dog" toward "dogs" along a plurality direction.
-
-Every word sits at the intersection of thousands of such directions. The location encodes not a position on Earth, but a position in meaning-space. Nearby words are semantically related. Distant words are unrelated.
-
-</Metaphor>
 
 <TryThis>
 

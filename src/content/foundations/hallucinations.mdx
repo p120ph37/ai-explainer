@@ -28,6 +28,16 @@ Ask an LLM about a made-up person, and it might invent a detailed biography. Ask
 
 This isn't lying. The model doesn't know it's wrong. It's generating the most probable next tokens given its training. Sometimes probable text is false text.
 
+<Metaphor title="The confident student who didn't study">
+
+The LLM is like a student who missed class but writes the exam anyway. They remember the textbook's style, the general shape of good answers. They write fluently and confidently.
+
+Sometimes they recall correctly. Sometimes they reconstruct reasonably. Sometimes they invent plausible-sounding nonsense. Their confidence is uniform throughout.
+
+The teacher (you) can't tell which answers are recalled, reconstructed, or invented just by reading them. External verification is required.
+
+</Metaphor>
+
 **The fundamental issue**
 
 LLMs are trained to predict plausible text, not truthful text. These usually overlap, since most text humans write is at least intended to be true. But not always.
@@ -38,7 +48,9 @@ Plausible-sounding and true are different things.
 
 <Recognition>
 
-You've experienced this. An LLM confidently names a book that doesn't exist, or attributes a quote to the wrong person, or describes a historical event with wrong dates. It sounds right. The style matches real information. But verification reveals it's fabricated.
+**You've experienced this.** An LLM confidently names a book that doesn't exist, or attributes a quote to the wrong person, or describes a historical event with wrong dates. It sounds right. The style matches real information. But verification reveals it's fabricated.
+
+The "fake citation experience" is particularly vivid: users who've asked for sources and then tried to find them have discovered fabricated citations — perfect-looking author names, plausible journal titles, page numbers, all fake.
 
 </Recognition>
 
@@ -56,6 +68,26 @@ Several contributing factors:
 
 - **Rare or specialized topics**: Less training data means less reliable patterns. Niche topics hallucinate more.
 
+<Question title="If the model was trained on so much data, shouldn't it have seen the true facts?">
+
+Seeing isn't knowing. Training data contains contradictions, errors, and outdated information. The model learns statistical patterns, not verified truth.
+
+Even when correct information appears frequently, the model can still generate plausible-sounding alternatives. There's no mechanism distinguishing "I saw this often" from "I saw this is true." Frequency doesn't equal accuracy.
+
+→ [How are LLMs Trained?](/training)
+
+</Question>
+
+<Question title="Why doesn't the model just say 'I don't know' more often?">
+
+Training discourages it. RLHF rewards helpful, complete responses. "I don't know" scores poorly — it seems unhelpful. So the model learns to always provide something.
+
+Additionally, there's no internal representation of "I have no knowledge about this." The model generates plausible text for any prompt. "I don't know" has to be explicitly trained as a valid response, and it competes with the pressure to be helpful.
+
+→ [How are LLMs Trained?](/training)
+
+</Question>
+
 <Question title="Can hallucinations be eliminated?">
 
 Not completely, given current architectures. They're inherent to generating text from patterns without external verification.
@@ -67,6 +99,14 @@ Mitigation strategies:
 - **Fact-checking layers**: Add systems that verify claims against databases
 
 These reduce hallucinations but don't eliminate them. The underlying generative process remains probabilistic pattern completion.
+
+</Question>
+
+<Question title="Why doesn't RAG completely solve hallucinations?">
+
+RAG provides source material, but the model still generates responses. It can misinterpret documents, cite them for claims they don't support, or hallucinate connections between retrieved passages.
+
+RAG dramatically reduces hallucination on topics covered by the retrieval corpus, but doesn't eliminate the model's fundamental tendency to generate plausible completions. Verification remains important.
 
 </Question>
 
@@ -85,7 +125,7 @@ LLMs are often trained to be agreeable. This creates **sycophancy**: agreeing wi
 User: "Isn't it true that Einstein invented the telephone?"
 Sycophantic model: "Yes, Einstein made many contributions including work on telecommunications."
 
-The model "hallucinates" agreement because agreeing tends to score well in training. Disagreeing feels unhelpful, even when correct.
+The model "hallucinates" agreement because agreeing tends to score well in training. Disagreeing feels unhelpful, even when correct. Experienced users notice that AI rarely disagrees strongly — this agreeableness is learned behavior from training on human preferences.
 
 Addressing sycophancy requires careful reward training that values truth over agreeableness.
 
@@ -97,21 +137,23 @@ LLMs output in a consistent, fluent style. This style doesn't vary with actual c
 
 This is dangerous because humans use fluency as a confidence cue. We trust smooth, authoritative-sounding text. LLMs always sound authoritative, even when confabulating.
 
+<Question title="If the model's probabilities don't reflect accuracy, what do they reflect?">
+
+Plausibility in training data. High probability means "this continuation frequently appeared in contexts like this." If incorrect information appeared frequently and confidently (as misinformation often does), it gets high probability.
+
+The model is calibrated to match training distribution, not truth distribution. These differ, sometimes dramatically. Probability reflects linguistic plausibility, not factual accuracy.
+
+→ [How are LLMs Trained?](/training)
+
+</Question>
+
 Training to add hedging ("I'm not certain, but...") helps but doesn't solve the underlying issue: the model doesn't have true uncertainty, just tokens that express it.
-
-<Metaphor title="The confident student who didn't study">
-
-The LLM is like a student who missed class but writes the exam anyway. They remember the textbook's style, the general shape of good answers. They write fluently and confidently.
-
-Sometimes they recall correctly. Sometimes they reconstruct reasonably. Sometimes they invent plausible-sounding nonsense. Their confidence is uniform throughout.
-
-The teacher (you) can't tell which answers are recalled, reconstructed, or invented just by reading them. External verification is required.
-
-</Metaphor>
 
 <TryThis>
 
 Test hallucination directly. Ask the model about a made-up person with a specific-sounding name ("What is Dr. Marcus Holloway known for in cognitive science?"). Notice if it generates a plausible-sounding bio. Then ask for sources. This reveals the pattern-completion nature: it can generate plausible text about anything, real or not.
+
+Experienced users have learned to regenerate responses and check for consistency. If facts change between regenerations, that signals potential hallucination.
 
 </TryThis>
 

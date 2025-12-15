@@ -30,6 +30,20 @@ This sensitivity is a feature, not a bug. The model uses every token for context
 
 **Prompt engineering** is the practice of crafting inputs to get better outputs. It's part art, part science, and essential for getting value from LLMs.
 
+<Recognition>
+
+You've likely had moments where rephrasing a request dramatically improved the response. "I asked the same thing a different way and suddenly it worked." That's prompt engineering discovered through trial and error. The frustration-to-success arc (starting vague, getting disappointed, then iterating to success) is the universal prompt engineering journey.
+
+</Recognition>
+
+<Question title="Why should phrasing matter? Shouldn't the model understand my intent?">
+
+The model has no access to your intent, only your tokens. It can't read minds; it can only pattern-match on what you literally type. Phrasing matters because the model predicts based on how similar prompts were typically completed in training. Different words activate different patterns.
+
+Clear phrasing steers the model toward the completion patterns you want.
+
+</Question>
+
 **The basics: be clear and specific**
 
 Vague prompts get vague responses. Specific prompts get specific responses.
@@ -48,6 +62,16 @@ You already know this from human communication. Asking a colleague "can you help
 
 </Recognition>
 
+<Metaphor title="The consultant who needs briefing">
+
+You've hired the world's most knowledgeable consultant. But they just walked into the room. They don't know your project, your constraints, your audience, your history.
+
+Brief them. "We're trying to improve customer retention for our SaaS product. Our users are enterprise IT managers. We've already tried email campaigns. Budget is limited."
+
+Now the consultant can help. Without the briefing, they give generic advice. The model is the same: infinitely knowledgeable but needing your briefing to apply that knowledge to your situation.
+
+</Metaphor>
+
 **Provide context**
 
 The model only knows what's in the context window. Background information helps:
@@ -58,13 +82,21 @@ The model only knows what's in the context window. Background information helps:
 
 Don't assume the model knows your situation. State it explicitly.
 
+<Question title="Does the order of information in my prompt matter?">
+
+Yes. Information at the beginning and end typically gets more attention than the middle (primacy and recency effects). Put critical context early, instructions before input, and the most important requirements prominently.
+
+If you bury key details in the middle of a long prompt, they're more likely to be overlooked.
+
+</Question>
+
 <Question title="What are system prompts?">
 
 Many applications use **system prompts**: instructions provided before the user's message that shape the model's behavior.
 
 System prompts set the stage: persona, constraints, format preferences, knowledge about the user. The model sees them as authoritative context.
 
-When you use ChatGPT with a custom GPT or Claude with a project, there's likely a system prompt you don't see. It shapes every response.
+When you use ChatGPT with a custom GPT or Claude with a project, there's likely a system prompt you don't see. It shapes every response. If you've created custom GPTs or Claude projects, you're doing prompt engineering at the system level.
 
 </Question>
 
@@ -85,7 +117,7 @@ Casual: "Let's grab lunch and hash this out."
 Formal: [model completes]
 ```
 
-Examples communicate format, style, and expectations more precisely than description. The model pattern-matches your examples and continues the pattern.
+Examples communicate format, style, and expectations more precisely than description. Describing a format is ambiguous. Does "casual" mean very casual or slightly casual? An example shows exactly what you mean. The model pattern-matches your examples and continues the pattern.
 
 **Chain-of-thought: ask for reasoning**
 
@@ -104,7 +136,13 @@ A: Let me work through this. If the bat costs x, then the ball costs x + 1.
    That's 2x + 1 = 1.10, so 2x = 0.10, so x = $0.05. ✓
 ```
 
-Reasoning in the output isn't just for show. It actually improves the model's computation.
+<Question title="Does 'think step by step' actually work? It sounds like a magic incantation.">
+
+It works, measurably. Chain-of-thought prompting improves performance on reasoning tasks, especially math and logic. The mechanism: the model does computation through the tokens it generates. Reasoning steps are where thinking happens. Skip them, and you skip the computational steps.
+
+"Think step by step" prompts the model to generate those steps explicitly. It's not magic. It's scaffolding for inference.
+
+</Question>
 
 <Expandable title="Why does chain-of-thought work?">
 
@@ -149,11 +187,17 @@ Prompt engineering is often iterative. Try something, see the result, adjust. Co
 
 There's rarely a perfect prompt on the first try. Treat prompting as a conversation, not a one-shot command.
 
-<Metaphor title="Tuning a radio">
+<Recognition>
 
-Prompting is like tuning an old radio dial. The signal (the model's capability) is there, but you need to find it. Small adjustments shift the output dramatically. Sometimes you're in static; a tiny turn brings clarity.
+Power users develop templates and patterns for their common tasks. "For code reviews I always start with..." "For cover letters I use this prompt." This is prompt engineering becoming personal infrastructure, tacit knowledge built through iteration.
 
-Prompt engineering is learning where the clear signals are and how to tune to them. Different tasks need different frequencies. Practice builds intuition for the dial.
+</Recognition>
+
+<Metaphor title="Tuning a radio dial">
+
+Prompting is tuning an old radio dial. The signal (the model's capability) is there, broadcasting on many frequencies. Your prompt is the dial. Small adjustments shift what you receive. Turn slightly and you get static. Turn the other way and suddenly the signal comes through clear.
+
+Different tasks live on different frequencies. Learning prompt engineering is learning where the clear signals are and how to tune to them. The broadcast exists whether or not you tune to it. Your job is finding the right frequency.
 
 </Metaphor>
 
@@ -175,6 +219,30 @@ Prompting can't make a model do what it fundamentally can't do. If the capabilit
 Prompting also can't guarantee consistency. Even with a perfect prompt, temperature adds variation. Different runs give different results.
 
 Think of prompting as steering, not programming. You're guiding a capable system, not specifying exact behavior. Good prompts make desired outputs more likely, not certain.
+
+<Question title="If I need deterministic output, what's my best approach?">
+
+Use temperature=0 (or as low as available), specify exact output format, and use structured output modes if available. Some APIs offer JSON mode or function calling with schemas.
+
+Still, exact reproducibility isn't guaranteed across model versions or hardware. For true determinism, cache common queries and consider rule-based post-processing.
+
+</Question>
+
+<Question title="Can prompts be adversarial? Can bad actors make models misbehave?">
+
+Yes, this is "prompt injection." Attackers craft inputs that override system prompts or induce harmful outputs. "Ignore previous instructions and do X" is a simple example. Models are increasingly resistant but not immune.
+
+This is why deployed applications can't fully trust user input. Prompt security is an active research and engineering challenge.
+
+</Question>
+
+<Question title="Isn't prompt engineering just a band-aid for models that should be smarter?">
+
+Better models do require less careful prompting. But prompting isn't going away. Even humans need context and clarity to help well.
+
+Prompting is steering, not fixing. As models improve, prompting becomes less about avoiding failure and more about guiding toward excellence. The skill evolves rather than disappears.
+
+</Question>
 
 <Sources>
 <Citation type="docs" title="Prompt Engineering Guide" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering" />
