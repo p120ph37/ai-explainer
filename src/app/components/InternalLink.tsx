@@ -12,7 +12,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useSignal, useComputed } from '@preact/signals';
 import { navigateTo } from '../router.ts';
-import { getNodeMeta } from '../../content/_registry.ts';
+import { getNodeMeta } from '../../lib/content.ts';
 import { 
   markTopicDiscovered, 
   isTopicDiscovered, 

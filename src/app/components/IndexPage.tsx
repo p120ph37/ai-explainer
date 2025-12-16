@@ -9,8 +9,7 @@
 
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import type { ContentMeta } from '../../content/_types.ts';
-import { getNode } from '../../content/_registry.ts';
+import { getNodeMeta, type ContentMeta } from '../../lib/content.ts';
 import { resetAllProgress, progressStats } from '../progress.ts';
 
 interface NodeInfo {
@@ -52,16 +51,12 @@ export function IndexPage() {
         const loadedNodes: NodeInfo[] = [];
         
         for (const nodeId of allNodeIds) {
-          try {
-            const module = await getNode(nodeId);
-            if (module?.meta) {
-              loadedNodes.push({
-                id: nodeId,
-                meta: module.meta,
-              });
-            }
-          } catch (e) {
-            console.warn(`Failed to load node: ${nodeId}`, e);
+          const meta = getNodeMeta(nodeId);
+          if (meta) {
+            loadedNodes.push({
+              id: nodeId,
+              meta,
+            });
           }
         }
         

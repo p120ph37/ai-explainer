@@ -1,0 +1,194 @@
+---
+id: players
+title: Who are the key players in AI?
+summary: The AI industry is a layered ecosystem of hardware makers, cloud providers, model developers, and application builders, each dependent on the others.
+category: Ecosystem
+order: 2
+prerequisites:
+  - intro
+  - models
+children: []
+related:
+  - hardware
+  - open
+keywords:
+  - NVIDIA
+  - OpenAI
+  - Anthropic
+  - Google
+  - Meta
+  - Microsoft
+  - HuggingFace
+  - ecosystem
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { NetworkGraph, LayerStack } from '../app/components/diagrams/index.ts'
+
+**Who actually builds and runs AI?**
+
+The AI industry isn't one company or even one sector. It's a layered ecosystem where each layer depends on the ones below it.
+
+<LayerStack
+  title="The AI Stack"
+  layers={[
+    { id: 'apps', label: 'Applications', sublabel: 'Cursor, Warp, ChatGPT, etc.', color: 'var(--color-surface)' },
+    { id: 'models', label: 'Model Providers', sublabel: 'OpenAI, Anthropic, Google, Meta', color: 'var(--color-surface)' },
+    { id: 'cloud', label: 'Cloud Infrastructure', sublabel: 'AWS, Azure, GCP', color: 'var(--color-surface)' },
+    { id: 'hardware', label: 'Hardware', sublabel: 'NVIDIA, AMD, Custom Silicon', color: 'var(--color-surface)' },
+  ]}
+  direction="up"
+  ariaLabel="Layered diagram showing the AI stack from hardware at bottom to applications at top"
+/>
+
+At each layer, a few key players dominate, and the relationships between layers create the dynamics that shape the industry.
+
+**The Hardware Layer: NVIDIA's Dominance**
+
+AI training and inference require specialized chips. NVIDIA's GPUs (particularly the H100, H200, and the newer Blackwell B200 architecture) are the industry standard. Their market share in AI training is estimated at over 80%.
+
+Why such dominance? Two reasons:
+
+1. **CUDA**: NVIDIA's programming framework, refined over 15+ years, has become the default for AI research. Switching costs are enormous.
+2. **First-mover advantage**: When deep learning took off around 2012, NVIDIA GPUs were already the best available hardware. They've maintained the lead since.
+
+Competitors exist (AMD's MI300X, Intel's Gaudi 3, Google's TPUs, Amazon's Trainium2), but none has displaced NVIDIA's central position. The Blackwell architecture (2024-2025) brought significant efficiency gains, making it even harder for competitors to catch up.
+
+<Question title="Why does hardware matter so much?">
+
+Training a frontier model requires thousands of GPUs running for months. A single H100 costs ~$30,000; the newer H200 and B200 chips are even more expensive. A training cluster might have 50,000+ GPUs. The capital requirements create a barrier that limits who can train frontier models.
+
+Inference (running the model to answer your questions) is less demanding but still expensive at scale. Cloud providers bill by the GPU-second, and those costs add up across millions of users.
+
+Hardware availability directly constrains AI capability. Supply constraints on cutting-edge chips remain a bottleneck for AI labs racing to train the next generation of models.
+
+→ [What hardware runs AI?](/hardware)
+
+</Question>
+
+**The Cloud Layer: Where Compute Lives**
+
+Most AI runs in data centers owned by a few hyperscalers:
+
+- **Microsoft Azure**: Exclusive cloud partner for OpenAI. Runs ChatGPT's infrastructure.
+- **Amazon AWS**: Hosts many AI workloads. Offers its own chips (Trainium/Inferentia) alongside NVIDIA.
+- **Google Cloud**: Powers Gemini. Has custom TPUs developed in-house.
+
+<NetworkGraph
+  title="Key Relationships"
+  nodes={[
+    { id: 'nvidia', label: 'NVIDIA', group: 'hardware', size: 40 },
+    { id: 'azure', label: 'Azure', group: 'cloud', size: 35 },
+    { id: 'aws', label: 'AWS', group: 'cloud', size: 35 },
+    { id: 'gcp', label: 'GCP', group: 'cloud', size: 35 },
+    { id: 'openai', label: 'OpenAI', group: 'models', size: 35 },
+    { id: 'anthropic', label: 'Anthropic', group: 'models', size: 30 },
+    { id: 'google', label: 'Google', group: 'models', size: 35 },
+    { id: 'meta', label: 'Meta', group: 'models', size: 30 },
+    { id: 'cursor', label: 'Cursor', group: 'apps', size: 25 },
+    { id: 'chatgpt', label: 'ChatGPT', group: 'apps', size: 30 },
+  ]}
+  links={[
+    { source: 'nvidia', target: 'azure', label: 'supplies' },
+    { source: 'nvidia', target: 'aws', label: 'supplies' },
+    { source: 'nvidia', target: 'gcp', label: 'supplies' },
+    { source: 'azure', target: 'openai', label: 'hosts' },
+    { source: 'aws', target: 'anthropic', label: 'invests/hosts' },
+    { source: 'gcp', target: 'anthropic', label: 'invests/hosts' },
+    { source: 'gcp', target: 'google', label: 'hosts' },
+    { source: 'openai', target: 'chatgpt' },
+    { source: 'openai', target: 'cursor', dashed: true },
+    { source: 'anthropic', target: 'cursor', dashed: true },
+  ]}
+  groupColors={{
+    hardware: '#e07a5f',
+    cloud: '#81b29a',
+    models: '#3d405b',
+    apps: '#f2cc8f',
+  }}
+  layout="hierarchical"
+  ariaLabel="Network diagram showing relationships between AI companies across hardware, cloud, models, and applications"
+/>
+
+These cloud providers aren't just renting compute. They're investors, partners, and sometimes competitors to the model labs.
+
+<Expandable title="The Microsoft-OpenAI relationship">
+
+Microsoft has invested over $13 billion in OpenAI and has exclusive rights to deploy OpenAI's models via Azure. This means:
+
+- ChatGPT runs on Microsoft infrastructure
+- Azure customers can access OpenAI's models (GPT-4, GPT-5.1) through Azure OpenAI Service
+- Microsoft can integrate OpenAI models into its products (Copilot, Office, Bing)
+
+It's one of the most consequential partnerships in tech: the most valuable AI lab locked into the second-largest cloud provider.
+
+</Expandable>
+
+**The Model Layer: Who Builds the Brains**
+
+A handful of organizations train frontier models:
+
+- **OpenAI**: Created GPT-5.1 (November 2025), ChatGPT. Backed by Microsoft. The most recognized name in AI, now offering adaptive reasoning with "Instant" and "Thinking" modes.
+- **Anthropic**: Created Claude 4.5 series: Sonnet 4.5 (September 2025, "best coding model"), Haiku 4.5 (October 2025, fastest/cheapest), Opus 4.5 (November 2025, most capable). Founded by former OpenAI researchers focused on AI safety. Backed by Google and Amazon.
+- **Google/DeepMind**: Created Gemini 2.0, AlphaFold. Vast resources, integrated with Google products. Leading in agentic AI capabilities and multimodal understanding.
+- **Meta**: Created Llama 3.3. Notably open-weights, enabling the open-source ecosystem and local AI deployment.
+- **Mistral, Cohere, xAI**: Competitive players with strong models. xAI's Grok models are integrated with X (formerly Twitter).
+
+<Recognition title="Every query travels the stack">
+
+When you use ChatGPT, you're relying on this entire stack: your query goes to Microsoft's Azure data centers, runs on NVIDIA GPUs, and is processed by OpenAI's model. The response travels back through the same chain. Every layer gets paid.
+
+</Recognition>
+
+**The Application Layer: What You Actually Use**
+
+Most people don't interact with models directly. They use applications built on top:
+
+- **ChatGPT/Claude.ai**: First-party chat interfaces from the model providers
+- **Cursor, Warp**: AI-powered development tools that use multiple underlying models
+- **Microsoft Copilot**: OpenAI models integrated into Office, Windows, GitHub
+- **Perplexity, You.com**: AI-powered search alternatives
+- **Thousands of startups**: Building specialized tools on top of model APIs
+
+<Question title="What is HuggingFace?">
+
+HuggingFace is the GitHub of AI models. It hosts:
+
+- **Model repository**: Tens of thousands of open models you can download and run
+- **Datasets**: Training data for various tasks
+- **Spaces**: Demo applications showing models in action
+- **Transformers library**: The standard Python library for working with models
+
+If you want to experiment with open models, HuggingFace is usually where you start. It's not a model provider; it's infrastructure for the open-source AI ecosystem.
+
+</Question>
+
+**Where is value captured?**
+
+The economics are still shaking out, but some patterns emerge:
+
+- **Hardware**: Extremely profitable. NVIDIA's AI-related revenue continues to grow massively.
+- **Cloud**: Profitable but competitive. AWS, Azure, and GCP fight for AI workloads. Each invests billions in GPU clusters.
+- **Models**: Increasingly competitive. OpenAI's revenue has grown substantially with enterprise adoption. Anthropic has found traction with developers. The race for capability remains expensive, but revenue is growing.
+- **Applications**: Mixed. AI-native tools like Cursor have found strong product-market fit. Many others struggle to differentiate from ChatGPT and Claude's first-party interfaces.
+
+<Metaphor title="The picks and shovels">
+
+During a gold rush, the reliable money is in selling picks and shovels, not mining gold. NVIDIA is selling the picks. The miners (model providers, app builders) are in a frenzied race where most won't find gold.
+
+Whether this analogy holds depends on how much the underlying technology commoditizes. If future models are cheap and interchangeable, value moves to applications. If frontier capability remains hard and expensive, value stays at the model layer.
+
+</Metaphor>
+
+<TryThis>
+
+Look up which AI model powers a product you use regularly. Many products don't advertise it. You might find it in their privacy policy, terms of service, or developer documentation. Knowing the stack helps you understand the product's capabilities and limitations.
+
+</TryThis>
+
+<Sources>
+<Citation type="article" title="The AI Index Report 2025" source="Stanford HAI" url="https://aiindex.stanford.edu/report/" year={2025} />
+<Citation type="article" title="Microsoft and OpenAI Partnership" source="Microsoft" url="https://blogs.microsoft.com/blog/2023/01/23/microsoftandopenaiextendpartnership/" year={2023} />
+<Citation type="article" title="NVIDIA Data Center Revenue" source="NVIDIA Investor Relations" url="https://investor.nvidia.com/" year={2025} />
+</Sources>
+

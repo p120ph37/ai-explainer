@@ -1,0 +1,255 @@
+---
+id: agents
+title: "What are AI agents?"
+summary: Agents are LLMs that can plan, act, and iterate. Instead of one-shot responses, they loop through reasoning, tool use, and observation until tasks are complete.
+category: Ecosystem
+order: 6
+prerequisites:
+  - intro
+  - tools
+children: []
+related:
+  - tools
+  - applications
+  - reasoning
+keywords:
+  - agents
+  - agentic
+  - ReAct
+  - planning
+  - autonomy
+  - loops
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { FlowDiagram } from '../app/components/diagrams/index.ts'
+
+**What happens when AI can take multiple steps to solve a problem?**
+
+Most AI interactions are one-shot: you ask, it answers. But complex tasks require multiple steps. Researching a topic, booking a trip, debugging a codebase: these can't be done in a single response.
+
+**Agents** are systems where the LLM drives a loop: reason about the task, take an action (often using tools), observe the result, and repeat until done. The model isn't just generating text. It's pursuing a goal through multiple steps.
+
+**The agent loop**
+
+<FlowDiagram
+  title="Agent Execution Loop"
+  steps={[
+    { id: '1', label: 'Task', sublabel: 'User goal', icon: '🎯' },
+    { id: '2', label: 'Reason', sublabel: 'Plan next step', icon: '🤔' },
+    { id: '3', label: 'Act', sublabel: 'Call tool', icon: '🔧' },
+    { id: '4', label: 'Observe', sublabel: 'Process result', icon: '👁️' },
+    { id: '5', label: 'Complete?', sublabel: 'Check if done', icon: '✅' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing agent loop: reason, act, observe, repeat"
+/>
+
+```
+User: "Find the cheapest flight to NYC next Tuesday and book it"
+
+Agent loop:
+1. Reason: Need to search for flights first
+2. Act: Call flight_search(destination="NYC", date="next Tuesday")
+3. Observe: Got 5 options, cheapest is $199 on Delta
+4. Reason: Found cheapest, now need to book
+5. Act: Call book_flight(flight_id="DL123", ...)
+6. Observe: Booking initiated, needs confirmation
+7. Reason: Should confirm with user before charging
+8. Act: Ask user to confirm
+9. Observe: User confirms
+10. Act: Complete booking
+11. Done: Return confirmation to user
+```
+
+The model drives the process, making decisions at each step about what to do next.
+
+<Recognition title="Coding assistants that iterate">
+
+You've seen agents in action if you've used AI coding assistants that can search your codebase, make edits, and run tests in a loop. Or AI research tools that search, read, synthesize, and search again until they've answered your question. That iterative behavior (not just answering but working) is agentic.
+
+</Recognition>
+
+**What makes something "agentic"?**
+
+Key characteristics:
+
+- **Goal-directed**: Working toward a specified objective
+- **Multi-step**: Takes multiple actions over time
+- **Tool use**: Interacts with external systems
+- **Adaptive**: Adjusts based on observations
+- **Autonomous**: Makes decisions without step-by-step human guidance
+
+A simple chatbot isn't agentic; it just responds. An AI that researches, drafts, revises, and publishes based on a single request is agentic.
+
+<Question title="How is this different from just using tools?">
+
+Tool use is a capability. Agency is a pattern that uses that capability:
+
+**Tool use alone**: 
+- User asks question
+- Model calls one tool
+- Model responds with result
+
+**Agentic pattern**:
+- User states goal
+- Model reasons about what's needed
+- Model calls tool, observes result
+- Model decides what to do next
+- Repeat until goal achieved
+
+Tool use is a single step. Agency is a loop that uses tools (and reasoning) across many steps.
+
+→ [How LLMs use tools](/tools)
+
+</Question>
+
+**Agent architectures**
+
+Different patterns for organizing agent behavior:
+
+**ReAct (Reason + Act)**
+The model alternates between reasoning about the situation and taking actions. Each step includes explicit reasoning visible in the output.
+
+```
+Thought: I need to find the user's account info first
+Action: lookup_account(user_id="12345")
+Observation: Account found: Premium tier, joined 2020
+Thought: Now I can answer their billing question
+Action: respond("Your premium account is billed annually...")
+```
+
+**Plan-then-Execute**
+The model first creates a plan, then executes steps. Better for complex tasks with clear structure.
+
+```
+Plan:
+1. Search for relevant papers
+2. Read abstracts
+3. Identify key themes
+4. Synthesize findings
+5. Write summary
+
+Executing step 1...
+```
+
+**Hierarchical Agents**
+A planner agent coordinates specialized executor agents. The planner decides what needs doing; executors have narrow expertise.
+
+```
+Planner: "Need to update the database schema"
+→ Delegates to: Database Agent
+→ Which uses: SQL tools, migration tools
+
+Planner: "Need to update the API"
+→ Delegates to: Code Agent
+→ Which uses: File editing, testing tools
+```
+
+<Expandable title="More agent patterns">
+
+**Reflexion**: Agent reflects on failures and improves across attempts.
+
+**Toolformer**: Model learns when to use tools during training, not just inference.
+
+**Multi-agent debate**: Multiple agents argue perspectives, reaching better conclusions.
+
+**Tree of Thought**: Explore multiple reasoning paths, backtrack from dead ends.
+
+The field is evolving rapidly. New patterns emerge as capabilities improve.
+
+</Expandable>
+
+**The autonomy spectrum**
+
+Not all agents are equally autonomous:
+
+**Low autonomy**: Human approves each action before execution. Safe but slow.
+
+**Medium autonomy**: Agent executes within boundaries, escalates edge cases. Balances speed and safety.
+
+**High autonomy**: Agent pursues goals with minimal oversight. Fast but risky.
+
+The right level depends on the stakes. Booking flights might warrant high autonomy. Financial transactions probably need human approval.
+
+<Metaphor title="Interns vs. employees vs. executives">
+
+Different autonomy levels are like different roles:
+
+**Low autonomy** (Intern): Checks with you before every step. Learning, but needs guidance. Safe.
+
+**Medium autonomy** (Employee): Works independently within their domain. Escalates unusual situations. Productive and reasonably safe.
+
+**High autonomy** (Executive): Pursues objectives with broad discretion. You set goals, they figure out how. Powerful but requires trust.
+
+You wouldn't give an intern executive authority. Similarly, new or untested agent systems should start with lower autonomy until they're proven.
+
+</Metaphor>
+
+**Challenges with agents**
+
+Agents are powerful but tricky:
+
+- **Compounding errors**: Each step can fail, and errors accumulate
+- **Cost**: Many LLM calls add up quickly
+- **Latency**: Multi-step processes take time
+- **Reliability**: More steps mean more chances for failure
+- **Safety**: Autonomous action can cause real harm
+- **Observability**: Hard to debug long action chains
+
+<Question title="How do you make agents reliable?">
+
+Reliability techniques:
+
+- **Smaller steps**: More checkpoints, easier recovery
+- **Verification**: Check results before proceeding
+- **Fallbacks**: Alternative paths when primary fails
+- **Retry logic**: Attempt failed steps again with variations
+- **Human in the loop**: Escalate uncertainty
+- **Constrained action spaces**: Limit what the agent can do
+- **Monitoring**: Track behavior, catch problems early
+
+Perfect reliability remains elusive. Current best practice: design for failure, build in recovery.
+
+</Question>
+
+**When to use agents**
+
+Good fits for agentic patterns:
+
+- **Multi-step research**: Searching, reading, synthesizing
+- **Code tasks**: Edit, test, debug, iterate
+- **Data workflows**: Extract, transform, validate, load
+- **Complex bookings**: Search options, compare, select, confirm
+- **Document creation**: Research, outline, draft, revise
+
+Poor fits:
+
+- **Simple Q&A**: One-shot is faster and cheaper
+- **Highly sensitive actions**: Too risky for autonomy
+- **Real-time requirements**: Loops are too slow
+- **Unpredictable costs**: When you can't afford runaway loops
+
+<TryThis>
+
+Use an AI coding assistant for a multi-file refactoring task. Watch how it searches for relevant code, plans changes, makes edits, and verifies results. Notice the iterative nature: that's agentic behavior. Compare to asking a simple question, which gets a one-shot response.
+
+</TryThis>
+
+**The future of agents**
+
+Current agents are impressive but limited. The frontier is expanding:
+
+- **Longer horizons**: Tasks spanning hours or days, not seconds
+- **Better planning**: More sophisticated reasoning about multi-step tasks
+- **Learned strategies**: Agents that improve through experience
+- **Multi-agent systems**: Teams of specialized agents collaborating
+- **Safer autonomy**: Better guardrails for higher-autonomy agents
+
+The trajectory is toward more capable, more autonomous AI systems. Understanding agents now prepares you for where AI is heading.
+
+<Sources>
+<Citation type="paper" title="ReAct: Synergizing Reasoning and Acting in Language Models" authors="Yao et al." url="https://arxiv.org/abs/2210.03629" year={2022} />
+<Citation type="paper" title="Reflexion: Language Agents with Verbal Reinforcement Learning" authors="Shinn et al." url="https://arxiv.org/abs/2303.11366" year={2023} />
+<Citation type="docs" title="Building Agents" source="LangChain" url="https://python.langchain.com/docs/modules/agents/" />
+</Sources>

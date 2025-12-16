@@ -1,0 +1,240 @@
+---
+id: transformer
+title: "What is a Transformer?"
+summary: The Transformer is the neural network architecture behind modern LLMs. Built on attention, it revolutionized language AI and enabled the current generation of models.
+category: Foundations
+order: 8
+prerequisites:
+  - neural-network
+  - attention
+children: []
+related:
+  - scale
+  - training
+keywords:
+  - transformer
+  - architecture
+  - GPT
+  - BERT
+  - encoder-decoder
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { LayerStack } from '../app/components/diagrams/index.ts'
+
+**What architecture actually powers GPT, Claude, and other LLMs?**
+
+The **Transformer**. Introduced in a 2017 paper titled "Attention Is All You Need," it became the foundation for virtually every large language model that followed.
+
+The name is almost anticlimactic for something so consequential. But the architecture genuinely transformed the field, making possible models that previous approaches couldn't scale.
+
+<Recognition title="The 2018-2020 jump">
+
+If you've noticed that AI capabilities seemed to jump dramatically around 2018-2020, this is why. GPT-2's "too dangerous to release" moment, GPT-3's "whoa," then ChatGPT's mass adoption. This acceleration traces directly to Transformer architecture enabling scaling. The breakthrough wasn't just more data or compute (though those helped). It was an architectural insight that made scaling actually work.
+
+</Recognition>
+
+**What made it different?**
+
+Before Transformers, the dominant architectures for language were recurrent neural networks (RNNs). These processed text sequentially, word by word, maintaining a hidden state that accumulated information.
+
+RNNs had problems:
+- **Sequential processing**: Can't parallelize. Each word waits for the previous word.
+- **Long-range dependencies**: Information from early words fades as it passes through many steps.
+- **Training difficulty**: Gradients vanish or explode over long sequences.
+
+The Transformer solved all three by replacing recurrence with attention. No sequential dependencies. Direct connections between any positions. Perfectly parallelizable.
+
+<Metaphor title="The telephone game that was">
+
+Before Transformers, we had recurrent networks: the telephone game made into architecture.
+
+Information passed from word to word, whispering along a chain. By the time information from word 1 reached word 100, it was garbled, distorted by 99 handoffs. Important signals faded. Long documents became impossible to process coherently.
+
+The Transformer ended the telephone game. Now every word can speak directly to every other word. No whisper chain. No degradation. Word 100 consults word 1 as easily as word 99.
+
+</Metaphor>
+
+<Question title="Why was sequential processing such a problem?">
+
+You can't parallelize it. Each word depends on the previous word's output. You must wait for word 1 to finish before processing word 2. On a GPU with thousands of cores, only one operates at a time. Training becomes agonizingly slow.
+
+Transformers process all positions simultaneously. Every GPU core stays busy. This speedup made large-scale training practical.
+
+</Question>
+
+**The basic structure**
+
+A Transformer stacks identical layers, each containing:
+
+1. **Self-attention**: Every position attends to every other position
+2. **Feed-forward network**: A simple neural network applied to each position independently
+3. **Layer normalization**: Stabilizes training
+4. **Residual connections**: Adds the input back to the output, helping gradients flow
+
+<LayerStack
+  title="Inside One Transformer Layer"
+  layers={[
+    { id: 'input', label: 'Input + Residual', sublabel: 'From previous layer' },
+    { id: 'norm1', label: 'Layer Norm' },
+    { id: 'attention', label: 'Self-Attention', sublabel: 'Every position attends to all others' },
+    { id: 'norm2', label: 'Layer Norm' },
+    { id: 'ffn', label: 'Feed-Forward Network', sublabel: 'Applied to each position' },
+    { id: 'output', label: 'Output + Residual', sublabel: 'To next layer' },
+  ]}
+  direction="up"
+  ariaLabel="Diagram showing components within a single transformer layer"
+/>
+
+Stack 12, 24, 96, or more of these layers. Each layer refines the representations, building more abstract understanding.
+
+<Metaphor title="The layer cake of abstraction">
+
+The Transformer stacks many processing rooms vertically.
+
+First room: raw token representations. Each word knows only itself.
+
+Second room: words start to understand their neighbors. "The" knows it's attached to "cat."
+
+Third room: phrases emerge. "The cat sat" becomes a coherent unit.
+
+Higher rooms: meaning, intent, style, argument structure. Each layer builds abstraction on top of the last.
+
+By the top layer, "The cat sat on the mat" isn't six disconnected words. It's a coherent scene, ready to predict what comes next.
+
+</Metaphor>
+
+<Question title="'Attention Is All You Need'—but it's not actually all you need, right?">
+
+Correct. The title is catchy but simplified. Transformers include feed-forward networks, layer normalization, residual connections, and positional encoding. The key insight was that attention could *replace* recurrence, not that attention alone suffices.
+
+A more accurate title might be "Attention Instead of Recurrence," but that's less memorable.
+
+</Question>
+
+<Question title="How does the model know word order if everything processes in parallel?">
+
+Positional encoding. Since attention doesn't inherently know position (it treats all pairs equally), you must add position information explicitly. The original Transformer used sinusoidal functions; modern models use learned position embeddings.
+
+Each position gets a unique signal added to its embedding, so "cat" at position 3 differs from "cat" at position 50.
+
+</Question>
+
+<Question title="What are encoder and decoder?">
+
+The original Transformer had two parts:
+
+- **Encoder**: Processes the input, building a rich representation. Attention can look at all positions (bidirectional).
+- **Decoder**: Generates the output, one token at a time. Attention is masked so each position can only see earlier positions (unidirectional).
+
+Different models use different configurations:
+- **Encoder-only** (BERT): Good for understanding text, classification, embedding
+- **Decoder-only** (GPT, Claude): Good for generating text
+- **Encoder-decoder** (T5, original Transformer): Good for translation, transformation
+
+Modern LLMs like GPT and Claude are decoder-only. They just generate text, one token at a time, using masked self-attention.
+
+</Question>
+
+<Question title="Why did generation models settle on decoder-only?">
+
+Simpler and sufficient. Decoder-only models predict left-to-right, which matches text generation naturally. Encoder-decoder was designed for translation (process input, then generate output), but decoder-only handles this too by concatenating input and output.
+
+Simplicity means easier scaling and optimization.
+
+</Question>
+
+**Why does it scale so well?**
+
+The Transformer has properties that happen to match modern hardware:
+
+- **Parallelism**: All positions can be processed simultaneously. GPUs thrive on parallel operations.
+- **Regular structure**: The same operations repeated many times. Easy to optimize.
+- **Dense computation**: Matrix multiplications dominate. GPUs are designed for exactly this.
+
+RNNs require sequential steps that GPUs can't parallelize. Transformers turn language modeling into a massive parallel matrix operation. This is why training that once took months now takes weeks.
+
+The architecture also shows clean scaling behavior. Double the parameters and you get predictable improvements. This reliability let researchers confidently invest billions in larger models.
+
+<Recognition title="All the names are Transformers">
+
+GPT, BERT, T5, LLaMA, Mistral, Claude: users encounter these names constantly. They're all Transformer variants. Fierce competitors, similar underlying architecture. The differentiation is in training data, scale, and fine-tuning, not fundamental architecture.
+
+</Recognition>
+
+<Question title="Are Transformers inherently GPU-bound?">
+
+Essentially yes. Transformers are huge parallel matrix multiplications, exactly what GPUs excel at. Training on CPUs would be orders of magnitude slower.
+
+This GPU-centricity has shaped the AI industry: GPU availability is a bottleneck, GPU makers (NVIDIA) became critical, and GPU architecture influences model design. The hardware-software co-evolution runs deep.
+
+</Question>
+
+<Expandable title="The components in detail">
+
+**Positional encoding**: Attention is position-agnostic (it doesn't inherently know word order). Positional encodings add position information to embeddings so the model knows where each token appears.
+
+**Multi-head attention**: Multiple attention mechanisms in parallel, each learning different relationship patterns. Typically 8-96 heads per layer.
+
+**Feed-forward network**: A two-layer neural network with a larger hidden dimension, applied identically to each position. This is where much of the "thinking" happens.
+
+**Layer normalization**: Normalizes activations to stabilize training. Applied before or after attention and feed-forward blocks depending on the variant.
+
+**Residual connections**: The input to each sub-layer is added to its output. Instead of just output = f(input), you get output = f(input) + input. This lets gradients flow directly through many layers, enabling very deep networks. Layers learn *refinements* rather than complete transformations.
+
+</Expandable>
+
+**What's in a name: GPT, BERT, and friends**
+
+- **GPT** (Generative Pre-trained Transformer): OpenAI's decoder-only models. "Generative" because they generate text.
+- **BERT** (Bidirectional Encoder Representations from Transformers): Google's encoder-only model. "Bidirectional" because attention can look both ways.
+- **T5** (Text-to-Text Transfer Transformer): Google's encoder-decoder model that frames all tasks as text-to-text.
+- **LLaMA, Claude, PaLM, Gemini**: All Transformer variants with various modifications.
+
+The details differ, but the core is the same: attention layers stacked deep, processing tokens in parallel.
+
+<Question title="The 2017 paper was for translation. How did it become general-purpose AI?">
+
+The architecture generalized unexpectedly well. GPT (2018) showed that a decoder-only Transformer trained on pure text prediction became capable of many tasks. BERT (2018) showed the same for understanding.
+
+The Transformer wasn't designed for general AI. It was designed for translation. Its success at everything else was empirical discovery, not architectural intent.
+
+</Question>
+
+<Metaphor title="A factory of understanding">
+
+Picture a factory assembly line, but unlike a traditional line, every station can see every other station simultaneously. Raw tokens enter at one end. At each station (layer), workers (attention heads) consult each other to decide how to refine the product.
+
+By the final station, raw tokens have been transformed into rich representations encoding grammar, meaning, context, and relationships. The factory's output isn't a physical product but understanding: representations good enough to predict what comes next.
+
+The factory's blueprints (parameters) were learned by processing trillions of example products until the refining process captured something general about language.
+
+</Metaphor>
+
+<Question title="Are there successor architectures to the Transformer?">
+
+Many are proposed; none have replaced it. Mamba (state space models), Hyena, RWKV, and others offer better scaling for long sequences. Some achieve linear rather than quadratic attention complexity.
+
+But Transformers remain dominant because they work reliably, are well-understood, and have accumulated optimization. A clear successor may emerge, but the Transformer is still king.
+
+</Question>
+
+<TryThis>
+
+Read the abstract and introduction of the original paper: "Attention Is All You Need" (arxiv.org/abs/1706.03762). It's more accessible than most ML papers. Notice how they position it against RNNs, and the emphasis on parallelization. You're reading the document that launched a revolution.
+
+</TryThis>
+
+**The Transformer's legacy**
+
+Nearly every significant language model since 2018 is a Transformer or close variant. The architecture proved remarkably robust: scale it up, train it on more data, and it keeps improving.
+
+This wasn't inevitable. Researchers tried many architectures. Most hit walls. The Transformer scaled gracefully, and that made all the difference.
+
+Today, "LLM" almost implies "Transformer-based." The two concepts are so intertwined that understanding Transformers is understanding how modern AI thinks.
+
+<Sources>
+<Citation type="paper" title="Attention Is All You Need" authors="Vaswani et al." source="Google" url="https://arxiv.org/abs/1706.03762" year={2017} />
+<Citation type="article" title="The Illustrated Transformer" source="Jay Alammar" url="https://jalammar.github.io/illustrated-transformer/" year={2018} />
+<Citation type="video" title="But what is a GPT? Visual intro to transformers" source="3Blue1Brown" url="https://www.youtube.com/watch?v=wjZofJX0v4M" year={2024} />
+</Sources>

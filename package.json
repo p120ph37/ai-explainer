@@ -22,6 +22,9 @@
     "editorial:validate": "bun src/editorial/validate-anchors.ts"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@griffel/babel-preset": "^1.7.0",
+    "@griffel/core": "^1.19.2",
     "@playwright/test": "^1.57.0",
     "@types/bun": "latest",
     "happy-dom": "^20.0.11"
@@ -30,6 +33,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@griffel/react": "^1.5.32",
     "@mdx-js/esbuild": "^3.1.1",
     "@mdx-js/mdx": "^3.1.1",
     "@mdx-js/preact": "^3.1.1",

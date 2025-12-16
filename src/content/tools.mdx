@@ -1,0 +1,194 @@
+---
+id: tools
+title: "How do LLMs use tools?"
+summary: Tool use lets LLMs take actions beyond text generation. They can search the web, run code, query databases, and interact with external systems.
+category: Foundations
+order: 19
+prerequisites:
+  - intro
+  - inference
+children: []
+related:
+  - prompt-engineering
+  - vector-databases
+  - applications
+  - agents
+  - cutoff
+keywords:
+  - tool use
+  - function calling
+  - agents
+  - actions
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { FlowDiagram, DiagramPlaceholder } from '../app/components/diagrams/index.ts'
+
+**How can an AI search the web or run code when it's just predicting text?**
+
+On its own, an LLM can only generate text. It can't browse the internet, execute programs, or access databases. It has no hands, no eyes, no connection to the outside world.
+
+But LLMs can be given **tools**: external functions they can choose to call. When the model decides it needs information or needs to take action, it outputs a special tool-calling format. The system intercepts this, executes the tool, and returns the result. The model continues with this new information.
+
+Suddenly, a text predictor becomes an agent that can act in the world.
+
+**How tool use works**
+
+The system provides tool definitions: name, description, parameters. These go into the prompt (or are handled specially by the API).
+
+```
+Available tools:
+- web_search(query: string): Search the web and return results
+- calculator(expression: string): Evaluate a math expression
+- get_weather(location: string): Get current weather
+```
+
+When the model determines it needs a tool, instead of generating normal text, it outputs a structured tool call:
+
+```json
+{"tool": "web_search", "query": "current population of Tokyo"}
+```
+
+The system executes the search, gets results, and feeds them back to the model. The model then generates its response using this real information.
+
+<FlowDiagram
+  title="Tool Use Cycle"
+  steps={[
+    { id: '1', label: 'User Query', sublabel: 'What\'s the weather?', icon: '💬' },
+    { id: '2', label: 'Model Decides', sublabel: 'Need tool: get_weather', icon: '🤔' },
+    { id: '3', label: 'Tool Call', sublabel: 'Execute function', icon: '🔧' },
+    { id: '4', label: 'Result', sublabel: 'Data returned', icon: '📥' },
+    { id: '5', label: 'Response', sublabel: 'With real info', icon: '✅' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing the tool use cycle from query to response"
+/>
+
+<Recognition title="Let me search for that">
+
+You've seen this if you've used ChatGPT with browsing or code execution. When it says "let me search for that" or "let me run this code," it's making tool calls. The results appear, and it continues. You're watching tool use in action.
+
+</Recognition>
+
+**Why tools matter**
+
+Without tools, LLMs are limited to their training data. They can't:
+- Access current information (their knowledge has a cutoff)
+- Perform precise calculations (they approximate math)
+- Interact with your systems (files, databases, APIs)
+- Take actions (send emails, create documents)
+
+Tools bridge this gap. They connect the model's reasoning to real-world capabilities.
+
+<Question title="How does the model know when to use a tool?">
+
+Training. Models are fine-tuned on examples of when tool use is appropriate. They learn patterns like:
+
+- Questions about current events → web search
+- Complex arithmetic → calculator
+- Requests involving files → file system tools
+- Code that needs testing → code execution
+
+The model decides based on the prompt and available tools. It's not following explicit rules; it's pattern-matching on when tool use led to good outcomes in training.
+
+Sometimes it uses tools unnecessarily. Sometimes it fails to use them when it should. Tool use judgment is imperfect.
+
+</Question>
+
+**Function calling: the technical implementation**
+
+Modern APIs provide structured **function calling**. You define functions with typed parameters:
+
+```python
+functions = [{
+    "name": "get_weather",
+    "description": "Get the current weather in a location",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "location": {"type": "string", "description": "City and state"},
+            "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]}
+        },
+        "required": ["location"]
+    }
+}]
+```
+
+The model outputs structured calls matching this schema. Your code validates and executes them. This is more reliable than parsing free-form text.
+
+<Question title="What are agents?">
+
+Tool use enables **agents**: systems that iteratively plan, act, observe, and repeat until a goal is achieved.
+
+Instead of one tool call, an agent might make dozens (searching, analyzing, deciding, acting) in a loop driven by the model's reasoning. A research task might involve many searches; a booking might require search, comparison, and confirmation steps.
+
+Tool use is the capability. Agency is the pattern that uses it across many steps.
+
+→ [How agents work](/agents)
+
+</Question>
+
+**Common tool categories**
+
+**Information retrieval**:
+- Web search
+- Database queries
+- Document retrieval (RAG)
+- API calls to external services
+
+**Computation**:
+- Calculator
+- Code execution (Python, JavaScript)
+- Spreadsheet operations
+
+**Actions**:
+- File creation/modification
+- Email sending
+- Calendar management
+- System commands
+
+**Specialized**:
+- Image generation
+- Data visualization
+- Translation services
+
+The power of tool use is extensibility. New tools can be added without retraining the model.
+
+<Metaphor title="Hands for a brain">
+
+An LLM without tools is a brain in a jar: immensely capable of thinking but unable to perceive or act on the world.
+
+Tools are like giving it hands and eyes. Suddenly it can reach out, touch the world, bring information back, make changes. The thinking was always there; tools provide the interface.
+
+The brain still does the thinking. Tools just execute what it decides to do. The model reasons about what tool to use, what parameters to pass, how to interpret results. Tools are extensions, not replacements, of the model's cognition.
+
+</Metaphor>
+
+<TryThis>
+
+Ask an LLM with web search a question about something that happened after its training cutoff (like recent news). Watch it decide to search, retrieve results, and synthesize an answer. Then ask the same question to a model without search capability. The difference demonstrates what tools enable.
+
+</TryThis>
+
+<DiagramPlaceholder
+  toyId="tool-flow"
+  title="Interactive Tool Flow"
+  description="Step through the tool use cycle and see each stage in action"
+  icon="🔧"
+/>
+
+**Trust and verification**
+
+Tools give LLMs real power. This requires caution.
+
+If a model can execute code, it can potentially damage systems. If it can send emails, it can spam. If it can access databases, it can leak data.
+
+Tool use requires careful permission design. What tools are available? What are their scope limits? What requires human approval? These decisions shape the safety of the system.
+
+The model might also use tools incorrectly: wrong parameters, unnecessary calls, misinterpreted results. Tool outputs need validation just like any model output.
+
+<Sources>
+<Citation type="docs" title="Tool Use" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/tool-use" />
+<Citation type="paper" title="Toolformer: Language Models Can Teach Themselves to Use Tools" authors="Schick et al." source="Meta AI" url="https://arxiv.org/abs/2302.04761" year={2023} />
+<Citation type="article" title="Claude's tool use" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/tool-use" />
+</Sources>

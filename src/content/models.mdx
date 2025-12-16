@@ -1,0 +1,161 @@
+---
+id: models
+title: What is a model?
+summary: A model is a trained neural network, the actual artifact that processes your prompts and generates responses.
+category: Ecosystem
+order: 1
+prerequisites:
+  - intro
+  - parameters
+  - training
+children:
+  - open
+related:
+  - players
+  - hardware
+keywords:
+  - model
+  - GPT
+  - Claude
+  - Gemini
+  - Llama
+  - weights
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { ScaleComparison, BarChart } from '../app/components/diagrams/index.ts'
+
+**What exactly is a "model" in AI?**
+
+When people say "GPT-4" or "Claude" or "Llama," they're referring to a specific trained artifact: billions of numerical parameters arranged in a particular architecture, shaped by a particular training process.
+
+The model is the thing that actually does the work. It's not software in the traditional sense (not code that runs step-by-step), but a mathematical structure that transforms inputs into outputs through learned patterns.
+
+<Question title="What's inside a model file?">
+
+If you downloaded a model file (and for open models, you can), you'd find:
+
+- **Weights**: Billions of numbers representing learned patterns. These are the parameters adjusted during training.
+- **Architecture specification**: How those numbers are arranged and connected (layers, attention heads, dimensions).
+- **Tokenizer**: The vocabulary mapping words to numbers.
+- **Metadata**: Training configuration, version info, safety measures.
+
+A model like Llama 70B is about 140GB on disk: mostly just numbers, stored efficiently.
+
+</Question>
+
+**How do current models compare?**
+
+The frontier models (as of late 2025) include GPT-5.1, Claude 4 (Opus/Sonnet/Haiku), Gemini 2.0, and Llama 3.3. They differ in architecture, training data, and the values instilled during alignment. But they're more similar than different: all are Transformer-based, all trained on web-scale data, all refined through human feedback.
+
+GPT-5.1, released November 2025, introduced adaptive reasoning with "Instant" mode for quick responses and "Thinking" mode for complex tasks. 
+
+Anthropic's Claude 4.5 series rolled out over several months: Sonnet 4.5 (September 2025, "best coding model in the world"), Haiku 4.5 (October 2025, fastest and most cost-efficient), and Opus 4.5 (November 2025, most advanced with agentic abilities and enterprise focus). Opus 4.5 is described as Anthropic's most robustly aligned model, with improved resistance to prompt injections.
+
+Gemini 2.0 brings improved agentic capabilities and native multimodal understanding.
+
+<ScaleComparison
+  title="Approximate Model Sizes (Parameters)"
+  data={[
+    { label: 'GPT-3 (2020)', value: 175e9, color: 'var(--color-accent)' },
+    { label: 'Llama 3.3 70B', value: 70e9, color: '#6366f1' },
+    { label: 'Claude Sonnet 4.5', value: 200e9, annotation: '(estimated)', color: '#8b5cf6' },
+    { label: 'Llama 3.3 405B', value: 405e9, color: '#6366f1' },
+    { label: 'GPT-4 (MoE)', value: 1.8e12, annotation: '(estimated)', color: 'var(--color-accent)' },
+    { label: 'GPT-5.1', value: 2.5e12, annotation: '(rumored)', color: 'var(--color-accent-dark)' },
+  ]}
+  unit="parameters"
+  thresholds={[
+    { value: 100e9, label: 'Strong reasoning emerges', color: 'var(--color-accent-muted)' }
+  ]}
+  logarithmic={true}
+  ariaLabel="Bar chart comparing model sizes from 70 billion to 2.5 trillion parameters"
+/>
+
+<Expandable title="Why are parameter counts often secret or estimated?">
+
+Frontier labs like OpenAI and Anthropic don't publish exact parameter counts for their latest models. Reasons vary: competitive advantage, avoiding capability-focused marketing, or because parameter count alone is misleading.
+
+GPT-4 is rumored to be a "mixture of experts" (MoE) architecture with ~1.8 trillion parameters total, but only ~220 billion active for any given query. This makes direct comparison with dense models like Llama tricky.
+
+The industry has shifted from "biggest model wins" to more nuanced metrics: efficiency, reasoning capability, instruction following, and safety.
+
+</Expandable>
+
+**What actually differs between models?**
+
+<BarChart
+  title="Capability Comparison (Illustrative)"
+  data={[
+    { label: 'Coding', value: 85, color: '#6366f1' },
+    { label: 'Math', value: 80, color: '#8b5cf6' },
+    { label: 'Writing', value: 90, color: '#a855f7' },
+    { label: 'Reasoning', value: 82, color: '#d946ef' },
+    { label: 'Instruction Following', value: 88, color: '#ec4899' },
+  ]}
+  yLabel="Relative Score"
+  ariaLabel="Bar chart showing relative capability scores across different tasks"
+/>
+
+Beyond raw capability scores, models differ in personality:
+
+- **GPT-5.1** offers two modes: "Instant" for quick, conversational responses, and "Thinking" for complex reasoning tasks. The model adapts its reasoning depth to the problem.
+- **Claude 4.5** (Opus/Sonnet/Haiku) emphasizes nuance, safety, and coding excellence. Sonnet 4.5 claims "best coding model" status. Opus 4.5 leads in agentic tasks and enterprise features, including Microsoft Office integration. Haiku 4.5 offers near-frontier performance at dramatically lower cost.
+- **Gemini 2.0** integrates deeply with Google's ecosystem and excels at agentic tasks: autonomously planning and executing multi-step actions.
+- **Llama 3.3** is open-weights, meaning you can run it yourself, fine-tune it, and inspect it, with all the flexibility and responsibility that implies.
+
+<Recognition title="Different models, different voices">
+
+You've probably noticed that the same question asked to different models yields different "voices." That's not just about training data. Each lab has made deliberate choices about how their model should communicate, what it should refuse, and how it should handle ambiguity.
+
+</Recognition>
+
+**What is a "model family"?**
+
+A single training run produces one base model, but labs release multiple sizes and variants:
+
+- **Size variants**: Llama 3.3 comes in 8B, 70B, and 405B versions. Smaller models are faster and cheaper; larger ones are more capable.
+- **Instruct/Chat variants**: Base models just predict text. Instruct variants are fine-tuned to follow instructions and have conversations.
+- **Reasoning variants**: Models like GPT-5.1's "Thinking" mode are optimized for complex, multi-step reasoning over speed.
+- **Specialized variants**: Code models, vision models, long-context models, each optimized for specific use cases.
+
+The base model is rarely what you interact with. ChatGPT uses an instruct-tuned, safety-aligned variant of GPT-5.1, not the raw base model.
+
+<Question title="Can I run these models myself?">
+
+For open models (Llama 3.3, Mistral, Qwen), yes. You need:
+
+- **Hardware**: A Llama 70B model needs ~140GB of memory just to load. High-end consumer GPUs have 24GB. You'd need multiple GPUs, a cloud instance, or use quantization (trading quality for size).
+- **Software**: Tools like llama.cpp, Ollama, or vLLM handle the technical details of loading and running models.
+- **Patience**: Even with good hardware, inference is slower than API calls to optimized cloud infrastructure.
+
+For closed models (GPT-5.1, Claude 4), you interact through APIs. The model runs on the provider's hardware.
+
+→ [Open vs. Closed Models](/open)
+
+</Question>
+
+<TryThis>
+
+Ask the same question to ChatGPT and Claude: something that requires reasoning, like "What's wrong with this code?" or "Help me think through a decision." Notice how they differ in tone, structure, and what they emphasize. Neither is "better"; they reflect different design choices.
+
+</TryThis>
+
+**How do models improve over time?**
+
+New model releases typically improve through:
+
+1. **More data**: Larger and higher-quality training corpora.
+2. **Better architecture**: Attention improvements, longer context, more efficient computation.
+3. **Refined alignment**: Better instruction following, fewer harmful outputs, more helpful responses.
+4. **Post-training improvements**: RLHF, constitutional AI, and other techniques that shape behavior after initial training.
+
+A model isn't a static artifact. Even without retraining, providers continuously improve the systems around it: better prompts, retrieval augmentation, and safety filters.
+
+<Sources>
+<Citation type="article" title="GPT-5.1 in ChatGPT" source="OpenAI" url="https://help.openai.com/en/articles/11909943-gpt-5-1-in-chatgpt" year={2025} />
+<Citation type="article" title="Claude Opus 4.5" source="Anthropic" url="https://www.anthropic.com/news/claude-opus-4-5" year={2025} />
+<Citation type="article" title="Introducing Llama 3.3" source="Meta AI" url="https://ai.meta.com/blog/meta-llama-3/" year={2025} />
+<Citation type="article" title="Gemini 2.0" source="Google DeepMind" url="https://deepmind.google/technologies/gemini/" year={2025} />
+</Sources>
+

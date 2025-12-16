@@ -5,13 +5,27 @@
  * Used by both dev server and build script to ensure consistency.
  */
 
-import type { NodeMeta } from './node-metadata.ts';
+import type { ContentMeta } from './content.ts';
+
+// Alias for backwards compatibility
+type NodeMeta = ContentMeta;
+
+/**
+ * Generate a short hash from content (for cache busting)
+ */
+export function contentHash(content: string): string {
+  const hasher = new Bun.CryptoHasher('sha256');
+  hasher.update(content);
+  return hasher.digest('hex').slice(0, 8);
+}
 
 export interface HtmlTemplateOptions {
   /** Node metadata */
   meta: NodeMeta;
   /** Pre-rendered HTML content (SSR) */
   contentHtml?: string;
+  /** SSR-generated Griffel style elements (HTML string with data attributes for rehydration) */
+  ssrStyleElements?: string;
   /** Base URL for canonical links */
   baseUrl?: string;
   /** Path to the main JS bundle (for production) */
@@ -20,6 +34,10 @@ export interface HtmlTemplateOptions {
   cssPath?: string;
   /** Whether this is a dev build */
   isDev?: boolean;
+  /** All content metadata (injected for client-side navigation) */
+  allContentMeta?: Record<string, ContentMeta>;
+  /** All content IDs in order */
+  allContentIds?: string[];
 }
 
 const defaultMeta: NodeMeta = {
@@ -35,10 +53,13 @@ export function generateHtml(options: HtmlTemplateOptions): string {
   const {
     meta = defaultMeta,
     contentHtml = '',
+    ssrStyleElements = '',
     baseUrl = 'https://ai.ameriwether.com',
     jsPath,
     cssPath = '/styles',
     isDev = false,
+    allContentMeta = {},
+    allContentIds = [],
   } = options;
   
   const title = meta.title || defaultMeta.title;
@@ -56,24 +77,8 @@ export function generateHtml(options: HtmlTemplateOptions): string {
   // Both dev and prod use the same hashed path format for parity
   const scriptSrc = jsPath || '/main.js';
   
-  // Loading state - shown until JS hydrates
-  const loadingState = `
-    <div class="loading-state" aria-hidden="true">
-      <div class="loading-spinner"></div>
-      <p>Loading interactive features...</p>
-    </div>`;
-  
-  // Pre-rendered content wrapper
-  const ssrContent = contentHtml ? `
-    <article class="content-node content-node--ssr" data-node-id="${escapeHtml(nodeId)}">
-      <header class="content-node__header">
-        <h1 class="content-node__title">${escapeHtml(title)}</h1>
-        ${description ? `<p class="content-node__summary">${escapeHtml(description)}</p>` : ''}
-      </header>
-      <div class="content-node__body">
-        ${contentHtml}
-      </div>
-    </article>` : loadingState;
+  // contentHtml is now the full pre-rendered App component
+  // It includes the shell, header, main content, footer, etc.
   
   return `<!DOCTYPE html>
 <html lang="en">
@@ -109,47 +114,35 @@ export function generateHtml(options: HtmlTemplateOptions): string {
   <link rel="stylesheet" href="${cssPath}/components.css">
   <link rel="stylesheet" href="${cssPath}/themes.css">
   <link rel="stylesheet" href="${cssPath}/theme-main.css">
+  ${ssrStyleElements ? `
+  <!-- SSR-generated Griffel styles (with data attributes for rehydration) -->
+  ${ssrStyleElements}` : ''}
 </head>
 <body>
-  <div id="app" data-initial-node="${escapeHtml(nodeId)}">
-    <!-- Pre-rendered content for SEO -->
-    <noscript>
-      <div class="no-js-content">
-        <header class="app-header">
-          <div class="app-header__inner">
-            <span class="app-logo">Understanding Frontier AI</span>
-          </div>
-        </header>
-        <main class="app-main">
-          <div class="content-width">
-            <article class="content-node">
-              <header class="content-node__header">
-                <h1 class="content-node__title">${escapeHtml(title)}</h1>
-                ${description ? `<p class="content-node__summary">${escapeHtml(description)}</p>` : ''}
-              </header>
-              <div class="content-node__body">
-                ${contentHtml || '<p>This interactive explainer requires JavaScript for full functionality.</p>'}
-              </div>
-            </article>
-          </div>
-        </main>
-      </div>
-    </noscript>
-    
-    <!-- SSR content - will be hydrated by JS -->
-    <div class="ssr-shell" data-ssr="true">
+  <!-- Noscript fallback -->
+  <noscript>
+    <div class="no-js-content">
       <header class="app-header">
         <div class="app-header__inner">
-          <a href="/" class="app-logo">Understanding Frontier AI</a>
+          <span class="app-logo">Understanding Frontier AI</span>
         </div>
       </header>
       <main class="app-main">
-        <div class="content-width">
-          ${ssrContent}
-        </div>
+        <p>This interactive explainer requires JavaScript for full functionality.</p>
       </main>
     </div>
+  </noscript>
+  
+  <!-- SSR-rendered App - hydrated by client JS -->
+  <div id="app" data-initial-node="${escapeHtml(nodeId)}">
+    ${contentHtml}
   </div>
+  
+  <!-- Inject content metadata for client-side navigation -->
+  <script>
+    window.__CONTENT_META__ = ${JSON.stringify(allContentMeta)};
+    window.__CONTENT_IDS__ = ${JSON.stringify(allContentIds)};
+  </script>
   
   <script type="module" src="${scriptSrc}"></script>
 </body>
@@ -159,7 +152,7 @@ export function generateHtml(options: HtmlTemplateOptions): string {
 /**
  * Escape HTML special characters
  */
-function escapeHtml(str: string): string {
+export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -172,7 +165,7 @@ function escapeHtml(str: string): string {
  * Generate HTML for the index page
  */
 export function generateIndexHtml(options: Omit<HtmlTemplateOptions, 'meta'> & { nodes?: NodeMeta[] }): string {
-  const { nodes = [], ...rest } = options;
+  const { nodes = [], allContentMeta, allContentIds, ...rest } = options;
   
   // Group nodes by category
   const categories = new Map<string, NodeMeta[]>();
@@ -219,5 +212,7 @@ export function generateIndexHtml(options: Omit<HtmlTemplateOptions, 'meta'> & {
       summary: 'A complete listing of all topics in this AI explainer, organized by category.',
     },
     contentHtml: indexContent,
+    allContentMeta,
+    allContentIds,
   });
 }

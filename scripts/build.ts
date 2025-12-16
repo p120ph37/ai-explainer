@@ -10,6 +10,7 @@
  */
 
 import mdxPlugin from '../src/plugins/mdx-plugin.ts';
+import contentPlugin from '../src/plugins/content-plugin.ts';
 import { mkdir } from 'fs/promises';
 import { renderMdxContent, getNodeMeta } from '../src/lib/ssr.tsx';
 import { generateHtml, generateIndexHtml } from '../src/lib/html-template.ts';
@@ -28,7 +29,7 @@ const jsResult = await Bun.build({
   outdir: './dist',
   minify: true,
   splitting: true,
-  plugins: [mdxPlugin],
+  plugins: [mdxPlugin, contentPlugin],
   target: 'browser',
   naming: {
     entry: '[name].[hash].js',

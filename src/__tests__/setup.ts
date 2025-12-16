@@ -3,6 +3,8 @@
  * 
  * This provides a real DOM environment for testing components,
  * hooks, and DOM manipulation without needing a browser.
+ * 
+ * Note: Plugins are registered in preload-plugins.ts which runs first.
  */
 
 import { Window } from 'happy-dom';

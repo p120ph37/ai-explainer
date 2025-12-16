@@ -10,11 +10,13 @@
  */
 
 import { writeFileSync, unlinkSync, existsSync, readFileSync } from 'fs';
-import { renderMdxContent, renderMarkdownContent, getNodeMeta, clearCache } from '../lib/ssr.tsx';
-import { generateHtml, generateIndexHtml } from '../lib/html-template.ts';
-import { getAllNodeIds, isValidNode, getContentPath } from '../lib/node-metadata.ts';
+import { renderAppToString, renderMarkdownContent, getNodeMeta, clearCache } from '../lib/ssr.tsx';
+import { generateHtml, generateIndexHtml, escapeHtml, contentHash } from '../lib/html-template.ts';
+import { discoverContent, contentExists, getContentPath } from '../lib/content.ts';
 import mdxPlugin from '../plugins/mdx-plugin.ts';
 import variantsPlugin from '../plugins/variants-plugin.ts';
+import preactAliasPlugin from '../plugins/preact-alias-plugin.ts';
+import griffelPlugin from '../plugins/griffel-plugin.ts';
 import {
   loadNotes,
   saveNotes,
@@ -55,15 +57,6 @@ let jsBundle: { code: string; hash: string } | null = null;
 let jsBundleTime = 0;
 
 /**
- * Generate a short hash from content
- */
-function contentHash(content: string): string {
-  const hasher = new Bun.CryptoHasher('md5');
-  hasher.update(content);
-  return hasher.digest('hex').slice(0, 8);
-}
-
-/**
  * Build and cache the JS bundle (with editorial mode flag)
  */
 async function getJsBundle(): Promise<{ code: string; hash: string }> {
@@ -77,7 +70,7 @@ async function getJsBundle(): Promise<{ code: string; hash: string }> {
     outdir: './dist',
     minify: false,
     splitting: false,
-    plugins: [mdxPlugin, variantsPlugin],
+    plugins: [preactAliasPlugin, griffelPlugin, mdxPlugin, variantsPlugin],
     target: 'browser',
     define: {
       'process.env.NODE_ENV': '"development"',
@@ -185,16 +178,6 @@ function generateVariantHtml(options: {
 </html>`;
 }
 
-/**
- * Escape HTML special characters for variant pages
- */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 /**
  * Generate HTML with editorial mode enabled
@@ -204,6 +187,8 @@ function generateEditorialHtml(options: {
   contentHtml?: string;
   jsPath: string;
   cssPath: string;
+  allContentMeta?: Record<string, any>;
+  allContentIds?: string[];
 }): string {
   // Get base HTML and inject editorial assets
   const baseHtml = generateHtml({
@@ -473,21 +458,27 @@ const server = Bun.serve({
     const bundle = await getJsBundle();
     const jsPath = `/main.${bundle.hash}.js`;
     
+    // Discover all content for client-side navigation
+    const allContent = await discoverContent();
+    const allContentMeta: Record<string, any> = {};
+    const allContentIds: string[] = [];
+    for (const c of allContent) {
+      allContentMeta[c.id] = c.meta;
+      allContentIds.push(c.id);
+    }
+    
     // Handle content routes
     const nodeId = pathname === '/' ? 'intro' : pathname.slice(1).split('/')[0];
     
     // Special case: index page
     if (nodeId === 'index') {
-      const allMetas = await Promise.all(
-        getAllNodeIds().map(id => getNodeMeta(id))
-      );
-      const validMetas = allMetas.filter(Boolean) as NonNullable<typeof allMetas[0]>[];
-      
       const html = generateIndexHtml({
-        nodes: validMetas,
+        nodes: allContent.map(c => c.meta),
         jsPath,
         cssPath: '/styles',
         isDev: false,
+        allContentMeta,
+        allContentIds,
       });
       
       // Inject editorial mode
@@ -502,7 +493,7 @@ const server = Bun.serve({
     }
     
     // Check if it's a valid node
-    if (!isValidNode(nodeId)) {
+    if (!(await contentExists(nodeId))) {
       return new Response('Not found', { status: 404 });
     }
     
@@ -553,8 +544,8 @@ const server = Bun.serve({
       }
     }
     
-    // Render the content node with SSR
-    const rendered = await renderMdxContent(nodeId);
+    // Render the full app with SSR
+    const rendered = await renderAppToString(nodeId);
     
     if (!rendered) {
       const meta = await getNodeMeta(nodeId);
@@ -562,6 +553,8 @@ const server = Bun.serve({
         meta: meta || { id: nodeId, title: nodeId, summary: '' },
         jsPath,
         cssPath: '/styles',
+        allContentMeta,
+        allContentIds,
       });
       
       return new Response(html, {
@@ -575,6 +568,8 @@ const server = Bun.serve({
       contentHtml: rendered.html,
       jsPath,
       cssPath: '/styles',
+      allContentMeta,
+      allContentIds,
     });
     
     return new Response(html, {

@@ -1,0 +1,211 @@
+---
+id: inference
+title: "How does text generation actually happen?"
+summary: When you hit send, the model runs a forward pass to predict the next token, samples one, appends it, and repeats. This loop generates entire responses token by token.
+category: Foundations
+order: 13
+prerequisites:
+  - neural-network
+  - tokens
+children: []
+related:
+  - temperature
+  - context-window
+keywords:
+  - inference
+  - generation
+  - autoregressive
+  - forward pass
+  - KV cache
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { FlowDiagram, DiagramPlaceholder } from '../app/components/diagrams/index.ts'
+
+**What happens in the milliseconds after you press send?**
+
+Your prompt is tokenized, breaking text into token IDs. These IDs become embeddings: vectors of numbers. The embeddings flow through the neural network, layer by layer. At the end, the model outputs probabilities for every possible next token.
+
+One token is selected from those probabilities. It's appended to the sequence. The whole process repeats with this slightly longer sequence. Token by token, the response emerges.
+
+This is **inference**: running the model to produce output. Training taught the model what to predict. Inference is prediction happening in real-time.
+
+<Metaphor title="A river carving its own path">
+
+Generation is like a river carving its own path. Each token is a drop of water that, once placed, shapes where the next drop can go. The model doesn't plan the entire river course in advance. It places each drop based on the terrain so far.
+
+This is why generation can go wrong and can't easily recover. A misleading early token shapes all subsequent tokens. The river carved a path, and water doesn't flow uphill. If the model commits to "The answer is 42" in an early sentence, the rest of the response will likely justify 42, even if a different answer would be better.
+
+</Metaphor>
+
+**The autoregressive loop**
+
+LLMs generate text **autoregressively**: each token depends on all previous tokens.
+
+<FlowDiagram
+  title="The Generation Loop"
+  steps={[
+    { id: '1', label: 'Tokenize Input', sublabel: 'Text → Token IDs', icon: '📝' },
+    { id: '2', label: 'Forward Pass', sublabel: 'Through all layers', icon: '🔄' },
+    { id: '3', label: 'Get Probabilities', sublabel: 'For next token', icon: '📊' },
+    { id: '4', label: 'Sample Token', sublabel: 'Based on temperature', icon: '🎲' },
+    { id: '5', label: 'Append & Repeat', sublabel: 'Until done', icon: '➡️' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing the autoregressive text generation loop"
+/>
+
+Each step requires a full forward pass through the network. A 500-token response requires 500 forward passes. This is why generation takes noticeable time.
+
+<Recognition title="Streaming is the loop made visible">
+
+When you see responses stream in word by word, you're watching the autoregressive loop in action. Each word appears after a forward pass completes. The model doesn't know what it will say next until it says it.
+
+Users notice that responses sometimes stream faster or slower. Longer prompts take longer to "think" about before streaming starts. That "thinking" animation is real computation: the first forward pass through the entire prompt before the first token can be generated.
+
+</Recognition>
+
+<Question title="If it can't go back and revise, how do good responses come out?">
+
+The model sometimes does paint itself into corners, making claims early it can't support later, or taking positions it "regrets." Strategies exist: chain-of-thought prompting lets it plan before committing; multiple candidate generations let you pick the best; and training includes patterns of recovery.
+
+But yes, the one-directional nature is a real constraint. This is why "chain of thought" prompting helps: by generating reasoning steps first, the model carves a river through reasoning territory before committing to conclusions.
+
+→ [Communicating Effectively with LLMs](/prompt-engineering)
+
+</Question>
+
+<Question title="What does 'forward pass' mean exactly?">
+
+Processing input through the network. Data enters at the input layer, flows through each layer in sequence (embedding → attention → feed-forward, repeated many times), and exits at the output layer. Each layer transforms the representation.
+
+"Forward" because data moves input → output. Training has a "backward pass" where errors flow output → input to compute gradients.
+
+→ [What is a Neural Network?](/neural-network)
+
+</Question>
+
+**Why is inference expensive?**
+
+Each forward pass involves massive matrix multiplications across billions of parameters. For a 70-billion parameter model, each token requires roughly 70 billion multiply-add operations.
+
+Multiply by sequence length. A 1000-token response means 70 trillion operations. This is why inference requires specialized hardware: GPUs or TPUs that can perform trillions of operations per second.
+
+<Question title="The numbers sound enormous. How does this translate to hardware?">
+
+Data center scale. Frontier models serve from clusters of thousands of GPUs (costing $20K-$40K each). These aren't gaming GPUs. They're specialized AI accelerators (NVIDIA A100, H100) with massive memory bandwidth. Large providers operate multiple data centers worldwide.
+
+Your API call routes to whatever capacity is available. It's industrial infrastructure.
+
+</Question>
+
+**The KV cache optimization**
+
+Here's a key insight: in autoregressive generation, most of the computation is repeated. When generating token 501, you recompute attention for tokens 1-500, even though nothing about them changed.
+
+The **KV cache** stores the key and value vectors from previous tokens. On each new step, you only compute the new token and look up cached values for previous tokens. This dramatically speeds up generation.
+
+<Question title="Why is the KV cache so important?">
+
+Without caching, generating token 500 requires recomputing tokens 1-499's representations from scratch, then doing it again for token 501. The cache stores previous computations, making each step incremental.
+
+The speedup is dramatic: what would be O(n²) becomes O(n) for the sequential generation case. The tradeoff: the cache consumes memory. Long contexts with large caches can exhaust GPU memory.
+
+→ [How Does Attention Work?](/attention)
+
+</Question>
+
+<Question title="What's the difference between latency and throughput?">
+
+**Latency**: Time to generate one response. How long you wait.
+
+**Throughput**: Tokens generated per second across all users. Total capacity.
+
+They often trade off. Batching multiple requests together improves throughput (GPU stays busy) but may increase latency (your request waits for others).
+
+Providers tune this balance. Interactive applications prioritize latency. Batch processing prioritizes throughput.
+
+</Question>
+
+<Expandable title="Batching and parallelism">
+
+A single request doesn't fully utilize a modern GPU. The solution: process multiple requests simultaneously.
+
+**Batching**: Group requests together, process them in parallel through the same model. More efficient hardware utilization.
+
+**Continuous batching**: As some requests finish, new ones join the batch dynamically. Keeps the GPU constantly busy.
+
+**Speculative decoding**: Use a small, fast model to predict several tokens, then verify with the large model in one pass. Can speed up generation significantly.
+
+These optimizations are why API inference is cheaper than running your own GPU: providers achieve efficiency through scale and engineering.
+
+</Expandable>
+
+**What determines inference speed?**
+
+Key factors:
+
+- **Model size**: More parameters means more computation per token
+- **Context length**: Longer contexts mean more attention computation (quadratic scaling)
+- **Hardware**: GPU memory, compute speed, interconnect bandwidth
+- **Optimization**: KV cache, quantization, batching efficiency
+- **Sampling**: How tokens are selected (simple greedy vs complex sampling)
+
+Smaller models (7B vs 70B parameters) generate much faster but may produce lower quality. Quantized models (reduced precision) trade some quality for speed. The right balance depends on use case.
+
+<Question title="Does a longer prompt take longer to process?">
+
+Yes. The initial forward pass (processing your entire prompt) takes longer with more tokens. Then each generated token has attention cost scaling with total context length.
+
+Long prompts mean slower responses, higher costs, and faster context exhaustion. Prompt economy matters for performance, not just budget.
+
+→ [The Context Window](/context-window)
+
+</Question>
+
+<TryThis>
+
+Watch response streaming carefully. Notice the speed: how many tokens per second? Try different providers or models and compare. Count words in a response and note the total time. You're measuring inference efficiency directly.
+
+Click "regenerate" and notice you get a different response: same prompt, different sampling from the probability distribution. Regenerating costs the same compute as the original.
+
+</TryThis>
+
+<DiagramPlaceholder
+  toyId="token-probabilities"
+  title="Token Probability Viewer"
+  description="See the probability distribution over candidate tokens at each generation step"
+  icon="📊"
+/>
+
+**Inference vs training**
+
+Training is much more expensive than inference because:
+
+- Training computes gradients (backward pass) in addition to predictions (forward pass)
+- Training processes the entire dataset many times (epochs)
+- Training updates parameters, requiring memory for optimizer states
+
+A single inference query costs a tiny fraction of what training cost. But inference scales with users: millions of queries add up. Inference cost is the ongoing expense; training cost is the upfront investment.
+
+**The economics of inference**
+
+Running inference at scale requires substantial infrastructure. A single H100 GPU costs around $30,000 and can serve maybe tens of queries per second for a large model. Serving millions of users requires thousands of GPUs.
+
+<Question title="If inference is so expensive, why are API prices dropping?">
+
+Hardware improvements, better algorithms, and scale economics. Newer GPUs are more efficient. Techniques like quantization reduce precision with minimal quality loss, cutting compute per token. Distillation creates smaller models that approximate larger ones.
+
+Serving millions of requests spreads infrastructure costs. All these compound to reduce per-query costs over time.
+
+→ [What are Parameters?](/parameters)
+
+</Question>
+
+This is why API pricing matters. Providers balance hardware costs, cooling, staff, and profit margins to set per-token prices. Cheaper inference comes from efficiency gains: better hardware, smarter batching, model optimizations.
+
+<Sources>
+<Citation type="video" title="Let's build GPT: from scratch, in code" source="Andrej Karpathy" url="https://www.youtube.com/watch?v=kCc8FmEb1nY" year={2023} />
+<Citation type="paper" title="Fast Inference from Transformers via Speculative Decoding" authors="Leviathan et al." source="Google" url="https://arxiv.org/abs/2211.17192" year={2022} />
+<Citation type="article" title="Large Language Model Inference" source="Hugging Face" url="https://huggingface.co/docs/transformers/llm_tutorial" />
+</Sources>

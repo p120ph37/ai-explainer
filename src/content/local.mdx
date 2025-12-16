@@ -1,0 +1,221 @@
+---
+id: local
+title: "Can you run AI locally?"
+summary: Local models run on your hardware, offering privacy and no per-query cost. But they're fundamentally less capable than cloud frontier models, and optimizations can't close that gap.
+category: Ecosystem
+order: 5
+prerequisites:
+  - intro
+  - parameters
+  - optimization
+  - scale
+children: []
+related:
+  - optimization
+  - scale
+  - hardware
+  - open
+  - cutoff
+keywords:
+  - local models
+  - Llama
+  - Ollama
+  - private AI
+  - on-device
+  - edge AI
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+
+**Why can't I just run GPT-4 on my laptop?**
+
+You can run AI locally. Excellent open models work on consumer hardware. But here's the uncomfortable truth: **local models are not frontier models made portable. They're fundamentally smaller, less capable models, and that gap cannot be closed by optimization alone.**
+
+Understanding why requires understanding what makes frontier models expensive to run.
+
+**The scale problem**
+
+Frontier models are enormous:
+
+| Model | Parameters | Memory (FP16) | Hardware |
+|-------|-----------|---------------|----------|
+| GPT-4 (est.) | ~1.7T MoE | ~400GB+ | Data center clusters |
+| Claude 3 Opus | Unknown | Massive | Cloud infrastructure |
+| Llama 3 70B | 70B | ~140GB | 2-4 high-end GPUs |
+| Local-friendly | 7-13B | 14-26GB | Single consumer GPU |
+
+A model with 1 trillion parameters literally cannot fit in a laptop's memory. This isn't a software limitation. It's physics.
+
+<Recognition title="Local vs frontier models">
+
+You've noticed this if you've compared ChatGPT or Claude to local models. The difference isn't latency or polish. It's capability. Complex reasoning, broad knowledge, nuanced understanding: frontier models simply do things local models can't.
+
+</Recognition>
+
+**Why optimization can't close the gap**
+
+"But wait," you might think, "can't we optimize frontier models to run locally?" Here's why that doesn't work:
+
+**1. Cloud providers already optimize aggressively**
+
+OpenAI, Anthropic, and Google aren't running naive, unoptimized code. They use:
+- Quantization (serving at INT8 or INT4)
+- Optimized inference kernels
+- Custom hardware (TPUs, specialized GPUs)
+- Sophisticated batching and caching
+- Every trick in the book
+
+If there were a way to run their models cheaply, they'd already be using it. Their costs would drop. The fact that they need massive infrastructure tells you: **there's no hidden efficiency to unlock.**
+
+**2. Optimizations have costs**
+
+Every optimization technique trades capability for efficiency:
+
+- **Quantization** reduces precision → subtle degradation
+- **Distillation** compresses knowledge → capability loss
+- **Pruning** removes weights → reduced capacity
+
+You can't compress 1 trillion parameters into 7 billion and keep the same capability. Information is lost. The small model is a lossy approximation of the large one.
+
+**3. Scale IS the capability**
+
+Scaling laws are clear: capability comes from parameters, data, and compute. A 7B model cannot match a 70B model because it has 10× fewer parameters to encode patterns.
+
+This isn't a temporary gap that better software will fix. It's fundamental to how neural networks work.
+
+<Question title="So what ARE local models?">
+
+Local models are either:
+
+**Smaller original models**: Trained from scratch at a practical size. Llama 3 8B, Mistral 7B, Phi-3. Capable for their size but designed with limits in mind.
+
+**Distilled versions**: Smaller models trained to mimic larger ones. Capture the teacher's behavior on common cases but miss the full range.
+
+**Quantized versions**: Full models (like Llama 70B) compressed to lower precision. Fit on less hardware but with quality degradation.
+
+Each is a **trade-off**, not a free lunch. You get local execution, privacy, and no per-query cost. You give up frontier-level capability.
+
+</Question>
+
+**The qualitative gap**
+
+Local models aren't just "slightly worse." For certain tasks, they're **categorically different**:
+
+- **Complex reasoning**: Frontier models can chain multi-step logic; local models lose the thread
+- **Rare knowledge**: Local models hallucinate more on niche topics
+- **Instruction following**: Subtle nuances get missed
+- **Long context**: Smaller models degrade faster with length
+- **Emergent capabilities**: Some abilities only exist at scale
+
+A 7B model is not a 70B model that runs slower. It's a different, less capable model.
+
+<Expandable title="What local models ARE good at">
+
+Despite limitations, local models excel in specific scenarios:
+
+**Privacy-sensitive tasks**: Medical notes, legal documents, personal data. Nothing ever leaves your device.
+
+**High-volume simple tasks**: Summarization, classification, extraction. Tasks where you'd pay too much for API calls.
+
+**Offline environments**: No internet? No problem.
+
+**Customization**: Fine-tune freely for your domain without API restrictions.
+
+**Latency-critical**: No network round-trip.
+
+**Experimentation**: Learn and tinker without cost concerns.
+
+The key is matching the model to the task. Don't use local models for tasks requiring frontier capability; don't use expensive APIs for simple tasks.
+
+</Expandable>
+
+**The hardware landscape**
+
+What can run what:
+
+**High-end consumer GPU (24GB VRAM)**:
+- 7B-13B models at full precision
+- Up to 30B models at INT4
+- Good for serious local use
+
+**Standard gaming GPU (8-12GB VRAM)**:
+- 7B models at INT8
+- Limited capabilities
+
+**CPU-only (no GPU)**:
+- Very slow inference
+- 7B models possible but frustrating
+- Quantization essential
+
+**Apple Silicon (M1/M2/M3)**:
+- Unified memory helps
+- 7B-13B models run well
+- Surprising local capability for the form factor
+
+**Phones and edge devices**:
+- Sub-7B models only
+- Very constrained
+
+<Metaphor title="Cars and planes">
+
+Local models vs. frontier models is like cars vs. planes.
+
+A car is fantastic: goes anywhere, works offline, you own it, costs are fixed. But it's not a plane. You can't optimize a car into crossing oceans. They're fundamentally different capabilities.
+
+Planes require airports, massive infrastructure, and per-trip costs. But they cross continents in hours.
+
+Use cars for driving. Use planes for flying. Don't expect your car to reach the same destinations as a plane, no matter how you tune it.
+
+</Metaphor>
+
+**Running local models in practice**
+
+Popular tools for local deployment:
+
+- **Ollama**: Simple CLI and API for running models locally
+- **LM Studio**: GUI for exploring and running models
+- **llama.cpp**: Efficient C++ inference, runs anywhere
+- **vLLM**: High-performance serving for larger setups
+- **text-generation-webui**: Feature-rich web interface
+
+Most use quantized models (GGUF format) for memory efficiency.
+
+<TryThis>
+
+Install Ollama and download a 7B model (like Llama 3 8B or Mistral 7B). Try it on tasks where local shines: quick text processing, private document Q&A, offline chat. Then try complex reasoning or obscure knowledge. Notice where it falls short. That's the trade-off in action.
+
+</TryThis>
+
+**The practical choice**
+
+When to use local:
+- Privacy is paramount
+- Simple, high-volume tasks
+- Offline requirements
+- Fixed cost budget
+- Learning and experimentation
+
+When to use API/cloud:
+- Frontier capability needed
+- Complex reasoning
+- Rare knowledge required
+- Occasional, high-value queries
+- Latest models
+
+Many workflows use both: local for routine work, API calls for the hard parts. The choice isn't ideological. It's practical.
+
+**The future**
+
+The gap between local and frontier may shrink through:
+- More efficient architectures
+- Better distillation techniques
+- Improved hardware (faster, more memory)
+- Specialized models that excel in narrow domains
+
+But as local models improve, so do frontier models. The frontier keeps moving. Local will always offer a trade-off: accessibility and privacy in exchange for capability.
+
+<Sources>
+<Citation type="docs" title="Ollama" source="Ollama" url="https://ollama.com" />
+<Citation type="docs" title="llama.cpp" source="GitHub" url="https://github.com/ggerganov/llama.cpp" />
+<Citation type="article" title="Running LLMs Locally" source="Hugging Face" url="https://huggingface.co/blog" />
+</Sources>

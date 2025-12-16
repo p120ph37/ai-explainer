@@ -5,14 +5,17 @@
  * - Server-side rendered (SSR) content for SEO
  * - Clean URLs (/tokens serves tokens content)
  * - Hashed JS bundles (matching production layout)
- * - Per-page HTML identical to production build
+ * - File-based routing (src/content/{id}.mdx → /{id})
+ * - Hot reload support
  */
 
 import { writeFileSync, unlinkSync } from 'fs';
-import { renderMdxContent, getNodeMeta, clearCache } from './lib/ssr.tsx';
-import { generateHtml, generateIndexHtml } from './lib/html-template.ts';
-import { getAllNodeIds, isValidNode } from './lib/node-metadata.ts';
+import { renderAppToString, getNodeMeta, clearCache } from './lib/ssr.tsx';
+import { generateHtml, generateIndexHtml, contentHash } from './lib/html-template.ts';
+import { discoverContent, contentExists, clearContentCache } from './lib/content.ts';
 import mdxPlugin from './plugins/mdx-plugin.ts';
+import preactAliasPlugin from './plugins/preact-alias-plugin.ts';
+import griffelPlugin from './plugins/griffel-plugin.ts';
 
 const PID_FILE = '.dev.pid';
 
@@ -24,35 +27,26 @@ try {
 }
 
 // JS bundle state
-let jsBundle: { code: string; hash: string } | null = null;
-let jsBundleTime = 0;
+// Bundle cache: maps filename to code
+let bundleCache: Map<string, string> = new Map();
+let mainBundleHash = '';
+let bundleTime = 0;
 
 /**
- * Generate a short hash from content
+ * Build and cache all JS bundles (main + chunks)
  */
-function contentHash(content: string): string {
-  const hasher = new Bun.CryptoHasher('md5');
-  hasher.update(content);
-  return hasher.digest('hex').slice(0, 8);
-}
-
-/**
- * Build and cache the JS bundle
- */
-async function getJsBundle(): Promise<{ code: string; hash: string }> {
-  // Check if we need to rebuild (simple time-based check)
+async function buildBundles(): Promise<string> {
   const now = Date.now();
-  if (jsBundle && (now - jsBundleTime) < 1000) {
-    return jsBundle;
+  if (bundleCache.size > 0 && (now - bundleTime) < 1000) {
+    return mainBundleHash;
   }
   
-  // Rebuild
   const result = await Bun.build({
     entrypoints: ['./src/app/main.tsx'],
     outdir: './dist',
     minify: false,
     splitting: false,
-    plugins: [mdxPlugin],
+    plugins: [preactAliasPlugin, griffelPlugin, mdxPlugin],
     target: 'browser',
     define: {
       'process.env.NODE_ENV': '"development"',
@@ -61,25 +55,36 @@ async function getJsBundle(): Promise<{ code: string; hash: string }> {
   
   if (!result.success) {
     console.error('JS build failed:', result.logs);
-    const fallback = '// Build failed\nconsole.error("JS build failed");';
-    return { code: fallback, hash: 'error' };
+    return 'error';
   }
   
-  const output = result.outputs.find(o => o.path.endsWith('.js'));
-  if (!output) {
-    const fallback = '// No output found';
-    return { code: fallback, hash: 'empty' };
+  // Cache all outputs
+  bundleCache.clear();
+  for (const output of result.outputs) {
+    const filename = output.path.split('/').pop()!;
+    const code = await output.text();
+    bundleCache.set(filename, code);
   }
   
-  const code = await output.text();
-  const hash = contentHash(code);
+  // Find main entry and compute hash
+  const mainOutput = result.outputs.find(o => o.path.includes('main'));
+  if (mainOutput) {
+    const mainCode = await mainOutput.text();
+    mainBundleHash = contentHash(mainCode);
+  }
   
-  jsBundle = { code, hash };
-  jsBundleTime = now;
+  bundleTime = now;
+  console.log(`📦 JS bundles rebuilt: ${result.outputs.length} files, main.${mainBundleHash}.js`);
   
-  console.log(`📦 JS bundle rebuilt: main.${hash}.js`);
-  
-  return jsBundle;
+  return mainBundleHash;
+}
+
+/**
+ * Get a bundle file by name
+ */
+async function getBundle(filename: string): Promise<string | null> {
+  await buildBundles();
+  return bundleCache.get(filename) || null;
 }
 
 const server = Bun.serve({
@@ -89,17 +94,34 @@ const server = Bun.serve({
     const url = new URL(req.url);
     const pathname = url.pathname;
     
-    // Serve the compiled JS bundle (matches /main.[hash].js pattern)
-    const jsMatch = pathname.match(/^\/main\.([a-f0-9]+)\.js$/);
-    if (jsMatch) {
-      const bundle = await getJsBundle();
-      // Verify hash matches (or serve anyway for dev convenience)
-      return new Response(bundle.code, {
-        headers: { 
-          'Content-Type': 'application/javascript',
-          'Cache-Control': 'no-cache',
-        },
-      });
+    // Serve JS bundles (main and chunks)
+    if (pathname.endsWith('.js')) {
+      const filename = pathname.slice(1); // Remove leading /
+      
+      // For main bundle with hash, strip the hash
+      const mainMatch = pathname.match(/^\/main\.([a-f0-9]+)\.js$/);
+      const lookupName = mainMatch ? 'main.js' : filename;
+      
+      const code = await getBundle(lookupName);
+      if (code) {
+        return new Response(code, {
+          headers: { 
+            'Content-Type': 'application/javascript',
+            'Cache-Control': 'no-cache',
+          },
+        });
+      }
+      
+      // Try direct lookup for chunk files
+      const chunkCode = await getBundle(filename);
+      if (chunkCode) {
+        return new Response(chunkCode, {
+          headers: { 
+            'Content-Type': 'application/javascript',
+            'Cache-Control': 'no-cache',
+          },
+        });
+      }
     }
     
     // Serve static CSS files
@@ -114,24 +136,30 @@ const server = Bun.serve({
     }
     
     // Get current JS bundle hash for HTML generation
-    const bundle = await getJsBundle();
-    const jsPath = `/main.${bundle.hash}.js`;
+    const hash = await buildBundles();
+    const jsPath = `/main.${hash}.js`;
+    
+    // Discover all content for client-side navigation
+    const allContent = await discoverContent();
+    const allContentMeta: Record<string, any> = {};
+    const allContentIds: string[] = [];
+    for (const c of allContent) {
+      allContentMeta[c.id] = c.meta;
+      allContentIds.push(c.id);
+    }
     
     // Handle content routes
     const nodeId = pathname === '/' ? 'intro' : pathname.slice(1).split('/')[0];
     
     // Special case: index page
     if (nodeId === 'index') {
-      const allMetas = await Promise.all(
-        getAllNodeIds().map(id => getNodeMeta(id))
-      );
-      const validMetas = allMetas.filter(Boolean) as NonNullable<typeof allMetas[0]>[];
-      
       const html = generateIndexHtml({
-        nodes: validMetas,
+        nodes: allContent.map(c => c.meta),
         jsPath,
         cssPath: '/styles',
-        isDev: false,  // Use production-style paths
+        isDev: false,
+        allContentMeta,
+        allContentIds,
       });
       
       return new Response(html, {
@@ -139,13 +167,13 @@ const server = Bun.serve({
       });
     }
     
-    // Check if it's a valid node
-    if (!isValidNode(nodeId)) {
+    // Check if it's a valid content file
+    if (!(await contentExists(nodeId))) {
       return new Response('Not found', { status: 404 });
     }
     
-    // Render the content node with SSR
-    const rendered = await renderMdxContent(nodeId);
+    // Render the full app with SSR
+    const rendered = await renderAppToString(nodeId);
     
     if (!rendered) {
       // Node exists but couldn't be rendered - fall back to client-side rendering
@@ -154,7 +182,9 @@ const server = Bun.serve({
         meta: meta || { id: nodeId, title: nodeId, summary: '' },
         jsPath,
         cssPath: '/styles',
-        isDev: false,  // Use production-style paths
+        isDev: false,
+        allContentMeta,
+        allContentIds,
       });
       
       return new Response(html, {
@@ -166,9 +196,12 @@ const server = Bun.serve({
     const html = generateHtml({
       meta: rendered.meta,
       contentHtml: rendered.html,
+      ssrStyleElements: rendered.styleElements,
       jsPath,
       cssPath: '/styles',
-      isDev: false,  // Use production-style paths
+      isDev: false,
+      allContentMeta,
+      allContentIds,
     });
     
     return new Response(html, {
@@ -176,7 +209,6 @@ const server = Bun.serve({
     });
   },
   
-  // Disable Bun's fancy dev console to avoid terminal clearing/escape codes
   development: false,
 });
 
@@ -200,7 +232,7 @@ console.log(`
    
    Features:
    - Server-side rendered content (SSR)
-   - Production-style hashed JS paths
+   - File-based routing (src/content/{id}.mdx)
    - Clean URLs (/tokens, /models, etc.)
    
    Press Ctrl+C to stop

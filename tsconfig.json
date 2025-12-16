@@ -20,7 +20,13 @@
     "paths": {
       "@/*": ["src/*"],
       "@content/*": ["src/content/*"],
-      "@components/*": ["src/app/components/*"]
+      "@components/*": ["src/app/components/*"],
+      // Alias React to our shims (re-exports preact/compat)
+      // This ensures a SINGLE module instance for hooks to work correctly
+      "react": ["src/shims/react.ts"],
+      "react-dom": ["src/shims/react-dom.ts"],
+      "react/jsx-runtime": ["src/shims/react-jsx-runtime.ts"],
+      "react/jsx-dev-runtime": ["src/shims/react-jsx-runtime.ts"]
     },
 
     // Best practices

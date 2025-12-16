@@ -1,0 +1,164 @@
+---
+id: intro
+title: What is an LLM?
+summary: Large Language Models are AI systems that have learned to predict and generate text by studying vast amounts of human writing.
+category: Getting Started
+order: 1
+prerequisites: []
+children:
+  - tokens
+  - scale
+  - emergence
+related:
+  - how-different-from-search
+keywords:
+  - LLM
+  - large language model
+  - AI
+  - ChatGPT
+  - Claude
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation, Footnote } from '../app/components/content/index.ts'
+
+**What actually happens when you talk to ChatGPT?**
+
+When you type a message and hit send, the system receives your text and does something that sounds almost disappointingly simple: it predicts what text should come next.
+
+That's the core of what a **Large Language Model** does. Given some text, predict what text would naturally follow. Your prompt becomes the beginning; the model's response is its best guess at a plausible continuation.
+
+<Metaphor title="Drawing a map">
+
+You type a message and press send. In that moment, you hand the system a coastline, the beginning of a territory. The model's task is to continue the map. "If this is the shore we're starting from, what landscape extends inland?"
+
+It sketches the next bit of terrain, considers what that implies, sketches more. Word by word, your conversation extends into territory that didn't exist until that moment. The model isn't retrieving pre-written answers like pulling books from shelves. It's a cartographer trained on every map ever drawn, now drawing new ones that feel like they could have always existed.
+
+→ [How token-by-token generation works](/tokens)
+
+</Metaphor>
+
+**If it's just predicting text, why does it seem to understand things?**
+
+The model was trained by showing it enormous amounts of human writing (books, websites, conversations, code) and asking it, over and over: "What comes next?"
+
+To predict well across such diverse text, the model had to develop something resembling comprehension. Consider what good prediction requires: to predict how a mystery story continues, you need to track clues and suspects. To predict the next line of code, you need to grasp what the code is doing. To predict how a physics explanation continues, you need to follow the logical thread.
+
+Prediction, at sufficient scale, requires building internal models of how the world works. Not because understanding was the goal, but because understanding is useful for prediction.
+
+<Recognition title="Your brain predicts text too">
+
+When someone starts a sentence with "To be or not to..." your brain completes it before they finish. When a friend says "I've been meaning to tell you..." you're already predicting what kind of conversation follows. This predictive capacity is so automatic you barely notice it. Yet it requires real understanding of language, context, and human behavior.
+
+</Recognition>
+
+<Question title="Can you really learn about the world without experiencing it?">
+
+The model learns about the world indirectly, through descriptions of it. But there's a key difference from how humans learn. When you read about Antarctica, you relate it to experiences you've had firsthand: winter but colder, countryside but vaster. An LLM has no firsthand experience to anchor anything to. Its only "experience" is reading words.
+
+The remarkable thing is that by processing enough purely abstract text, the model develops rich associations between concepts at a surprisingly deep level. Not through experience, but through observing how words relate to each other across billions of examples.
+
+→ [Do LLMs Really Understand?](/understanding)
+
+</Question>
+
+**How is this different from autocomplete on my phone?**
+
+Your phone's predictive text uses a small model that considers maybe a sentence and suggests common words. An LLM uses billions of parameters, considers thousands of words of context, and has absorbed patterns from trillions of words of training data.
+
+This isn't just "bigger and more." Scale creates qualitative change. A small model learns that "Paris" often follows "The capital of France is." A larger model can write you a detailed historical analysis of Parisian urban development, synthesizing information it never saw explicitly combined during training.
+
+<Metaphor title="When quantity becomes quality">
+
+A puddle evaporates imperceptibly, molecule by molecule. But keep heating water, and at 100°C something fundamental shifts: it flashes into steam. More of the same becomes something else entirely.
+
+Language models undergo similar phase transitions. A small predictor is just autocomplete, useful for finishing "See you tom-" with "tomorrow." Increase the scale dramatically, and something qualitative shifts. The model doesn't just predict likely words; it generates coherent essays, debugs code, engages in philosophical discussion.
+
+Nobody programmed these abilities. They crystallized from scale the way snowflakes crystallize from cold. Train a model to predict text well enough, across enough text, and it develops internal representations of grammar, facts, logic, emotion. Not because anyone asked for them, but because they're useful for the task of prediction.
+
+→ [Emergent capabilities and scaling laws](/emergence)
+
+</Metaphor>
+
+<Question title="What are 'parameters' and why billions of them?">
+
+Parameters are the learned values in the neural network: numbers adjusted during training to make predictions more accurate. More parameters means more capacity to store patterns and make fine-grained distinctions.
+
+GPT-3 has 175 billion parameters.<Footnote id={1} /> GPT-5.1 is estimated to have over two trillion. For comparison: a typical smartphone keyboard predictor might have a few million. The jump from millions to trillions isn't just "bigger." It's the difference between suggesting the next word and writing a coherent essay on quantum physics.
+
+→ [What are Parameters?](/parameters)
+→ [How many parameters are in a model?](/scale)
+
+</Question>
+
+Researchers call these **emergent capabilities**: abilities that arise spontaneously as models grow larger, without being explicitly programmed.<Footnote id={2} /> Nobody taught the model to summarize documents or translate between languages it rarely saw paired. These abilities surfaced from the pressure to predict text at massive scale.
+
+<Question title="Isn't 'emergence' just hand-waving for 'we don't know'?">
+
+Emergence is a real phenomenon (water from molecules, consciousness from neurons), but calling something "emergent" doesn't explain the mechanism. We can observe that certain capabilities appear at certain scale thresholds, even though they weren't explicitly programmed, and researchers are actively investigating why.
+
+One leading theory is that larger models have room to store not only surface-level word associations, but a deeper layer of concept associations. This enables them to generate not just grammatically correct text, but conceptually coherent responses.
+
+→ [What is Emergent Behavior?](/emergence)
+
+</Question>
+
+**How does it generate long, coherent responses?**
+
+One token at a time. Tokens are chunks of text, typically words or word-pieces. The model's parameters describe the probability distribution over all possible next tokens, and it samples from that distribution, adds the chosen token to the context, and repeats. A multi-paragraph response emerges token by token, each one conditioned on everything that came before.
+
+<Metaphor title="A river carves its path">
+
+Watch the model generate a response, and you're watching a river carve a path. Each token is a drop of water that, once placed, shapes where the next drop can go. The model doesn't plan the entire riverbed in advance. It advances each drop based on the terrain so far, and the terrain is always changing because of the drops that already flowed.
+
+This is why generation can go wrong and can't easily recover. A misleading early token shapes all subsequent tokens. If a river starts out in a direction that encounters an obstacle, it presses forward until it finds a way around, it doesn't flow back uphill to pick a better initial path. If the model starts down a plausible-sounding but incorrect reasoning path, it often continues that direction because that's what rivers do.
+
+</Metaphor>
+
+<TryThis>
+
+**Watch the generation happen.** Some interfaces stream responses as they're generated. You can watch the text appear word by word. Try asking the same question twice and notice that you'll get different responses. The sampling process has randomness built in, so the same prompt can lead to different outputs. Some interfaces even have a "regenerate" button to get a different response. This is direct experience of the probabilistic nature of the model's output.
+
+</TryThis>
+
+**Why would you want randomness in the answer?**
+
+For language, there usually isn't one correct continuation. Ask someone "How was your weekend?" and there are thousands of valid responses. The model faces the same situation at every token.
+
+Without randomness, the model would always pick the highest-probability word. This sounds ideal but causes problems. The output becomes repetitive and mechanical. The model can get trapped in loops, repeating phrases because they keep being the most likely continuation of themselves.
+
+Randomness lets the model explore the space of reasonable responses. You can adjust this through a parameter called "temperature." Lower temperature means more predictable, focused responses. Higher temperature means more creative, surprising ones.
+
+<Question title="If it's sampling randomly, how can it be reliable?">
+
+The randomness is *controlled*. At low temperatures, the model strongly favors high-probability tokens, so outputs are consistent and predictable. Randomness only kicks in meaningfully for creative tasks or when you deliberately want variation. And "high probability" isn't random: it reflects billions of training examples of what good continuations look like.
+
+→ [What is Temperature in AI?](/temperature)
+
+</Question>
+
+<Question title="What happens when plausible and true diverge?">
+
+The model outputs plausible falsehoods (confidently stated errors known as "hallucinations"). It has no internal fact-checker, no built-in access to ground truth. (Neither does the human mind, for that matter.) When tools for research are made available, the model can choose to use them. But unless fact-checking is a mandatory step in the application framework, the LLM may not verify things it doesn't realize might be wrong.
+
+When topics are rare, recent, or specialized, the model pattern-matches on surface features rather than verified truth. This is why you verify LLM output on anything that matters.
+
+→ [Why Do LLMs Make Things Up?](/hallucinations)
+
+</Question>
+
+**What does this mean for how you use AI?**
+
+Understanding how LLMs work changes how you evaluate them.
+
+When someone says an LLM "knows" something, you can understand that it has stored patterns around that concept. When it makes a confident mistake, you can understand that it predicted a plausible-sounding continuation that happened to be false. When new capabilities emerge in larger models, you can see that they are the result of the model optimizing for better prediction.
+
+You're not working with a magical oracle or a search engine with personality. You're using a sophisticated pattern-matcher that has absorbed more human writing than any person could read in a thousand lifetimes. Its strengths and limitations flow directly from what it is: a system that learned to predict text, and to better do so, learned to make predictions about the world the text describes.
+
+<Sources>
+<Citation type="video" title="But what is a GPT? Visual intro to transformers" source="3Blue1Brown" url="https://www.youtube.com/watch?v=wjZofJX0v4M" year={2024} />
+<Citation type="video" title="Interpretability: Understanding how AI models think" source="Anthropic" url="https://www.youtube.com/watch?v=fGKNUvivvnc" year={2025} />
+<Citation type="article" title="Tracing the thoughts of a large language model" source="Anthropic" url="https://www.anthropic.com/research/tracing-thoughts-language-model" year={2025} />
+<Citation type="article" title="Large language model" source="Wikipedia" url="https://en.wikipedia.org/wiki/Large_language_model" />
+<Citation id={1} type="paper" title="Language Models are Few-Shot Learners" authors="Brown et al." source="OpenAI" url="https://arxiv.org/abs/2005.14165" year={2020} />
+<Citation id={2} type="paper" title="Emergent Abilities of Large Language Models" authors="Wei et al." source="Google Research" url="https://arxiv.org/abs/2206.07682" year={2022} />
+</Sources>

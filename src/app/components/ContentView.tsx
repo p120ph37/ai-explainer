@@ -17,7 +17,7 @@ import {
   isVariantId,
   parseVariantId,
   type VariantMeta,
-} from '../../content/_registry.ts';
+} from '../../lib/content.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { NavLinks } from './NavLinks.tsx';
 import { IndexPage } from './IndexPage.tsx';
@@ -25,7 +25,7 @@ import { PrerequisitesBlock } from './PrerequisitesBlock.tsx';
 import { useExplorationTracking } from '../hooks/useExplorationTracking.ts';
 import { MDXProvider } from './MDXProvider.tsx';
 import type { ComponentType } from 'preact';
-import type { ContentMeta } from '../../content/_types.ts';
+import type { ContentMeta } from '../../lib/content.ts';
 
 interface ContentModule {
   default: ComponentType;
@@ -46,9 +46,17 @@ function isVariantMeta(meta: ContentMeta | VariantMeta | undefined): meta is Var
   return meta !== undefined && 'isVariant' in meta && meta.isVariant === true;
 }
 
+// Check if SSR content exists for this node
+function hasSSRContent(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ssrShell = document.querySelector('.ssr-shell');
+  return ssrShell !== null;
+}
+
 export function ContentView() {
   const nodeId = useComputed(() => currentRoute.value.nodeId);
-  const loading = useSignal(true);
+  // Don't show loading if SSR content exists
+  const loading = useSignal(!hasSSRContent());
   const error = useSignal<string | null>(null);
   const Content = useSignal<ComponentType | null>(null);
   const meta = useSignal<ContentModule['meta'] | null>(null);
@@ -161,6 +169,46 @@ export function ContentView() {
 }
 
 /**
+ * ContentBody handles the actual content rendering with SSR preservation
+ */
+function ContentBody({ 
+  ContentComponent, 
+  nodeId 
+}: { 
+  ContentComponent: ComponentType; 
+  nodeId: string;
+}) {
+  // Check if we have SSR content and if this is the initial page
+  if (typeof window !== 'undefined') {
+    const app = document.getElementById('app');
+    const initialNodeId = app?.dataset.initialNode;
+    
+    // If this is the initial SSR page, preserve the SSR content
+    if (initialNodeId === nodeId) {
+      const ssrBody = document.querySelector('.content-node--ssr .content-node__body');
+      if (ssrBody) {
+        // Preserve SSR content using dangerouslySetInnerHTML
+        return (
+          <div 
+            className="content-node__body"
+            dangerouslySetInnerHTML={{ __html: ssrBody.innerHTML }}
+          />
+        );
+      }
+    }
+  }
+  
+  // For navigation or when SSR content not available, render component
+  return (
+    <div className="content-node__body">
+      <MDXProvider>
+        <ContentComponent />
+      </MDXProvider>
+    </div>
+  );
+}
+
+/**
  * Inner component to use hooks properly (after conditional checks)
  */
 function ContentRenderer({
@@ -202,11 +250,7 @@ function ContentRenderer({
         <PrerequisitesBlock prerequisites={nodeMeta.prerequisites!} />
       )}
       
-      <div className="content-node__body">
-        <MDXProvider>
-          <ContentComponent />
-        </MDXProvider>
-      </div>
+      <ContentBody ContentComponent={ContentComponent} nodeId={nodeId} />
       
       {/* Only show nav links for base pages, not variants */}
       {!isVariant && (

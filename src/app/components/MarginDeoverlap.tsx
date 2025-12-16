@@ -1,7 +1,8 @@
 /**
  * MarginDeoverlap
  * 
- * Detects and fixes overlapping margin asides (Questions on left, Metaphors on right).
+ * Detects and fixes overlapping margin asides (Questions on left, Metaphors on right,
+ * Recognitions on either side based on their dynamic positioning).
  * Runs on mount and when asides open/close.
  */
 
@@ -9,10 +10,10 @@ import { useEffect } from 'preact/hooks';
 
 const MARGIN_GAP = 12; // Minimum gap between collapsed asides in pixels
 
-function deoverlapSide(selector: string) {
-  const asides = Array.from(
-    document.querySelectorAll(selector)
-  ) as HTMLElement[];
+function deoverlapSide(selectors: string[]) {
+  const asides = selectors.flatMap(selector => 
+    Array.from(document.querySelectorAll(selector)) as HTMLElement[]
+  );
   
   if (asides.length < 2) return;
   
@@ -50,10 +51,16 @@ function deoverlapSide(selector: string) {
 function deoverlapAll() {
   // Small delay to let layout settle after open/close animations
   requestAnimationFrame(() => {
-    // Left margin: Questions
-    deoverlapSide('.question:not(.question--open)');
-    // Right margin: Metaphors
-    deoverlapSide('.metaphor:not(.metaphor--open)');
+    // Left margin: Questions + left-positioned Recognitions
+    deoverlapSide([
+      '.question:not(.question--open)',
+      '.recognition--aside.recognition--left:not(.recognition--open)'
+    ]);
+    // Right margin: Metaphors + right-positioned Recognitions
+    deoverlapSide([
+      '.metaphor:not(.metaphor--open)',
+      '.recognition--aside.recognition--right:not(.recognition--open)'
+    ]);
   });
 }
 
@@ -70,7 +77,7 @@ export function MarginDeoverlap() {
       const relevantChange = mutations.some(m => 
         m.type === 'attributes' && 
         m.attributeName === 'class' &&
-        (m.target as Element).matches?.('.metaphor, .question')
+        (m.target as Element).matches?.('.metaphor, .question, .recognition--aside')
       );
       if (relevantChange) {
         deoverlapAll();

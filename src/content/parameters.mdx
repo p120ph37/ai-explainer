@@ -1,0 +1,208 @@
+---
+id: parameters
+title: "What are parameters?"
+summary: Parameters are the learned numbers inside a neural network. Billions of them encode everything the model knows about language.
+category: Foundations
+order: 5
+prerequisites:
+  - neural-network
+children:
+  - training
+related:
+  - scale
+  - embeddings
+keywords:
+  - parameters
+  - weights
+  - biases
+  - model size
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+
+**When people say GPT-5.1 has "over two trillion parameters," what does that mean?**
+
+Parameters are the numbers that define a neural network. Every weight connecting neurons, every bias shifting activations: these are parameters. When a model "learns," it's adjusting these numbers.
+
+A model with 175 billion parameters has 175 billion individual numbers that were tuned during training. Each one contributes, in some small way, to every prediction the model makes.
+
+**What do parameters actually store?**
+
+This is subtle. Parameters don't store facts like a database stores records. You can't point to a parameter and say "this one knows that Paris is the capital of France."
+
+Instead, knowledge is distributed across parameters. Patterns about language, facts about the world, reasoning heuristics: all encoded as statistical relationships between millions of numbers. The parameter values collectively create a function that maps inputs to outputs in useful ways.
+
+<Metaphor title="The distributed hologram">
+
+Knowledge in a neural network is like a hologram stored on film.
+
+In a hologram, the image isn't located at any specific point on the film. Every part of the film contains the whole image, diffusely. Cut the film in half, and each half still shows the complete image, just with less resolution.
+
+Parameters work similarly. Paris being France's capital isn't stored in parameter 47,382,001. It's distributed across millions of parameters. Damage a few and the knowledge persists, degraded. The information is everywhere and nowhere.
+
+</Metaphor>
+
+<Recognition title="Like JPEG compression">
+
+An image isn't stored as "sky in top half, grass in bottom half." It's stored as mathematical coefficients that, when processed together, reconstruct the image. No single coefficient contains "sky." The information is distributed. Parameters are similar coefficients. The "image" they reconstruct is the function that maps inputs to outputs.
+
+</Recognition>
+
+<Question title="Can you literally never point to a parameter that 'knows' something?">
+
+Mostly true. Researchers can sometimes find "circuits" (small groups of parameters that contribute to specific behaviors), but even these involve many parameters interacting. There's no "Paris=France" memory cell. It's more like how you can't point to a single neuron in a brain and say "this one knows the capital of France."
+
+→ [Do LLMs Really Understand?](/understanding)
+
+</Question>
+
+**Why do we need so many?**
+
+More parameters means more capacity to store patterns. A small network with thousands of parameters can learn simple rules. A network with billions can learn subtle distinctions.
+
+Consider what language requires:
+- Grammar rules and exceptions to those rules
+- Word meanings and how context shifts them
+- Facts about the world
+- Reasoning patterns
+- Style, tone, register
+- Multiple languages and their interactions
+
+Encoding all of this requires enormous parameter counts. Each additional parameter is another degree of freedom the model can use to capture nuance.
+
+<Question title="Is bigger always better?">
+
+Not automatically. A larger model has more *capacity* to learn, but:
+
+- It needs more training data to fill that capacity
+- It costs more to train and run
+- Without enough data, it may memorize rather than generalize
+
+Research on "scaling laws" found that you need to balance model size with data quantity. The Chinchilla paper showed that many large models were undertrained: they would have performed better if made smaller but trained on more data. Chinchilla (70B parameters, more data) outperformed Gopher (280B parameters, less data).
+
+Size matters, but it's not the only thing that matters.
+
+→ [Why scale matters](/scale)
+
+</Question>
+
+**How much space do parameters take?**
+
+Each parameter is typically stored as a floating-point number. Common formats:
+
+- **32-bit (FP32)**: 4 bytes per parameter, full precision
+- **16-bit (FP16/BF16)**: 2 bytes per parameter, common for training
+- **8-bit (INT8)**: 1 byte per parameter, used for efficient inference
+- **4-bit**: 0.5 bytes per parameter, aggressive compression
+
+GPT-3's 175 billion parameters at 16-bit precision: about 350 gigabytes just for the weights. This is why running large models requires specialized hardware with substantial memory.
+
+<Question title="Could I run a frontier model on my laptop?">
+
+Not frontier models, but capable ones. A 70B model quantized to 4-bit fits in ~35GB. This is possible on high-end consumer GPUs (24GB VRAM with offloading). You'd get slow inference, not training.
+
+True frontier models (trillion+ parameters) still require data center hardware. But the democratization of running useful models locally is real and accelerating.
+
+→ [How Does Text Generation Actually Happen?](/inference)
+
+</Question>
+
+<Expandable title="Quantization: making models smaller">
+
+**Quantization** reduces the precision of parameters to save memory and speed up computation. Instead of 16-bit numbers, you might use 8-bit or even 4-bit.
+
+This sounds like it should destroy performance. Surprisingly, it often doesn't. Quantization typically happens *after* training is complete. Training uses high-precision numbers to allow gradual, fine-grained adjustments as the model searches for optimal weights. Once those weights are found, much of that precision becomes redundant.
+
+The network has redundancy. Small precision losses at the individual parameter level average out across billions of parameters.
+
+A 70-billion parameter model at 4-bit quantization fits in about 35 gigabytes: runnable on a high-end consumer GPU. The same model at full precision would need 280 gigabytes. Quantization enables running powerful models on more accessible hardware, with only modest quality degradation.
+
+Think of it like MP3 vs. FLAC audio. Most people can't hear the difference between high-bitrate MP3 and lossless FLAC. Similarly, quantized models are often "good enough."
+
+</Expandable>
+
+**What happens to parameters during training?**
+
+Before training, parameters are initialized randomly (with some careful choices about the random distribution). The model outputs nonsense.
+
+Training iteratively adjusts parameters to reduce prediction error:
+
+1. A batch of examples flows through the network (forward pass)
+2. The outputs are compared to targets, producing a loss value
+3. Gradients are computed showing how each parameter affects the loss (backward pass)
+4. Each parameter is nudged slightly in the direction that reduces loss
+5. Repeat billions of times
+
+By the end, the random initial values have been sculpted into a configuration that captures something about language.
+
+<Metaphor title="A landscape of possibilities">
+
+Picture each parameter as a dimension. Two parameters form a plane. Three form a space. Billions form an unimaginably high-dimensional landscape.
+
+Every point in this landscape represents a possible model: a specific configuration of all parameters. Most points are useless. The model outputs gibberish.
+
+Training is searching this landscape for good points: configurations where the model predicts accurately. Gradient descent is like rolling downhill, always moving toward lower loss.
+
+The final trained model is a single point in this vast space. Remarkably, the training process finds points that generalize: they work well not just on training data, but on new inputs the model has never seen.
+
+</Metaphor>
+
+<Question title="How long does it take to train a trillion-parameter model?">
+
+Weeks to months on massive hardware. GPT-3 (175B parameters) took about a month on a large cluster. Trillion-parameter models take longer with more hardware.
+
+Training isn't just waiting: it involves monitoring, debugging, and sometimes restarts. The process consumes enormous energy. This is why training runs are precious: a failed run wastes millions of dollars.
+
+→ [How are LLMs Trained?](/training)
+
+</Question>
+
+<Question title="When they 'initialize randomly,' how random?">
+
+Carefully random. Completely arbitrary random values would cause training to fail (exploding or vanishing signals). Initialization uses specific distributions calibrated to maintain stable signal magnitude across layers.
+
+Common schemes (Xavier, Kaiming initialization) set variance based on layer dimensions. It's random but structured: chaos that's just ordered enough to bootstrap learning.
+
+→ [What is a Neural Network?](/neural-network)
+
+</Question>
+
+<TryThis>
+
+Compare parameter counts of models you can access. If you use Claude 4.5, that's likely over 200 billion parameters. A local model like Llama 3.3 7B has 7 billion. GPT-5.1 is estimated at over two trillion. Notice the relationship between parameter count and the model's capabilities (and its computational cost).
+
+If you've downloaded local models (LLaMA, Mistral), the file sizes you saw (4GB, 14GB, 70GB) are parameters taking up space. The "requires 16GB VRAM" warnings directly relate to parameter count and precision.
+
+</TryThis>
+
+**The parameter mystery**
+
+We can count parameters. We can measure what models do. What we can't easily do is understand *how* specific parameters contribute to specific behaviors.
+
+This is the interpretability challenge. 175 billion numbers, all contributing fractionally to every output. Which parameters encode grammar? Which encode facts about history? The question may not even be well-formed: knowledge is distributed so diffusely that no parameter "knows" anything individually.
+
+<Question title="If we can't interpret parameters, how do we know the model isn't doing something dangerous inside?">
+
+We don't fully know, and that's a real concern. The field of interpretability aims to understand internal representations. Progress is being made (finding features, circuits, behaviors), but comprehensive understanding remains elusive.
+
+This is why AI safety research focuses on behavioral testing and alignment in addition to interpretability. We can't yet guarantee models don't have hidden concerning capabilities.
+
+→ [What is Emergent Behavior?](/emergence)
+
+</Question>
+
+<Question title="If we understood every parameter, could we modify the model to be safer?">
+
+Theoretically, yes. If we understood what circuits cause harmful outputs, we could modify or remove them. This is called "representation engineering" or "activation steering." Early research shows promise.
+
+But comprehensive understanding remains far off, and modifications can have unintended effects. It's a promising research direction, not a current capability.
+
+</Question>
+
+Understanding this distributed, high-dimensional encoding is one of the open frontiers in AI research.
+
+<Sources>
+<Citation type="paper" title="Language Models are Few-Shot Learners" authors="Brown et al." source="OpenAI" url="https://arxiv.org/abs/2005.14165" year={2020} />
+<Citation type="paper" title="Training Compute-Optimal Large Language Models" authors="Hoffmann et al." source="DeepMind" url="https://arxiv.org/abs/2203.15556" year={2022} />
+<Citation type="video" title="But what is a GPT?" source="3Blue1Brown" url="https://www.youtube.com/watch?v=wjZofJX0v4M" year={2024} />
+</Sources>

@@ -1,0 +1,173 @@
+---
+id: hardware
+title: "What hardware runs AI?"
+summary: AI workloads require specialized processors optimized for parallel computation. GPUs dominate, with custom AI chips from major manufacturers competing for the market.
+category: Foundations
+order: 21
+prerequisites:
+  - training
+  - inference
+children: []
+related:
+  - parameters
+keywords:
+  - GPU
+  - TPU
+  - hardware
+  - NVIDIA
+  - compute
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+
+**Why can't AI just run on regular computers?**
+
+It can, slowly. A modern CPU can run a small language model. But training and running large models requires something different: massive parallelism.
+
+Neural networks are fundamentally parallel operations. Matrix multiplications across billions of parameters, repeated for every token. CPUs excel at complex sequential tasks. AI needs simpler operations done billions of times simultaneously.
+
+This is why **GPUs** (Graphics Processing Units) dominate AI. They were designed for parallel computation (rendering millions of pixels), which happens to be exactly what neural networks need.
+
+**CPU vs GPU vs TPU**
+
+**CPU** (Central Processing Unit):
+- Few powerful cores (4-64)
+- Optimized for sequential, complex tasks
+- Flexible, general-purpose
+- Can run AI, but slowly
+
+**GPU** (Graphics Processing Unit):
+- Thousands of simpler cores
+- Optimized for parallel computation
+- Originally for graphics, now AI workhorses
+- Orders of magnitude faster than CPU for AI
+
+**TPU** (Tensor Processing Unit):
+- Google's custom AI chip
+- Designed specifically for matrix operations
+- Available via Google Cloud
+- Competitive performance, different architecture
+
+<Recognition title="Why AI has rate limits">
+
+If you've ever noticed that AI services are expensive or have rate limits, hardware cost is why. Running frontier models like GPT-5.1 or Claude 4.5 requires racks of expensive GPUs. Inference isn't free; it's just cheap enough to seem free at consumer scale.
+
+</Recognition>
+
+**The NVIDIA dominance**
+
+NVIDIA GPUs power most AI training and inference. Their dominance comes from:
+
+- **CUDA**: Software platform that makes GPU programming accessible. Years of ecosystem development.
+- **Performance**: Leading hardware capabilities in each generation.
+- **Memory**: High-bandwidth memory crucial for large models.
+- **First-mover advantage**: They invested in AI early when others didn't see it.
+
+Key products:
+- **H100**: Current flagship for data centers ($25,000-40,000 each)
+- **A100**: Previous generation, still widely used
+- **Consumer RTX cards**: Accessible for researchers and hobbyists
+
+The demand for NVIDIA hardware during the AI boom pushed their market cap past $1 trillion.
+
+<Question title="What about the competition?">
+
+**AMD**: Second-largest GPU maker. MI300 series competes with NVIDIA on performance. Growing AI presence but smaller software ecosystem.
+
+**Intel**: Gaudi accelerators for data centers. Strong in CPUs, catching up in AI accelerators.
+
+**Google TPU**: Only available via Google Cloud. Powers Google's own AI services.
+
+**Amazon Trainium/Inferentia**: Custom chips for AWS. Competitive pricing for cloud customers.
+
+**Startups**: Cerebras, Graphcore, SambaNova, and others offer specialized architectures with different trade-offs.
+
+NVIDIA's lead is substantial but not permanent. Competition is intensifying as AI demand grows.
+
+</Question>
+
+**Memory is often the bottleneck**
+
+Large models need large memory. A 70-billion parameter model at 16-bit precision needs 140 GB just for weights. Then add activations, KV cache, and overhead.
+
+A single H100 has 80 GB of memory. Running large models requires:
+- **Model parallelism**: Split the model across multiple GPUs
+- **Quantization**: Reduce precision to fit in less memory
+- **Offloading**: Use CPU memory, accepting slowdowns
+
+Memory bandwidth matters too. Data must flow between memory and compute. High-bandwidth memory (HBM) is expensive but essential.
+
+<Expandable title="Distributed training at scale">
+
+Training frontier models requires thousands of GPUs working together.
+
+**Infrastructure**:
+- Specialized data centers with massive power and cooling
+- High-speed interconnects (NVLink, InfiniBand) between GPUs
+- Custom software to coordinate computation across machines
+
+**Scale**:
+- GPT-5 reportedly trained on 25,000+ GPUs
+- Frontier models require entire data center sections
+- Training runs last weeks to months
+
+**Cost**:
+- Electricity alone can cost millions per training run
+- Hardware depreciation adds more
+- Only well-funded organizations can compete at the frontier
+
+This hardware concentration shapes who can build frontier AI.
+
+</Expandable>
+
+**Power and cooling**
+
+AI hardware is power-hungry. An H100 draws 700 watts under load. A rack of 8 draws 5.6 kilowatts. A cluster of thousands draws megawatts.
+
+This creates challenges:
+- Data centers need massive power connections
+- Cooling removes heat equivalent to space heaters per GPU
+- Geographic constraints: need cheap power and cooling capacity
+- Environmental impact: significant electricity consumption
+
+Companies locate data centers near cheap, ideally renewable, power. Nuclear and hydroelectric regions are attractive.
+
+**Consumer hardware**
+
+You don't need data center equipment for all AI work:
+
+- **RTX 3090/4090**: Consumer GPUs ($1,500-2,000) can run smaller models
+- **Mac with Apple Silicon**: Unified memory enables surprisingly large models
+- **Cloud GPUs**: Rent by the hour without capital investment
+
+Open-source models like Llama 3.3 and Mistral run on accessible hardware. You can't train GPT-5.1 at home, but you can run capable models locally.
+
+<Metaphor title="The AI power plant">
+
+Running AI is like running a power grid. You need generators (GPUs) producing compute, transmission lines (interconnects) moving data, and consumers (models) using capacity.
+
+Small appliances (small models) run on household current. Industrial machinery (large models) needs dedicated substations. Power plants (training runs) require their own infrastructure.
+
+The AI boom is like electrification: demand for compute growing faster than supply can expand. Just as factories needed proximity to power, AI companies need proximity to compute.
+
+</Metaphor>
+
+<TryThis>
+
+Check what GPU is in your computer (if any). Look up its specs: CUDA cores, memory, TDP (power consumption). Compare to an H100. The gap illustrates why consumer and data center hardware are different worlds, even though they're based on similar technology.
+
+</TryThis>
+
+**The hardware lottery**
+
+Progress in AI is partly determined by what hardware can efficiently compute. Attention mechanisms dominate partly because GPUs handle them well. Alternative architectures might be better but worse on current hardware.
+
+This is the "hardware lottery": ideas that fit current hardware win. Ideas that don't fit wait for future hardware or never get explored.
+
+Hardware shapes what's possible. Understanding hardware helps understand why AI develops as it does.
+
+<Sources>
+<Citation type="article" title="GPU Computing" source="NVIDIA" url="https://www.nvidia.com/en-us/data-center/" />
+<Citation type="paper" title="The Hardware Lottery" authors="Sara Hooker" source="Google" url="https://arxiv.org/abs/2009.06489" year={2020} />
+<Citation type="article" title="NVIDIA H100 Tensor Core GPU" source="NVIDIA" url="https://www.nvidia.com/en-us/data-center/h100/" />
+</Sources>

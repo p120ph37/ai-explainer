@@ -1,0 +1,183 @@
+---
+id: temperature
+title: "What is temperature in AI?"
+summary: Temperature controls randomness in text generation. Low temperature means predictable, focused responses. High temperature means creative, varied ones.
+category: Foundations
+order: 14
+prerequisites:
+  - inference
+children: []
+related:
+  - prompt-engineering
+keywords:
+  - temperature
+  - sampling
+  - top-p
+  - creativity
+  - randomness
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { DiagramPlaceholder } from '../app/components/diagrams/index.ts'
+
+**Why does the same prompt sometimes give different answers?**
+
+When a model generates text, it doesn't just pick the most likely next token. It samples from a probability distribution. This controlled randomness produces variety.
+
+**Temperature** is the dial that controls this randomness. Low temperature makes the distribution sharper, concentrating probability on likely tokens. High temperature flattens the distribution, giving unlikely tokens more chance.
+
+<Metaphor title="A volume dial on creativity">
+
+Temperature is like a volume dial where loud is chaos and quiet is conformity.
+
+Turn it down, and the model whispers conventional answers. It sticks close to the obvious, the safe, the well-trodden path. Safe, but predictable. Like a musician who only plays the exact notes on the page.
+
+Turn it up, and the model shouts unexpected connections, grabbing words from the margins. Exciting, but potentially nonsense. Like a jazz improviser who might transcend the melody or miss the chord entirely.
+
+Most conversations want moderate volume: enough variety to stay interesting, enough restraint to stay coherent.
+
+</Metaphor>
+
+**How temperature works**
+
+The model outputs raw scores (logits) for each possible next token. Before sampling, these scores are divided by the temperature value, then converted to probabilities.
+
+- **Temperature = 0**: Always pick the highest probability token. Completely deterministic.
+- **Temperature = 0.7**: Moderate randomness. Usually sensible with some variety.
+- **Temperature = 1.0**: Standard randomness. Probabilities used as-is.
+- **Temperature = 2.0**: High randomness. Less likely tokens get much more chance.
+
+Lower temperature means safer, more predictable text. Higher temperature means riskier, more surprising text.
+
+<Recognition title="The regenerate button">
+
+If you've regenerated a response and gotten something different (sometimes better, sometimes worse, sometimes surprisingly different) that's temperature and sampling in action.
+
+Users who've used AI for both code and creative writing often develop different intuitions: "When I want code, I want it predictable. When I want stories, I want surprise." This is naturally discovering when different temperature settings are appropriate.
+
+</Recognition>
+
+<Question title="If temperature=0 always picks the most likely token, why not use that for everything?">
+
+Most likely isn't always best. At temperature=0, the model can get stuck in repetitive patterns. The same phrase keeps being the most probable continuation of itself. Output becomes mechanical and predictable.
+
+Some tasks need exploration of alternatives. When multiple good options exist, always picking one ignores equally valid paths. Temperature adds necessary variety.
+
+→ [Communicating Effectively with LLMs](/prompt-engineering)
+
+</Question>
+
+<Question title="Doesn't randomness hurt accuracy?">
+
+At low temperatures, not significantly. The model strongly favors high-probability tokens, which correlate with quality. At higher temperatures, yes: you trade accuracy for creativity.
+
+For factual tasks, use low temperature. For brainstorming, higher temperature. The control is precise: you're adjusting how much the model explores vs. exploits its best guess.
+
+</Question>
+
+**When to use different temperatures**
+
+**Low temperature (0-0.3)**:
+- Factual questions
+- Code generation
+- Data extraction
+- Anything where there's a "right" answer
+
+**Medium temperature (0.5-0.8)**:
+- General conversation
+- Explanations
+- Problem-solving
+- Most everyday use
+
+**High temperature (1.0+)**:
+- Creative writing
+- Brainstorming
+- Exploring alternatives
+- When you want surprises
+
+<Question title="What about top-p and top-k?">
+
+Temperature isn't the only sampling parameter.
+
+**Top-k**: Only consider the k most likely tokens. If k=50, tokens ranked 51+ are eliminated before sampling.
+
+**Top-p (nucleus sampling)**: Only consider tokens whose cumulative probability reaches p. If p=0.9, keep adding tokens by probability until their total reaches 90%.
+
+These can combine with temperature. A common setup: temperature=0.7, top_p=0.9. This provides variety while preventing very unlikely tokens.
+
+Top-p is generally more adaptive than top-k. In situations with one clear best choice, it might select only a few options; when many are plausible, it includes more.
+
+</Question>
+
+<Question title="At temperature=2.0, would the model produce gibberish?">
+
+Often, yes. Very high temperatures flatten probability distributions so much that improbable tokens become too likely. You get grammatically broken text, nonsense words, bizarre tangents.
+
+Most practitioners stay in the 0.5-1.0 range for usable output. Temperature above 1.5 is experimental.
+
+</Question>
+
+**The determinism question**
+
+With temperature=0, is output fully deterministic? Mostly, but not always.
+
+Sources of non-determinism:
+- GPU floating-point operations can vary slightly
+- Batch composition might affect results
+- API providers may use sampling internally even at temperature=0
+- Model updates can change behavior
+
+If you need reproducibility, some APIs offer seed parameters. Even then, exact reproduction isn't guaranteed across different hardware or model versions.
+
+<Expandable title="The sampling process in detail">
+
+Full generation with sampling:
+
+1. Model outputs logits (raw scores) for all vocabulary tokens
+2. Divide logits by temperature
+3. Apply softmax to convert to probabilities
+4. Apply top-k filtering (keep only top k tokens)
+5. Apply top-p filtering (keep tokens until cumulative prob reaches p)
+6. Renormalize remaining probabilities
+7. Sample one token from this distribution
+8. Repeat for next token
+
+Each step shapes the distribution. Temperature first, then filtering, then sampling. The final token could be any of the survivors, weighted by probability.
+
+</Expandable>
+
+**Temperature and quality**
+
+Higher temperature doesn't mean better or worse. It means different.
+
+Too low: repetitive, boring, gets stuck in loops
+Too high: incoherent, random, loses the thread
+
+The sweet spot depends on the task. There's no universally optimal temperature. Experimentation reveals what works for your specific use case.
+
+<TryThis>
+
+Ask the same creative prompt three times at temperature 0.2, then three times at 0.9. Notice the variation. Low temperature gives near-identical responses. High temperature gives different responses each time, sometimes wildly different. Feel the trade-off directly.
+
+If you've ever experienced AI getting stuck in repetitive loops, that's often low-temperature determinism in action. Regenerating (re-sampling) breaks loops.
+
+</TryThis>
+
+<DiagramPlaceholder
+  toyId="temperature-slider"
+  title="Temperature Comparison"
+  description="Adjust temperature and see how the same prompt produces different outputs"
+  icon="🌡️"
+/>
+
+**Temperature is a symptom**
+
+The need for temperature reveals something about how LLMs work. They don't compute "the answer." They compute a probability distribution over possible answers. Sampling from that distribution is where the specific response emerges.
+
+This is fundamentally different from a calculator or search engine, which return definite results. The LLM always sees multiple possibilities. Temperature determines how it navigates them.
+
+<Sources>
+<Citation type="article" title="Language Model Sampling Methods" source="Hugging Face" url="https://huggingface.co/blog/how-to-generate" year={2020} />
+<Citation type="paper" title="The Curious Case of Neural Text Degeneration" authors="Holtzman et al." url="https://arxiv.org/abs/1904.09751" year={2019} />
+<Citation type="docs" title="API Parameters" source="Anthropic" url="https://docs.anthropic.com/en/api/messages" />
+</Sources>

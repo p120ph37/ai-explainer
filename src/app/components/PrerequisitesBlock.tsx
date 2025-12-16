@@ -13,7 +13,7 @@ import {
   progressState,
   type QuestStatus 
 } from '../progress.ts';
-import { getNode } from '../../content/_registry.ts';
+import { getNodeMeta } from '../../lib/content.ts';
 
 interface PrerequisiteInfo {
   id: string;
@@ -35,25 +35,17 @@ export function PrerequisitesBlock({ prerequisites }: PrerequisitesBlockProps) {
       const info: PrerequisiteInfo[] = [];
       
       for (const prereqId of prerequisites) {
-        try {
-          const module = await getNode(prereqId);
-          const totalTopics = [
-            ...(module?.meta?.children || []),
-            ...(module?.meta?.related || []),
-          ].length;
-          
-          info.push({
-            id: prereqId,
-            title: module?.meta?.title || prereqId,
-            status: getQuestStatus(prereqId, totalTopics),
-          });
-        } catch {
-          info.push({
-            id: prereqId,
-            title: prereqId,
-            status: getQuestStatus(prereqId, 0),
-          });
-        }
+        const meta = getNodeMeta(prereqId);
+        const totalTopics = [
+          ...(meta?.children || []),
+          ...(meta?.related || []),
+        ].length;
+        
+        info.push({
+          id: prereqId,
+          title: meta?.title || prereqId,
+          status: getQuestStatus(prereqId, totalTopics),
+        });
       }
       
       prereqInfo.value = info;

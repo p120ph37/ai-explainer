@@ -1,0 +1,133 @@
+---
+id: tuning
+title: "How are LLMs customized?"
+summary: Fine-tuning adapts a pre-trained model to specific tasks or behaviors. It's how base models become assistants, coders, or domain specialists.
+category: Foundations
+order: 12
+prerequisites:
+  - training
+children: []
+related:
+  - reward
+  - labels
+keywords:
+  - fine-tuning
+  - RLHF
+  - instruction tuning
+  - LoRA
+  - adapters
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+
+**Why doesn't a pre-trained model just work as an assistant?**
+
+Pre-training teaches a model to predict text. Give it "The capital of France is" and it predicts "Paris." But give it "What is the capital of France?" and it might continue with "This question is often asked by students who..."
+
+The model learned to complete text, not to answer questions. Turning a text predictor into a useful assistant requires additional training: **fine-tuning**.
+
+**What is fine-tuning?**
+
+Fine-tuning continues training on a smaller, specialized dataset. The pre-trained weights are the starting point. Additional training adjusts them toward new behavior.
+
+Types of fine-tuning:
+
+- **Instruction tuning**: Train on (instruction, response) pairs. The model learns to follow instructions.
+- **RLHF**: Train on human preferences. The model learns what responses humans prefer.
+- **Task-specific tuning**: Train on examples of a specific task (summarization, translation, coding).
+- **Domain adaptation**: Train on domain-specific text (medical, legal, scientific).
+
+Fine-tuning is much cheaper than pre-training. You're adjusting existing capabilities, not building them from scratch.
+
+<Recognition title="Same model, new version">
+
+When a new model version is released that's "better at coding" or "more helpful," it's usually the same base model with different fine-tuning. The pre-training gives general capability; fine-tuning shapes behavior.
+
+</Recognition>
+
+**The instruction tuning revolution**
+
+A key insight: if you fine-tune on diverse instruction-response pairs, the model learns to follow instructions generally, not just the specific ones in training.
+
+Early models needed prompt engineering tricks. Instruction-tuned models just do what you ask. "Summarize this article" works. "Write a poem about dogs" works. The model generalized from training examples to novel instructions.
+
+This is why ChatGPT felt so different from GPT-3. Same base model, but instruction tuning transformed the interface.
+
+<Question title="How much data does fine-tuning need?">
+
+Surprisingly little compared to pre-training:
+
+- Pre-training: trillions of tokens
+- Instruction tuning: thousands to millions of examples
+- Task-specific tuning: hundreds to thousands of examples
+
+The pre-trained model already knows language. Fine-tuning just redirects that knowledge. It's adjusting what's already there, not learning from scratch.
+
+This efficiency is why fine-tuning is accessible. Companies and individuals can customize models for their needs without massive compute budgets.
+
+</Question>
+
+**LoRA: efficient fine-tuning**
+
+Full fine-tuning updates all parameters. For a 70-billion parameter model, that means storing and updating 70 billion numbers. Expensive.
+
+**LoRA** (Low-Rank Adaptation) adds small trainable matrices alongside the frozen original weights. Only these small additions are trained. The original model stays fixed.
+
+Benefits:
+- Much less memory (training millions instead of billions of parameters)
+- Can store multiple LoRAs for different tasks
+- Combine or swap LoRAs easily
+- Nearly matches full fine-tuning quality for many tasks
+
+LoRA democratized fine-tuning. Individuals can now customize large models on consumer hardware.
+
+<Expandable title="Other efficient tuning methods">
+
+**Prefix tuning**: Learn a small "prefix" of virtual tokens prepended to inputs. The model is frozen; only the prefix is trained.
+
+**Adapters**: Insert small trainable modules between frozen layers. Similar spirit to LoRA.
+
+**Prompt tuning**: Learn soft prompt embeddings instead of discrete text prompts.
+
+All share the philosophy: keep the expensive pre-trained model frozen, train small additional parameters. This makes customization practical and reversible.
+
+</Expandable>
+
+**The fine-tuning stack**
+
+A modern assistant model goes through multiple fine-tuning stages:
+
+1. **Pre-training** → Base model (text predictor)
+2. **Instruction fine-tuning** → Instruction follower
+3. **RLHF / preference tuning** → Helpful, harmless assistant
+4. **Optional task-specific tuning** → Specialized tool
+
+Each stage refines behavior. The final model reflects accumulated choices about what "good" means.
+
+<Metaphor title="A trained athlete learning new sports">
+
+Pre-training is like developing general athleticism: strength, coordination, endurance. The athlete can do many things reasonably well.
+
+Fine-tuning is like specializing in a sport. A generally athletic person can quickly become a decent basketball player, tennis player, or swimmer. They're not starting from zero; they're adapting existing capabilities.
+
+Different fine-tuning produces different specialists from the same athletic foundation. The base capabilities are shared; the specialization is learned.
+
+</Metaphor>
+
+<TryThis>
+
+If you have API access, compare a base model to its instruction-tuned variant (e.g., Llama vs Llama-Chat, or base GPT vs ChatGPT). Give both the same prompt. The base model continues text; the tuned model follows instructions. Same knowledge, different behavior.
+
+</TryThis>
+
+**Limits of fine-tuning**
+
+Fine-tuning can shape behavior but can't create capabilities from nothing. If the base model doesn't understand chemistry, no amount of chemistry examples will make it a chemistry expert. Fine-tuning unlocks and redirects; it doesn't fundamentally add.
+
+This is why base model quality matters so much. Fine-tuning is powerful, but it's ultimately limited by what pre-training provided.
+
+<Sources>
+<Citation type="paper" title="LoRA: Low-Rank Adaptation of Large Language Models" authors="Hu et al." url="https://arxiv.org/abs/2106.09685" year={2021} />
+<Citation type="paper" title="Finetuned Language Models Are Zero-Shot Learners" authors="Wei et al." source="Google" url="https://arxiv.org/abs/2109.01652" year={2021} />
+<Citation type="docs" title="Fine-tuning documentation" source="Hugging Face" url="https://huggingface.co/docs/transformers/training" />
+</Sources>

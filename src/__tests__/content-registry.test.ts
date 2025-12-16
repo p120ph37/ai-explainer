@@ -9,8 +9,8 @@ import {
   getAllNodeIds,
   getRelatedNodes,
   contentRegistry,
-} from '../content/_registry.ts';
-import type { ContentMeta } from '../content/_types.ts';
+} from '../lib/content.ts';
+import type { ContentMeta } from '../lib/content.ts';
 
 describe('Content Registry', () => {
   describe('registerMeta', () => {

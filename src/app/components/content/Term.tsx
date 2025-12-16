@@ -10,7 +10,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useSignal, useComputed } from '@preact/signals';
 import { navigateTo } from '../../router.ts';
-import { getNodeMeta } from '../../../content/_registry.ts';
+import { getNodeMeta } from '../../../lib/content.ts';
 import { 
   markTopicDiscovered, 
   isTopicDiscovered, 
@@ -19,7 +19,12 @@ import {
   questStatusInfo,
   progressState,
 } from '../../progress.ts';
-import type { TermProps } from '../../../content/_types.ts';
+import type { JSX } from 'preact';
+
+interface TermProps {
+  id: string;
+  children: JSX.Element | string;
+}
 
 export function Term({ id, children }: TermProps) {
   const wrapperRef = useRef<HTMLSpanElement>(null);

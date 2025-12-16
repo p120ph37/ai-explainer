@@ -9,10 +9,17 @@
 
 import { readFileSync, existsSync } from 'fs';
 import { loadNotes, saveNotes, markAnchorInvalid } from './persistence.ts';
-import { nodeFiles } from '../lib/node-metadata.ts';
 import type { EditorialNote, TextSelectionAnchor } from './_types.ts';
 
 const CONTENT_DIR = 'src/content';
+
+/**
+ * Get the content file path for a page ID
+ * Files are directly at src/content/{id}.mdx
+ */
+function getContentFilePath(pageId: string): string {
+  return `${CONTENT_DIR}/${pageId}.mdx`;
+}
 
 /**
  * Get the raw text content from an MDX file (stripping MDX/JSX elements)
@@ -103,20 +110,20 @@ export async function validateAllAnchors(): Promise<{
       continue;
     }
     
-    // Get the content file
-    const contentPath = nodeFiles[note.pageId];
-    if (!contentPath) {
+    // Get the content file path (direct: src/content/{id}.mdx)
+    const fullPath = getContentFilePath(note.pageId);
+    
+    if (!existsSync(fullPath)) {
       note.anchorValid = false;
       orphanedNotes.push({ 
         id: note.id, 
         pageId: note.pageId, 
-        reason: `Page "${note.pageId}" not found` 
+        reason: `Content file not found: ${fullPath}` 
       });
       updated = true;
       continue;
     }
     
-    const fullPath = `${CONTENT_DIR}/${contentPath}`;
     const content = getMdxTextContent(fullPath);
     
     if (!content) {
@@ -124,7 +131,7 @@ export async function validateAllAnchors(): Promise<{
       orphanedNotes.push({ 
         id: note.id, 
         pageId: note.pageId, 
-        reason: `Content file not found: ${fullPath}` 
+        reason: `Content file empty: ${fullPath}` 
       });
       updated = true;
       continue;
@@ -191,4 +198,3 @@ if (import.meta.main) {
     }
   });
 }
-

@@ -1,0 +1,191 @@
+---
+id: guardrails
+title: "What are AI guardrails?"
+summary: Guardrails enforce hard rules on AI behavior that prompts alone can't guarantee. They filter inputs, validate outputs, and catch failures before they reach users.
+category: Safety & Alignment
+order: 4
+prerequisites:
+  - intro
+  - applications
+children: []
+related:
+  - alignment
+  - security
+  - applications
+keywords:
+  - guardrails
+  - safety
+  - content filtering
+  - output validation
+  - input validation
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { FlowDiagram } from '../app/components/diagrams/index.ts'
+
+**How do you prevent AI from doing things it shouldn't?**
+
+System prompts tell the model how to behave. But models don't always follow instructions perfectly. They can be confused, manipulated, or simply make mistakes. When the stakes are high, "usually follows instructions" isn't good enough.
+
+**Guardrails** are hard controls: code that runs before and after the model, enforcing rules the model itself can't guarantee.
+
+**The difference from prompts**
+
+System prompts are "soft" controls:
+- The model *usually* follows them
+- Clever users can sometimes bypass them
+- Edge cases slip through
+- No guarantee of compliance
+
+Guardrails are "hard" controls:
+- Enforced by code, not model behavior
+- Can't be bypassed by prompt manipulation
+- Catch failures before they cause harm
+- Deterministic when needed
+
+Think of prompts as asking politely. Guardrails are locked doors.
+
+<Recognition title="The generic refusal message">
+
+You've seen guardrails in action when an AI refuses a request with a generic safety message, even though a clever rephrasing might have worked with the raw model. Or when certain words are automatically redacted from responses. That's not the model being careful. It's guardrails intercepting.
+
+</Recognition>
+
+**Input guardrails: filtering before the model**
+
+Input guardrails check user messages before they reach the model:
+
+<FlowDiagram
+  title="Input Guardrail Flow"
+  steps={[
+    { id: '1', label: 'User Input', sublabel: 'Message received', icon: '💬' },
+    { id: '2', label: 'Input Guards', sublabel: 'Check & filter', icon: '🛡️' },
+    { id: '3', label: 'Pass/Block', sublabel: 'Decision point', icon: '⚖️' },
+    { id: '4', label: 'To Model', sublabel: 'If approved', icon: '🧠' },
+  ]}
+  direction="horizontal"
+  ariaLabel="Flow diagram showing input guardrail filtering"
+/>
+
+Common input guardrails:
+
+- **Content filtering**: Block prohibited topics, explicit content, harmful requests
+- **Prompt injection detection**: Identify attempts to manipulate the model
+- **PII detection**: Catch and mask sensitive personal information
+- **Topic restrictions**: Enforce domain boundaries (e.g., medical bot shouldn't discuss legal advice)
+- **Rate limiting**: Prevent abuse through volume limits
+
+<Question title="How do you detect prompt injection?">
+
+Prompt injection is hard to detect perfectly. It's an ongoing cat-and-mouse game. Common approaches:
+
+- **Pattern matching**: Catch known injection phrases ("ignore previous instructions")
+- **Classifier models**: Train a separate model to detect manipulation attempts
+- **Instruction hierarchy**: Clearly separate system vs user content
+- **Canary tokens**: Hidden markers that shouldn't appear in outputs
+
+None are foolproof. Defense in depth (layering multiple techniques) is the standard approach.
+
+→ [Prompt injection and security](/security)
+
+</Question>
+
+**Output guardrails: filtering after the model**
+
+Output guardrails check model responses before they reach users:
+
+- **Content safety**: Remove harmful, offensive, or inappropriate content
+- **Format validation**: Ensure responses match expected structure (JSON, specific formats)
+- **Factual checking**: Verify claims against known facts (limited but possible for specific domains)
+- **PII redaction**: Catch personal information the model shouldn't reveal
+- **Brand compliance**: Ensure tone and content match guidelines
+- **Citation verification**: Check that referenced sources exist
+
+<Expandable title="Implementation approaches">
+
+Guardrails can be implemented as:
+
+**Rule-based systems**:
+- Regex patterns for known issues
+- Keyword blocklists
+- Format validators
+- Fast but brittle, easy to bypass
+
+**Classifier models**:
+- Separate ML models trained on safety/quality
+- More robust than rules
+- Can generalize to novel cases
+- Adds latency and cost
+
+**LLM-as-judge**:
+- Use another LLM to evaluate outputs
+- Most flexible and capable
+- Most expensive
+- Can have its own failure modes
+
+**Hybrid approaches**:
+- Fast rules for obvious cases
+- ML classifiers for nuanced cases
+- LLM review for edge cases
+- Escalate to humans when uncertain
+
+</Expandable>
+
+**Why not just train the model better?**
+
+Base model safety training helps enormously. But guardrails serve different purposes:
+
+- **Domain specificity**: Your application has rules the base model doesn't know
+- **Regulatory compliance**: Laws vary by jurisdiction and industry
+- **Brand requirements**: Tone, topics, and style specific to your product
+- **Liability protection**: Catch edge cases before they become incidents
+- **Rapid response**: Update guardrails instantly vs retraining
+- **Defense in depth**: Multiple layers catch more failures
+
+Training handles the general case. Guardrails handle your specific case.
+
+<Metaphor title="Guardrails on a highway">
+
+Highway guardrails don't stop drivers from driving badly. They prevent bad driving from becoming catastrophic. A car that drifts hits the guardrail and bounces back, instead of going off a cliff.
+
+AI guardrails work similarly. The model might generate something problematic. The guardrail catches it before it reaches the user. Not every drift needs to be prevented, just the dangerous ones.
+
+The road (training) teaches good behavior. The guardrails (filters) prevent disaster when behavior fails.
+
+</Metaphor>
+
+**The guardrails trade-off**
+
+Guardrails have costs:
+
+- **False positives**: Blocking legitimate requests frustrates users
+- **Latency**: Each check adds processing time
+- **Maintenance**: Rules need updating as threats evolve
+- **Brittleness**: Rules that are too specific fail on variations
+
+The goal is finding the right balance: catch genuine problems without blocking legitimate use. This requires iteration, monitoring, and adjustment.
+
+<TryThis>
+
+Try to identify guardrails in AI products you use. Ask questions that might trigger safety filters. Notice how responses differ between products: some block more aggressively, some more permissively. Those differences reflect different guardrail configurations, not just different models.
+
+</TryThis>
+
+**Guardrails in context**
+
+Guardrails are one layer of a defense-in-depth approach:
+
+1. **Training**: Build safety into the model
+2. **System prompts**: Guide model behavior
+3. **Input guardrails**: Filter problematic requests
+4. **Output guardrails**: Catch problematic responses
+5. **Human oversight**: Review edge cases
+6. **Monitoring**: Detect patterns indicating problems
+
+No single layer is sufficient. Together, they create a robust system.
+
+<Sources>
+<Citation type="docs" title="Guardrails AI" source="Guardrails" url="https://www.guardrailsai.com/" />
+<Citation type="article" title="AI Safety and Content Moderation" source="Anthropic" url="https://www.anthropic.com/research" />
+<Citation type="docs" title="Safety Best Practices" source="Anthropic" url="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/claude-safety" />
+</Sources>

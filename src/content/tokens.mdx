@@ -1,0 +1,170 @@
+---
+id: tokens
+title: "What are tokens?"
+summary: LLMs read tokens, not letters or words. Tokens are chunks of text that the model has learned to recognize.
+category: Foundations
+order: 1
+prerequisites:
+  - intro
+children:
+  - context-window
+related:
+  - embeddings
+keywords:
+  - tokenization
+  - BPE
+  - vocabulary
+  - subword
+---
+
+import { Expandable, Metaphor, Question, Recognition, TryThis, Sources, Citation } from '../app/components/content/index.ts'
+import { TokenBoundaries, TokenizerDemo } from '../app/components/diagrams/index.ts'
+
+**When you type "Hello, how are you?" what does the model actually see?**
+
+Not letters. Not exactly words. The model sees **tokens**: chunks of text that might be whole words, parts of words, or individual characters.
+
+Before your message reaches the neural network, a tokenizer chops it up. "Hello" might become one token. "Tokenization" might become "Token" + "ization". An unusual word like "cryptographic" might split into "crypt" + "ographic" or even smaller pieces.
+
+This chunking matters because neural networks work with numbers, not text. Each token maps to a numeric ID in a vocabulary. Token 9906 might be "Hello". Token 30 might be "?". These numbers are what the model actually processes.
+
+<TokenBoundaries
+  originalText="Hello, how are you?"
+  tokens={[
+    { text: 'Hello', id: 9906 },
+    { text: ',', id: 11 },
+    { text: ' how', id: 1268 },
+    { text: ' are', id: 527 },
+    { text: ' you', id: 499 },
+    { text: '?', id: 30 },
+  ]}
+  showIds={true}
+  title="Example: GPT-4 tokenization"
+/>
+
+<Metaphor title="A vocabulary built from LEGO">
+
+A token vocabulary is like having a box of LEGO pieces. Some pieces are large, pre-assembled: common words like "the" or "hello" are single, chunky blocks. Others are small studs: individual letters or character fragments.
+
+When you give the model a sentence, it reaches into the box and finds the largest pieces that fit. "Hello" might be one big block. "Cryptocurrency" might need several smaller ones snapped together.
+
+The model thinks in these pieces. Asking it to count letters is like asking someone to count the bumps on a LEGO structure when they can only see the assembled blocks. The information exists in some sense, but it's not accessible at the resolution they're working at.
+
+</Metaphor>
+
+<Recognition title="The strawberry meme">
+
+The "How many r's in strawberry?" meme became a widespread demonstration of LLM limitations. Before understanding tokens, this seems like the AI is just "bad at counting." After understanding tokens, it's clear: the model might see "straw" + "berry" as two tokens. The letter-level information is literally hidden from it. It's not stupidity; it's architecture.
+
+</Recognition>
+
+**Why not just use words?**
+
+Words seem like the obvious choice, but they create problems. English alone has hundreds of thousands of words. Add names, technical terms, foreign words, typos, and internet slang, and you'd need millions of vocabulary entries.
+
+Worse: any word not in your vocabulary becomes impossible to process. The model would choke on "ChatGPT" if it was trained before that word existed.
+
+Tokens solve this elegantly. A typical vocabulary has 50,000-100,000 tokens (newer models like GPT-4o use ~200,000). Common words like "the" and "and" get their own tokens. Rare or new words get assembled from pieces. "ChatGPT" might become "Chat" + "G" + "PT". The model never encounters a word it can't represent.
+
+<Question title="Why tokens instead of letters?">
+
+Letters are too granular. A 500-word essay becomes ~2,500 individual letters, each needing separate processing. Tokens strike a balance: common words are efficient single units, while rare words decompose into reusable pieces. This dramatically reduces computation while maintaining flexibility. The tradeoff is that letter-level tasks (like counting letters) become harder because letters aren't the native unit.
+
+→ [How Does Attention Work?](/attention) (attention cost scales with token count)
+
+</Question>
+
+<Question title="How does the model decide where to split?">
+
+The most common approach is called **byte-pair encoding** (BPE). The algorithm starts with individual characters and repeatedly merges the most frequent pairs.
+
+Starting with "the the the cat", it might first merge "t" and "h" into "th", then "th" and "e" into "the". Over many iterations across a massive text corpus, common patterns become single tokens while rare combinations stay split.
+
+The result: a vocabulary that efficiently compresses common language while remaining flexible enough to handle anything.
+
+→ [How BPE builds a vocabulary](/bpe-algorithm)
+
+</Question>
+
+**What does this mean for how the model thinks?**
+
+Tokenization shapes what the model can easily perceive. Common English words are single tokens. The model has learned rich associations for these during training. But split a word into pieces and the model must reconstruct its meaning from fragments, each learned in potentially different contexts.
+
+The model sees your text more like you sight-read: not letter-by-letter, but in familiar shapes and chunks. You generally don't look at individual letters when reading. You recognize words and word-parts by shape, slowing down only for unfamiliar terms. Similarly, the model works with chunks. Common words are single, familiar tokens. Rare words fragment into pieces that must be reconstructed.
+
+<Question title="Does splitting 'strawberry' into 'straw' + 'berry' confuse the model?">
+
+Not usually. Context disambiguates. Just like when you hear someone say "strawberry" aloud, you understand the concept even though you heard separate sounds. When "straw" appears next to "berry," the model has learned this combination means the fruit, not hay plus fruit.
+
+But you've spotted a real edge case: the model processes tokens, not meanings. Unusual splits can cause subtle issues, especially for rare words where the model hasn't seen enough disambiguating context.
+
+→ [How Do Tokens Become Numbers?](/embeddings)
+
+</Question>
+
+<Question title="Do non-English speakers get worse AI?">
+
+Often, yes. Tokenizers trained primarily on English fragment other languages heavily. A Japanese sentence might require 3-5x more tokens than the same meaning in English. This means faster context exhaustion, higher costs, and more reconstruction errors.
+
+Try comparing "accounts payable" (2 tokens) with its Spanish equivalent "cuentas por pagar" (4 tokens). The same concept costs twice as much to process. Multilingual models are improving, but tokenization equity remains an active research problem.
+
+→ [The Context Window](/context-window)
+
+</Question>
+
+<TryThis>
+
+Use the tokenizer below to explore. Type your name and watch it fragment. Try common words, then technical jargon. Compare "hello" to the same greeting in Korean (안녕하세요) and notice the difference in token counts. Try "antidisestablishmentarianism" and watch it shatter into pieces.
+
+</TryThis>
+
+<TokenizerDemo
+  defaultText="Hello, how are you? Try typing something!"
+  title="Interactive Tokenizer (GPT-5 / GPT-4o encoding)"
+  showIds={true}
+/>
+
+**How many tokens is my conversation?**
+
+A rough rule: one token averages about 4 characters in English, or roughly three-quarters of a word. A 100-word paragraph is typically 70-80 tokens. A 1,000-word essay might be 750-800 tokens.
+
+LLMs have a **context window**: a maximum number of tokens they can consider at once. Exceed it and older content gets forgotten. Token efficiency directly affects how much context the model can use.
+
+<Metaphor title="The token tax">
+
+Every token costs. Computation, memory, money. APIs charge per token. Context windows measure in tokens. Generation speed depends on tokens produced.
+
+Think of it like the LEGO metaphor: you aren't paying per-word, you're paying per-piece. Building concepts out of fewer large LEGO pieces is cheaper than building them out of many tiny pieces. English speakers get more pre-assembled blocks; other languages often pay more for the same meaning.
+
+When your prompt is verbose, you're paying the token tax on every unnecessary word. Efficiency in language becomes efficiency in resources. For cost calculators and model pricing comparisons, see [gpt-tokenizer.dev](https://gpt-tokenizer.dev/).
+
+</Metaphor>
+
+<Question title="If new words like 'ChatGPT' didn't exist during training, how does the model know what they mean?">
+
+It doesn't, initially. The word gets split into pieces ("Chat" + "G" + "PT" or similar), and the model infers meaning from context. If someone explains ChatGPT in the prompt (or provides context via RAG — retrieval-augmented generation), the model uses that explanation. If not, it pattern-matches on the pieces: "Chat" suggests conversation, etc.
+
+This is why very new concepts may be misunderstood until the model is retrained or given explicit context.
+
+→ [The Context Window](/context-window)
+
+</Question>
+
+<Question title="Could you design a better tokenizer and improve the model without retraining?">
+
+Not without retraining. The model's embeddings are learned *for that specific tokenizer*. Each token ID maps to a learned vector. Change the tokenizer and all those mappings become meaningless. The model would need to relearn them.
+
+This is why tokenizer design happens early and stays fixed. Better tokenizers require training new models from scratch.
+
+→ [How Do Tokens Become Numbers?](/embeddings)
+
+</Question>
+
+When the model behaves unexpectedly with unusual words, names, or non-English text, tokenization is often the underlying cause. The model isn't being stupid; it's working with a different view of your input than you have.
+
+<Sources>
+<Citation type="video" title="Let's build the GPT Tokenizer" source="Andrej Karpathy" url="https://www.youtube.com/watch?v=zduSFxRajkE" year={2024} />
+<Citation type="article" title="Tiktoken: OpenAI's tokenizer library" source="OpenAI" url="https://github.com/openai/tiktoken" />
+<Citation type="article" title="GPT Tokenizer Playground" source="gpt-tokenizer.dev" url="https://gpt-tokenizer.dev/" />
+<Citation type="paper" title="Neural Machine Translation of Rare Words with Subword Units" authors="Sennrich et al." url="https://arxiv.org/abs/1508.07909" year={2016} />
+</Sources>

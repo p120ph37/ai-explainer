@@ -12,8 +12,9 @@
  */
 
 import { useState, useEffect } from 'preact/hooks';
-import type { CitationType } from '../../../content/_types.ts';
 import type { ComponentChildren } from 'preact';
+
+type CitationType = 'paper' | 'video' | 'docs' | 'article';
 
 // Registry to store citation titles for footnote tooltips
 const citationRegistry: Map<number, string> = new Map();

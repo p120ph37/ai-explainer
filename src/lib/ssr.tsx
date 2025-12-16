@@ -1,10 +1,13 @@
 /**
- * Server-Side Rendering for MDX Content
+ * Server-Side Rendering
  * 
- * Compiles MDX files and renders them to HTML strings for SEO.
- * Used by both dev server and build script.
+ * Renders the full App component to HTML for SEO and fast initial paint.
+ * The same component tree is hydrated on the client.
+ * 
+ * Uses @griffel/react's RendererProvider for CSS-in-JS SSR support.
  */
 
+import * as preact from 'preact';
 import { h, Fragment } from 'preact';
 import renderToString from 'preact-render-to-string';
 import { evaluate } from '@mdx-js/mdx';
@@ -12,7 +15,11 @@ import * as runtime from 'preact/jsx-runtime';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import remarkStripImports from './remark-strip-imports.ts';
-import { nodeFiles, type NodeMeta, specialPages } from './node-metadata.ts';
+import { type ContentMeta, specialPages } from './content.ts';
+import { App } from '../app/App.tsx';
+
+// Griffel SSR imports
+import { createDOMRenderer, renderToStyleElements, RendererProvider } from '@griffel/react';
 
 // Import our custom MDX components
 import { Term } from '../app/components/content/Term.tsx';
@@ -64,7 +71,7 @@ const mdxComponents = {
 };
 
 // Cache compiled modules
-const moduleCache = new Map<string, { default: any; meta: NodeMeta }>();
+const moduleCache = new Map<string, { default: any; meta: ContentMeta }>();
 
 /**
  * Compile and evaluate MDX content
@@ -89,19 +96,18 @@ async function compileMdx(content: string): Promise<{ default: any; meta: any }>
 
 /**
  * Load and compile an MDX file, returning component and meta
+ * Uses direct file path: src/content/{id}.mdx
  */
-export async function loadMdxModule(nodeId: string, contentDir: string = 'src/content'): Promise<{ default: any; meta: NodeMeta } | null> {
+export async function loadMdxModule(nodeId: string, contentDir: string = 'src/content'): Promise<{ default: any; meta: ContentMeta } | null> {
   // Check cache
   const cacheKey = `${contentDir}:${nodeId}`;
   if (moduleCache.has(cacheKey)) {
     return moduleCache.get(cacheKey)!;
   }
   
-  const filePath = nodeFiles[nodeId];
-  if (!filePath) return null;
-  
   try {
-    const fullPath = `${contentDir}/${filePath}`;
+    // Direct file path - no registry lookup needed
+    const fullPath = `${contentDir}/${nodeId}.mdx`;
     const file = Bun.file(fullPath);
     
     if (!(await file.exists())) {
@@ -112,12 +118,16 @@ export async function loadMdxModule(nodeId: string, contentDir: string = 'src/co
     const module = await compileMdx(content);
     
     // Ensure meta has required fields
-    const meta: NodeMeta = {
+    const meta: ContentMeta = {
       id: nodeId,
       title: module.meta?.title || nodeId,
       summary: module.meta?.summary || '',
       category: module.meta?.category,
       order: module.meta?.order,
+      prerequisites: module.meta?.prerequisites,
+      children: module.meta?.children,
+      related: module.meta?.related,
+      keywords: module.meta?.keywords,
     };
     
     const result = { default: module.default, meta };
@@ -132,7 +142,7 @@ export async function loadMdxModule(nodeId: string, contentDir: string = 'src/co
 /**
  * Render MDX content to an HTML string
  */
-export async function renderMdxContent(nodeId: string, contentDir: string = 'src/content'): Promise<{ html: string; meta: NodeMeta } | null> {
+export async function renderMdxContent(nodeId: string, contentDir: string = 'src/content'): Promise<{ html: string; meta: ContentMeta } | null> {
   const module = await loadMdxModule(nodeId, contentDir);
   if (!module) return null;
   
@@ -154,14 +164,14 @@ export async function renderMdxContent(nodeId: string, contentDir: string = 'src
 /**
  * Get metadata for a node (faster than full render)
  */
-export async function getNodeMeta(nodeId: string, contentDir: string = 'src/content'): Promise<NodeMeta | null> {
+export async function getNodeMeta(nodeId: string, contentDir: string = 'src/content'): Promise<ContentMeta | null> {
   // Check for special pages
   if (nodeId in specialPages) {
-    return specialPages[nodeId];
+    return specialPages[nodeId] ?? null;
   }
   
   const module = await loadMdxModule(nodeId, contentDir);
-  return module?.meta || null;
+  return module?.meta ?? null;
 }
 
 /**
@@ -169,6 +179,60 @@ export async function getNodeMeta(nodeId: string, contentDir: string = 'src/cont
  */
 export function clearCache(): void {
   moduleCache.clear();
+}
+
+/**
+ * Render the full App to HTML string
+ * This is the main SSR entry point - renders the complete page
+ * 
+ * Uses @griffel/react's RendererProvider to capture CSS during SSR,
+ * and renderToStyleElements to generate <style> tags for rehydration.
+ */
+export async function renderAppToString(
+  nodeId: string, 
+  contentDir: string = 'src/content'
+): Promise<{ html: string; meta: ContentMeta; styleElements: string } | null> {
+  // Load the MDX module
+  const module = await loadMdxModule(nodeId, contentDir);
+  if (!module) return null;
+  
+  // Create a fresh renderer for this SSR pass
+  // createDOMRenderer(undefined) creates an in-memory renderer for SSR
+  const renderer = createDOMRenderer(undefined as unknown as Document);
+  
+  // Create a wrapper component that provides the MDX components
+  const ContentWithComponents = () => (
+    <module.default components={mdxComponents} />
+  );
+  
+  try {
+    // Render the full App with the content, wrapped in RendererProvider
+    // Use h() directly to avoid TypeScript type mismatch between React/Preact
+    const appElement = h(
+      RendererProvider as any,
+      { renderer },
+      h(App, {
+        nodeId,
+        ContentComponent: ContentWithComponents,
+        meta: module.meta,
+        initialTheme: 'light',
+      })
+    );
+    
+    const html = renderToString(appElement);
+    
+    // Get style elements with data attributes for client-side rehydration
+    // renderToStyleElements returns React/Preact elements
+    const styleElementsArray = renderToStyleElements(renderer);
+    const styleElements = styleElementsArray
+      .map(el => renderToString(el as unknown as preact.VNode))
+      .join('\n');
+    
+    return { html, meta: module.meta, styleElements };
+  } catch (error) {
+    console.error(`Failed to render app for ${nodeId}:`, error);
+    return null;
+  }
 }
 
 /**
@@ -188,23 +252,18 @@ export async function renderMarkdownContent(content: string): Promise<string> {
   } catch (error) {
     console.error('Failed to render markdown content:', error);
     // Return a basic HTML rendering as fallback
-    // Convert markdown to simple HTML (basic conversion)
     const escaped = content
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     
     const html = escaped
-      // Headers
       .replace(/^### (.+)$/gm, '<h3>$1</h3>')
       .replace(/^## (.+)$/gm, '<h2>$1</h2>')
       .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-      // Bold and italic
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // Paragraphs (double newline)
       .replace(/\n\n/g, '</p><p>')
-      // Line breaks
       .replace(/\n/g, '<br>');
     
     return `<div class="variant-content"><p>${html}</p></div>`;

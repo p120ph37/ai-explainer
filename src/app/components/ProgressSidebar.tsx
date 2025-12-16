@@ -19,8 +19,7 @@ import {
   markQuestComplete,
   type QuestStatus,
 } from '../progress.ts';
-import { getNode } from '../../content/_registry.ts';
-import type { ContentMeta } from '../../content/_types.ts';
+import { getNodeMeta, type ContentMeta } from '../../lib/content.ts';
 
 interface NodeInfo {
   id: string;
@@ -59,22 +58,18 @@ export function ProgressSidebar() {
       const loaded: NodeInfo[] = [];
       
       for (const nodeId of allNodeIds) {
-        try {
-          const module = await getNode(nodeId);
-          if (module?.meta) {
-            const linkedTopics = [
-              ...(module.meta.children || []),
-              ...(module.meta.related || []),
-            ];
-            
-            loaded.push({
-              id: nodeId,
-              meta: module.meta,
-              linkedTopics,
-            });
-          }
-        } catch {
-          // Skip nodes that fail to load
+        const meta = getNodeMeta(nodeId);
+        if (meta) {
+          const linkedTopics = [
+            ...(meta.children || []),
+            ...(meta.related || []),
+          ];
+          
+          loaded.push({
+            id: nodeId,
+            meta,
+            linkedTopics,
+          });
         }
       }
       

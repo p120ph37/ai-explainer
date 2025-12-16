@@ -454,6 +454,11 @@
   border-top: 1px solid var(--color-border-subtle);
 }
 
+/* Hidden state for SSR - Griffel takes over after hydration */
+.expandable__content--hidden {
+  display: none;
+}
+
 .expandable--advanced .expandable__trigger {
   background: var(--color-accent-subtle);
 }
@@ -535,6 +540,11 @@
   animation: metaphor-content-appear var(--duration-normal, 200ms) var(--ease-out);
 }
 
+/* Hidden state for SSR - Griffel takes over after hydration */
+.metaphor__content--hidden {
+  display: none;
+}
+
 @keyframes metaphor-content-appear {
   from {
     opacity: 0;
@@ -563,7 +573,6 @@
 }
 
 .metaphor__body {
-  font-style: italic;
   color: var(--color-text-muted);
 }
 
@@ -712,6 +721,11 @@
   animation: question-content-appear var(--duration-normal, 200ms) var(--ease-out);
 }
 
+/* Hidden state for SSR - Griffel takes over after hydration */
+.question__content--hidden {
+  display: none;
+}
+
 @keyframes question-content-appear {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -807,22 +821,206 @@
 }
 
 /* ============================================
-   Recognition & Try This Blocks
+   Recognition Aside (Dynamic Margin Notes)
    ============================================ */
 
-.recognition,
+.recognition--aside {
+  position: relative;
+  margin-block: var(--space-md);
+}
+
+.recognition__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-highlight-subtle);
+  border: 1px dashed var(--color-highlight);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  transition: all var(--duration-fast) var(--ease-out);
+  width: 100%;
+  text-align: left;
+}
+
+.recognition__trigger:hover {
+  border-color: var(--color-highlight);
+  color: var(--color-highlight);
+  background: var(--color-highlight-subtle);
+}
+
+.recognition__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--color-highlight-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-highlight);
+}
+
+.recognition__trigger:hover .recognition__icon {
+  background: var(--color-highlight-subtle);
+  color: var(--color-highlight);
+}
+
+.recognition__title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.recognition__chevron {
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.recognition--open .recognition__chevron {
+  transform: rotate(180deg);
+}
+
+.recognition__content {
+  padding: var(--space-md);
+  padding-top: var(--space-sm);
+  animation: recognition-content-appear var(--duration-normal, 200ms) var(--ease-out);
+}
+
+/* Hidden state for SSR - Griffel takes over after hydration */
+.recognition__content--hidden {
+  display: none;
+}
+
+@keyframes recognition-content-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.recognition__body p:first-child {
+  margin-top: 0;
+}
+
+.recognition__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Expanded state - subtle tinted background */
+.recognition--open {
+  border-radius: var(--radius-md);
+  background: var(--color-highlight-subtle);
+  overflow: hidden;
+}
+
+.recognition--open .recognition__trigger {
+  border: 1px dashed var(--color-highlight);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: transparent;
+}
+
+.recognition--open .recognition__content {
+  background: transparent;
+}
+
+/* Desktop: Position in margin when collapsed, in flow when open */
+@media (min-width: 1200px) {
+  .recognition--aside {
+    --recognition-width: 280px;
+    --recognition-gap: var(--space-lg);
+  }
+  
+  /* Collapsed LEFT margin (when recognition--left) */
+  .recognition--aside.recognition--left:not(.recognition--open) {
+    position: absolute;
+    right: calc(100% + var(--recognition-gap));
+    width: var(--recognition-width);
+    margin-block: 0;
+    
+    transform: translateY(var(--deoverlap-offset, 0));
+    transition: transform var(--duration-normal, 200ms) var(--ease-out);
+    
+    animation: recognition-slide-out-left var(--duration-normal, 200ms) var(--ease-out);
+  }
+  
+  /* Collapsed RIGHT margin (when recognition--right, default) */
+  .recognition--aside.recognition--right:not(.recognition--open) {
+    position: absolute;
+    left: calc(100% + var(--recognition-gap));
+    width: var(--recognition-width);
+    margin-block: 0;
+    
+    transform: translateY(var(--deoverlap-offset, 0));
+    transition: transform var(--duration-normal, 200ms) var(--ease-out);
+    
+    animation: recognition-slide-out-right var(--duration-normal, 200ms) var(--ease-out);
+  }
+  
+  /* Open state: in normal flow, full width */
+  .recognition--open {
+    position: relative;
+    left: auto;
+    right: auto;
+    width: 100%;
+    margin-block: var(--space-md);
+    
+    animation: recognition-slide-in var(--duration-normal, 200ms) var(--ease-out);
+  }
+  
+  @keyframes recognition-slide-in {
+    from {
+      opacity: 0.8;
+      transform: translateX(var(--slide-direction, 0));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes recognition-slide-out-left {
+    from {
+      opacity: 0.8;
+      transform: translateX(calc(var(--recognition-width) + var(--recognition-gap)));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes recognition-slide-out-right {
+    from {
+      opacity: 0.8;
+      transform: translateX(calc(-1 * (var(--recognition-width) + var(--recognition-gap))));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+/* Very wide screens: larger margin notes */
+@media (min-width: 1400px) {
+  .recognition--aside {
+    --recognition-width: 320px;
+  }
+}
+
+/* ============================================
+   Try This Block (Inline)
+   ============================================ */
+
 .try-this {
   padding: var(--space-md);
   border-radius: var(--radius-md);
   margin-block: var(--space-lg);
+  background: var(--color-accent-subtle);
+  border-left: 3px solid var(--color-accent);
 }
 
-.recognition {
-  background: var(--color-highlight-subtle);
-  border-left: 3px solid var(--color-highlight);
-}
-
-.recognition__label,
 .try-this__label {
   display: block;
   font-family: var(--font-ui);
@@ -831,18 +1029,6 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: var(--space-xs);
-}
-
-.recognition__label {
-  color: var(--color-highlight);
-}
-
-.try-this {
-  background: var(--color-accent-subtle);
-  border-left: 3px solid var(--color-accent);
-}
-
-.try-this__label {
   color: var(--color-accent);
 }
 
@@ -1082,28 +1268,6 @@
 @keyframes highlight-flash {
   0% { background: var(--color-accent-subtle); }
   100% { background: transparent; }
-}
-
-/* ============================================
-   Interactive Elements Container
-   ============================================ */
-
-.interactive {
-  margin-block: var(--space-lg);
-  padding: var(--space-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-}
-
-.interactive__label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  font-family: var(--font-ui);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-subtle);
-  margin-bottom: var(--space-sm);
 }
 
 /* ============================================
@@ -2022,6 +2186,7 @@
 }
 
 .progress-bar {
+  position: relative;
   height: 8px;
   background: var(--color-bg-subtle);
   border-radius: var(--radius-sm);
@@ -2030,8 +2195,10 @@
 }
 
 .progress-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
-  background: linear-gradient(90deg, var(--color-success), var(--color-primary));
   border-radius: var(--radius-sm);
   transition: width 0.3s ease;
 }
@@ -2060,12 +2227,13 @@
 .progress-stat-icon.status-undiscovered { color: var(--color-text-muted); }
 
 .progress-legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
   padding: var(--space-xs) var(--space-md);
   background: var(--color-bg-subtle);
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  text-align: center;
-  font-family: var(--font-mono);
 }
 
 .progress-categories {
@@ -2316,24 +2484,6 @@
   color: var(--color-text-heading);
 }
 
-/* Stacked progress bar */
-.progress-bar {
-  position: relative;
-  height: 8px;
-  background: var(--color-bg-subtle);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  border-radius: var(--radius-sm);
-  transition: width 0.3s ease;
-}
-
 .progress-bar-fill--discovered {
   background: var(--color-warning);
   opacity: 0.3;
@@ -2341,17 +2491,6 @@
 
 .progress-bar-fill--complete {
   background: linear-gradient(90deg, var(--color-success), var(--color-primary));
-}
-
-/* Legend with icons */
-.progress-legend {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-md);
-  padding: var(--space-xs) var(--space-md);
-  background: var(--color-bg-subtle);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
 }
 
 .progress-legend-item {
@@ -2423,24 +2562,6 @@
   100% {
     text-shadow: 0 0 0 transparent;
   }
-}
-
-/* ============================================
-   Color variables for status
-   ============================================ */
-
-:root {
-  --color-success: #22c55e;
-  --color-success-bg: rgba(34, 197, 94, 0.1);
-  --color-warning: #f59e0b;
-  --color-warning-bg: rgba(245, 158, 11, 0.1);
-}
-
-[data-theme="dark"] {
-  --color-success: #4ade80;
-  --color-success-bg: rgba(74, 222, 128, 0.15);
-  --color-warning: #fbbf24;
-  --color-warning-bg: rgba(251, 191, 36, 0.15);
 }
 
 /* Mobile responsiveness for sidebar */

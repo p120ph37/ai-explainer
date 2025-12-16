@@ -5,7 +5,7 @@
  */
 
 import { navigateTo, currentRoute } from '../router.ts';
-import { getNodeMeta } from '../../content/_registry.ts';
+import { getNodeMeta } from '../../lib/content.ts';
 
 interface BreadcrumbsProps {
   path: string[];
