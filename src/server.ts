@@ -14,7 +14,6 @@ import { renderAppToString, getNodeMeta, clearCache } from './lib/ssr.tsx';
 import { generateHtml, generateIndexHtml, contentHash } from './lib/html-template.ts';
 import { discoverContent, contentExists, clearContentCache } from './lib/content.ts';
 import mdxPlugin from './plugins/mdx-plugin.ts';
-import preactAliasPlugin from './plugins/preact-alias-plugin.ts';
 import griffelPlugin from './plugins/griffel-plugin.ts';
 
 const PID_FILE = '.dev.pid';
@@ -46,7 +45,7 @@ async function buildBundles(): Promise<string> {
     outdir: './dist',
     minify: false,
     splitting: false,
-    plugins: [preactAliasPlugin, griffelPlugin, mdxPlugin],
+    plugins: [griffelPlugin, mdxPlugin],
     target: 'browser',
     define: {
       'process.env.NODE_ENV': '"development"',

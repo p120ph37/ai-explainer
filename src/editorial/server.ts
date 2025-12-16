@@ -15,7 +15,6 @@ import { generateHtml, generateIndexHtml, escapeHtml, contentHash } from '../lib
 import { discoverContent, contentExists, getContentPath } from '../lib/content.ts';
 import mdxPlugin from '../plugins/mdx-plugin.ts';
 import variantsPlugin from '../plugins/variants-plugin.ts';
-import preactAliasPlugin from '../plugins/preact-alias-plugin.ts';
 import griffelPlugin from '../plugins/griffel-plugin.ts';
 import {
   loadNotes,
@@ -70,7 +69,7 @@ async function getJsBundle(): Promise<{ code: string; hash: string }> {
     outdir: './dist',
     minify: false,
     splitting: false,
-    plugins: [preactAliasPlugin, griffelPlugin, mdxPlugin, variantsPlugin],
+    plugins: [griffelPlugin, mdxPlugin, variantsPlugin],
     target: 'browser',
     define: {
       'process.env.NODE_ENV': '"development"',

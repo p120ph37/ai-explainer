@@ -4,10 +4,9 @@
  * Applies Griffel's ahead-of-time Babel transform to convert
  * makeStyles() calls into pre-computed atomic CSS classes.
  * 
- * This plugin only does the AOT transform.
- * React aliasing is handled separately by preact-alias-plugin.ts
+ * React→Preact aliasing is handled via tsconfig.json paths + src/shims/
  * 
- * Usage: Import from @griffel/react (not @griffel/core)
+ * Usage: Import from @griffel/react
  * 
  *   import { makeStyles, mergeClasses } from '@griffel/react';
  *   
