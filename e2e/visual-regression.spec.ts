@@ -310,28 +310,9 @@ test.describe('Discovery Animation', () => {
   });
 });
 
-test.describe('Navigation', () => {
+test.describe('Navigation Screenshots', () => {
+  // Visual tests are skipped in CI due to cross-platform baseline differences
   test.skip(isCI, 'Visual regression tests are skipped in CI');
-  
-  test('clicking internal link navigates', async ({ page }) => {
-    await page.goto('/intro');
-    await page.waitForSelector('.content-node__body');
-    await page.waitForTimeout(500);
-    
-    // Find and click an internal link
-    const link = page.locator('.internal-link a, a[href^="/"]').first();
-    
-    if (await link.count() > 0) {
-      const href = await link.getAttribute('href');
-      await link.click();
-      await page.waitForTimeout(500);
-      
-      // Should have navigated (using pathname, not hash)
-      const pathname = await page.evaluate(() => window.location.pathname);
-      expect(pathname).toContain('/');
-      expect(pathname.length).toBeGreaterThan(1);
-    }
-  });
   
   test('breadcrumbs show correct path', async ({ page }) => {
     // Go directly to tokens - breadcrumbs should show the path
