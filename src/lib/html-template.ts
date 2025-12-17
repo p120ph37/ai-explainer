@@ -6,6 +6,7 @@
  */
 
 import type { ContentMeta } from '@/lib/content.ts';
+import { getLocalBeaconScript } from '@/lib/local-beacon.ts';
 
 // Alias for backwards compatibility
 type NodeMeta = ContentMeta;
@@ -38,6 +39,14 @@ export interface HtmlTemplateOptions {
   allContentMeta?: Record<string, ContentMeta>;
   /** All content IDs in order */
   allContentIds?: string[];
+  /** Cloudflare Web Analytics beacon token */
+  cfBeaconToken?: string;
+  /** 
+   * Local beacon mode (only used when cfBeaconToken is not set and isDev is true)
+   * - "eager": Send beacon immediately on navigation (default, good for dev feedback)
+   * - "lazy": Match CF behavior - send when leaving page (good for testing production behavior)
+   */
+  beaconMode?: 'eager' | 'lazy';
 }
 
 const defaultMeta: NodeMeta = {
@@ -60,6 +69,8 @@ export function generateHtml(options: HtmlTemplateOptions): string {
     isDev = false,
     allContentMeta = {},
     allContentIds = [],
+    cfBeaconToken,
+    beaconMode = 'eager', // Default to eager for dev feedback
   } = options;
   
   const title = meta.title || defaultMeta.title;
@@ -108,6 +119,11 @@ export function generateHtml(options: HtmlTemplateOptions): string {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  ${cfBeaconToken ? `
+  <!-- Cloudflare Web Analytics -->
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "${cfBeaconToken}", "spa": true}'></script>` : (isDev ? `
+  <!-- Local Development Beacon (mimics Cloudflare beacon, sends to /__analytics) -->
+  <script>${getLocalBeaconScript({ mode: beaconMode })}</script>` : '')}
   
   <!-- Stylesheets -->
   <link rel="stylesheet" href="${cssPath}/base.css">

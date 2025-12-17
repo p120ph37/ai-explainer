@@ -19,6 +19,14 @@ import { discoverContent, type ContentMeta } from '@/lib/content.ts';
 
 console.log('🔨 Building Frontier AI Explainer...\n');
 
+// Get Cloudflare Web Analytics beacon token from environment
+const cfBeaconToken = process.env.CF_BEACON_TOKEN || '';
+if (cfBeaconToken) {
+  console.log(`📊 Cloudflare Web Analytics enabled`);
+} else {
+  console.log('📊 Cloudflare Web Analytics: not configured (set CF_BEACON_TOKEN env var)');
+}
+
 // ============================================
 // Step 1: Build the JavaScript bundle
 // ============================================
@@ -123,6 +131,7 @@ for (const { id: nodeId, meta } of publicContent) {
       isDev: false,
       allContentMeta: allMeta,
       allContentIds: allIds,
+      cfBeaconToken,
     });
     
     await mkdir(`./dist/${nodeId}`, { recursive: true });
@@ -149,6 +158,7 @@ if (introRendered) {
     isDev: false,
     allContentMeta: allMeta,
     allContentIds: allIds,
+    cfBeaconToken,
   });
   await Bun.write('./dist/index.html', rootHtml);
   pagesGenerated++;
@@ -163,6 +173,7 @@ const indexHtml = generateIndexHtml({
   isDev: false,
   allContentMeta: allMeta,
   allContentIds: allIds,
+  cfBeaconToken,
 });
 await mkdir('./dist/index', { recursive: true });
 await Bun.write('./dist/index/index.html', indexHtml);
