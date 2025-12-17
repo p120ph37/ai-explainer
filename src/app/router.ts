@@ -137,10 +137,10 @@ export async function navigateTo(
     addToPath?: boolean;
     replace?: boolean;
     skipFetch?: boolean;
+    explicitPath?: string[];  // Override path computation
   } = {}
 ): Promise<void> {
   const current = currentRoute.value;
-  
   
   // Save current page state before navigating away
   // This captures scroll position and open/closed collapsibles
@@ -154,7 +154,10 @@ export async function navigateTo(
   // Build new path
   let newPath: string[];
   
-  if (options.addToPath) {
+  if (options.explicitPath) {
+    // Use explicitly provided path (for navigateUp)
+    newPath = options.explicitPath;
+  } else if (options.addToPath) {
     // Add to current path (drilling down)
     newPath = [...current.path, nodeId];
   } else {
@@ -206,9 +209,8 @@ export function navigateUp(): void {
   const newPath = current.path.slice(0, -1);
   const nodeId = newPath[newPath.length - 1] || 'intro';
   
-  // Use navigateTo for proper state handling
-  // Don't add to path since we're going up
-  navigateTo(nodeId, { addToPath: false });
+  // Use navigateTo with explicit path for proper truncation
+  navigateTo(nodeId, { explicitPath: newPath });
 }
 
 /**
