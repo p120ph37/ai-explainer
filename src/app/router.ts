@@ -8,16 +8,26 @@
  * - Intercepts internal link clicks for instant navigation
  * - Fetches HTML and swaps content without full page reload
  * - Uses History API for proper back/forward support
+ * - Anchor/fragment navigation support (#section-id)
  * - Falls back to normal navigation for external links
  * 
  * This approach combines the benefits of:
  * - MPA: Real URLs, SEO, deep linking, server-rendered initial content
  * - SPA: Fast navigation, preserved state, no JS reload
+ * 
+ * Anchor navigation behavior:
+ * - Same-page anchor: Update URL (replaceState), scroll to anchor, no history push
+ * - Cross-page anchor: SPA navigate, then scroll to anchor after render
+ * - Initial load with hash: Scroll to anchor after hydration
+ * - Back/forward: Ignore hash, restore saved scroll position
  */
 
 import { signal } from '@preact/signals';
 import { saveCurrentPageState, restorePageState, prepareForNewPage, type ExtendedHistoryState } from '@/app/page-state.ts';
 import { getNodeMeta } from '@/lib/content.ts';
+
+// Pending anchor to scroll to after navigation completes
+let pendingAnchor: string | null = null;
 
 export interface RouteState {
   nodeId: string;
@@ -93,6 +103,60 @@ export function isInPageAnchor(hash: string): boolean {
 }
 
 /**
+ * Scroll to an anchor element by ID
+ * Returns true if element was found and scrolled to
+ */
+export function scrollToAnchor(hash: string): boolean {
+  if (!hash) return false;
+  
+  // Remove # prefix if present
+  const id = hash.startsWith('#') ? hash.slice(1) : hash;
+  if (!id) return false;
+  
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Set pending anchor to scroll to after navigation completes
+ */
+export function setPendingAnchor(hash: string | null): void {
+  pendingAnchor = hash;
+}
+
+/**
+ * Get and clear pending anchor
+ */
+export function consumePendingAnchor(): string | null {
+  const anchor = pendingAnchor;
+  pendingAnchor = null;
+  return anchor;
+}
+
+/**
+ * Scroll to pending anchor if one exists
+ * Call this after content has rendered
+ */
+export function scrollToPendingAnchor(): boolean {
+  const anchor = consumePendingAnchor();
+  if (anchor) {
+    // Small delay to ensure content is fully rendered
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        scrollToAnchor(anchor);
+      }, 50);
+    });
+    return true;
+  }
+  return false;
+}
+
+/**
  * Parse URL pathname into a route state
  * 
  * Handles both base pages (/tokens) and variants (/tokens/metaphor-voice)
@@ -130,6 +194,7 @@ function getInitialNodeId(): string {
  * - addToPath: Add to breadcrumb trail (drilling down)
  * - replace: Replace current history entry
  * - skipFetch: Don't fetch content (used for initial load)
+ * - hash: Anchor to scroll to after navigation (e.g., "#section-id")
  */
 export async function navigateTo(
   nodeId: string, 
@@ -138,6 +203,7 @@ export async function navigateTo(
     replace?: boolean;
     skipFetch?: boolean;
     explicitPath?: string[];  // Override path computation
+    hash?: string;  // Anchor to scroll to after navigation
   } = {}
 ): Promise<void> {
   const current = currentRoute.value;
@@ -172,7 +238,8 @@ export async function navigateTo(
   
   // Update URL - use the full nodeId (handles both base pages and variants)
   // e.g., /tokens or /tokens/metaphor-voice
-  const url = `/${nodeId}`;
+  // Include hash if provided (but don't store it in history state)
+  const url = options.hash ? `/${nodeId}${options.hash}` : `/${nodeId}`;
   
   // Get title for the new page (but DON'T set document.title yet!)
   // Browsers capture document.title for the entry you're LEAVING,
@@ -192,8 +259,14 @@ export async function navigateTo(
   // Update route state (triggers re-render)
   currentRoute.value = newRoute;
   
-  // Scroll to top on navigation
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  // Handle anchor scrolling
+  if (options.hash) {
+    // Set pending anchor - will be scrolled to after content renders
+    setPendingAnchor(options.hash);
+  } else {
+    // Scroll to top on navigation (no anchor)
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
 }
 
 /**
@@ -211,6 +284,32 @@ export function navigateUp(): void {
   
   // Use navigateTo with explicit path for proper truncation
   navigateTo(nodeId, { explicitPath: newPath });
+}
+
+/**
+ * Parse a URL/href to extract pathname, hash, and nodeId
+ */
+function parseHref(href: string): { pathname: string; hash: string; nodeId: string } | null {
+  try {
+    const url = new URL(href, window.location.origin);
+    
+    // Skip external links
+    if (url.origin !== window.location.origin) return null;
+    
+    // Skip file paths
+    if (url.pathname.includes('.')) return null;
+    
+    const parts = url.pathname.slice(1).split('/').filter(Boolean);
+    const nodeId = parts.length >= 2 ? parts.slice(0, 2).join('/') : (parts[0] || 'intro');
+    
+    return {
+      pathname: url.pathname,
+      hash: url.hash,
+      nodeId,
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -237,56 +336,68 @@ function handleLinkClick(event: MouseEvent): void {
   const href = anchor.getAttribute('href');
   if (!href) return;
   
-  // Handle in-page anchors (like #ref-1)
+  // Let browser handle pure in-page anchors (like #ref-1) natively
+  // Browser will: update URL, scroll to element, push history, fire hashchange
   if (href.startsWith('#')) {
-    // Let browser handle in-page anchor scrolling
     return;
   }
   
-  // Check if it's an internal path-based link
-  if (href.startsWith('/') && !href.startsWith('//') && !href.includes('.')) {
-    // Extract nodeId - could be base page or variant
-    const parts = href.slice(1).split('/').filter(Boolean);
-    const nodeId = parts.length >= 2 ? parts.slice(0, 2).join('/') : (parts[0] || 'intro');
-    
-    // Check if it's a known internal route
-    if (isInternalPath(href) || knownNodeIds.has(nodeId) || knownNodeIds.has(parts[0])) {
-      event.preventDefault();
-      navigateTo(nodeId, { addToPath: true });
-      return;
-    }
-  }
-  
-  // Check for relative links (./path)
+  // Check for relative links (./path) and normalize
+  let normalizedHref = href;
   if (href.startsWith('./')) {
-    const normalizedPath = '/' + href.slice(2);
-    const parts = normalizedPath.slice(1).split('/').filter(Boolean);
-    const nodeId = parts.length >= 2 ? parts.slice(0, 2).join('/') : (parts[0] || 'intro');
-    
-    if (isInternalPath(normalizedPath) || knownNodeIds.has(nodeId) || knownNodeIds.has(parts[0])) {
-      event.preventDefault();
-      navigateTo(nodeId, { addToPath: true });
-      return;
-    }
+    normalizedHref = '/' + href.slice(2);
+  } else if (!href.startsWith('/') && !href.includes('://')) {
+    // Relative path without ./
+    normalizedHref = '/' + href;
   }
   
-  // Check for absolute URLs to same origin
-  try {
-    const url = new URL(href, window.location.origin);
-    if (url.origin === window.location.origin && !url.pathname.includes('.')) {
-      const parts = url.pathname.slice(1).split('/').filter(Boolean);
-      const nodeId = parts.length >= 2 ? parts.slice(0, 2).join('/') : (parts[0] || 'intro');
-      if (isInternalPath(url.pathname) || knownNodeIds.has(nodeId) || knownNodeIds.has(parts[0])) {
-        event.preventDefault();
-        navigateTo(nodeId, { addToPath: true });
-        return;
-      }
-    }
-  } catch {
-    // Not a valid URL, let browser handle it
+  // Parse the href
+  const parsed = parseHref(normalizedHref);
+  if (!parsed) {
+    // External or unparseable - let browser handle
+    return;
   }
   
-  // External link - let browser handle normally
+  const { pathname, hash, nodeId } = parsed;
+  
+  // Check if it's an internal route
+  const isInternal = isInternalPath(pathname) || 
+                     knownNodeIds.has(nodeId) || 
+                     knownNodeIds.has(pathname.slice(1).split('/')[0]);
+  
+  if (!isInternal) {
+    // Not internal - let browser handle
+    return;
+  }
+  
+  event.preventDefault();
+  
+  // Check if this is same-page navigation (only hash differs)
+  const currentNodeId = currentRoute.value.nodeId;
+  if (nodeId === currentNodeId && hash) {
+    // Same page, just scroll to anchor
+    handleSamePageAnchor(hash);
+    return;
+  }
+  
+  // Cross-page navigation (possibly with hash)
+  navigateTo(nodeId, { 
+    addToPath: true,
+    hash: hash || undefined,
+  });
+}
+
+/**
+ * Handle hashchange (address bar edit, programmatic hash change)
+ * Scrolls to the anchor when only the hash portion of the URL changes
+ */
+function handleHashChange(event: HashChangeEvent): void {
+  const newHash = window.location.hash;
+  
+  if (newHash) {
+    // Scroll to the anchor
+    scrollToAnchor(newHash);
+  }
 }
 
 /**
@@ -341,6 +452,7 @@ export function initRouter(): void {
   // Get initial node from page data attribute or URL
   const initialNodeId = getInitialNodeId();
   const pathname = window.location.pathname;
+  const initialHash = window.location.hash;
   
   // Parse initial route
   let initialRoute: RouteState;
@@ -348,10 +460,10 @@ export function initRouter(): void {
   if (pathname === '/' || pathname === '') {
     // Root URL - use initial node from data attribute
     initialRoute = { nodeId: initialNodeId, path: [initialNodeId] };
-    // Replace URL to include the node path
+    // Replace URL to include the node path (preserve hash if present)
     if (initialNodeId !== 'intro') {
       const pageTitle = getAndSetPageTitle(initialNodeId);
-      window.history.replaceState(initialRoute, pageTitle, `/${initialNodeId}`);
+      window.history.replaceState(initialRoute, pageTitle, `/${initialNodeId}${initialHash}`);
     }
   } else {
     // Parse from URL
@@ -360,13 +472,17 @@ export function initRouter(): void {
   
   currentRoute.value = initialRoute;
   
-  // Set document title and store initial state
+  // Set document title and store initial state (preserve hash in URL)
   const pageTitle = getAndSetPageTitle(initialRoute.nodeId);
-  window.history.replaceState(initialRoute, pageTitle, window.location.pathname);
+  window.history.replaceState(initialRoute, pageTitle, `${window.location.pathname}${initialHash}`);
   
   // Set up event listeners
   document.addEventListener('click', handleLinkClick);
   window.addEventListener('popstate', handlePopState);
+  window.addEventListener('hashchange', handleHashChange);
+  
+  // Note: Initial hash scrolling is handled in main.tsx before hydration
+  // to ensure the pending anchor is set before scrollToPendingAnchor() is called
 }
 
 /**
@@ -375,6 +491,7 @@ export function initRouter(): void {
 export function destroyRouter(): void {
   document.removeEventListener('click', handleLinkClick);
   window.removeEventListener('popstate', handlePopState);
+  window.removeEventListener('hashchange', handleHashChange);
   isRouterInitialized = false;
 }
 

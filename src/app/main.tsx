@@ -17,7 +17,7 @@ import { effect } from '@preact/signals';
 import { App } from '@/app/App.tsx';
 import { initializeTheme, getEffectiveTheme } from '@/app/theme.ts';
 import { getNodeMeta, type ContentMeta } from '@/lib/content.ts';
-import { currentRoute, initRouter, registerNodeId } from '@/app/router.ts';
+import { currentRoute, initRouter, registerNodeId, scrollToPendingAnchor, setPendingAnchor } from '@/app/router.ts';
 import { initPageState } from '@/app/page-state.ts';
 import { MDXProvider } from '@/app/components/MDXProvider.tsx';
 
@@ -118,11 +118,17 @@ async function renderApp(nodeId: string) {
     isInitialHydration = false;
     currentlyRenderedNodeId = nodeId;
     console.log(`✅ Hydrated: /${nodeId}`);
+    
+    // Scroll to anchor if initial URL had a hash
+    scrollToPendingAnchor();
   } else {
     // SPA navigation: re-render with new content
     render(app, appRoot);
     currentlyRenderedNodeId = nodeId;
     console.log(`✅ Navigated: /${nodeId}`);
+    
+    // Scroll to anchor if navigating to URL with hash
+    scrollToPendingAnchor();
   }
 }
 
@@ -143,6 +149,12 @@ async function initApp() {
   
   // Get initial node ID from SSR data attribute
   const initialNodeId = appRoot.dataset.initialNode || 'intro';
+  
+  // Set pending anchor BEFORE hydration so scrollToPendingAnchor() works
+  // This handles the case of entering the site with a URL like /intro#section
+  if (window.location.hash) {
+    setPendingAnchor(window.location.hash);
+  }
   
   // Initial hydration
   await renderApp(initialNodeId);
