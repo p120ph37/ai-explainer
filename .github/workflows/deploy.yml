@@ -28,6 +28,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    # Use github-pages environment to access its secrets (CF_BEACON_TOKEN)
+    environment: github-pages
     # Only run if Tests workflow succeeded, or if manually triggered
     if: |
       github.event_name == 'workflow_dispatch' ||
