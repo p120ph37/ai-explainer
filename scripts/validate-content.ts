@@ -67,7 +67,25 @@ interface ValidationResult {
   warnings: string[];
 }
 
-async function validateContent(filePath: string): Promise<ValidationResult> {
+/**
+ * Check if a file is marked as draft in frontmatter
+ */
+function isDraftContent(content: string): boolean {
+  // Check YAML frontmatter for draft: true
+  if (content.startsWith('---')) {
+    const endIndex = content.indexOf('---', 3);
+    if (endIndex > 0) {
+      const frontmatter = content.slice(3, endIndex);
+      // Match draft: true (with optional whitespace)
+      if (/^\s*draft\s*:\s*true\s*$/m.test(frontmatter)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+async function validateContent(filePath: string): Promise<ValidationResult | 'skip'> {
   const errors: string[] = [];
   const warnings: string[] = [];
   
@@ -77,6 +95,11 @@ async function validateContent(filePath: string): Promise<ValidationResult> {
     content = await Bun.file(filePath).text();
   } catch (e) {
     return { passed: false, errors: [`Could not read file: ${filePath}`], warnings: [] };
+  }
+  
+  // Skip draft content
+  if (isDraftContent(content)) {
+    return 'skip';
   }
   
   const contentLower = content.toLowerCase();
@@ -233,12 +256,21 @@ if (args.length === 0) {
 let allPassed = true;
 let totalErrors = 0;
 let totalWarnings = 0;
+let skippedCount = 0;
 
 for (const filePath of filesToValidate) {
+  const result = await validateContent(filePath);
+  
+  // Skip draft content
+  if (result === 'skip') {
+    const shortPath = filePath.replace(process.cwd(), '').replace(/^\//, '');
+    console.log(`\n⏭️  Skipping (draft): ${shortPath}`);
+    skippedCount++;
+    continue;
+  }
+
   console.log(`\n📄 Validating: ${filePath}\n`);
   console.log('─'.repeat(60));
-
-  const result = await validateContent(filePath);
 
   if (result.errors.length > 0) {
     console.log('\n❌ ERRORS:');
@@ -271,7 +303,10 @@ if (filesToValidate.length > 1) {
   console.log('\n' + '═'.repeat(60));
   console.log('SUMMARY');
   console.log('═'.repeat(60));
-  console.log(`Files validated: ${filesToValidate.length}`);
+  console.log(`Files validated: ${filesToValidate.length - skippedCount}`);
+  if (skippedCount > 0) {
+    console.log(`Files skipped (draft): ${skippedCount}`);
+  }
   console.log(`Total errors: ${totalErrors}`);
   console.log(`Total warnings: ${totalWarnings}`);
   console.log('═'.repeat(60));

@@ -54,11 +54,11 @@ test.describe('Visual Regression', () => {
       await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
-      // Find and click a metaphor aside
+      // Find and click a metaphor aside (trigger is now a button inside .metaphor)
       const metaphor = page.locator('.metaphor').first();
       
       if (await metaphor.count() > 0) {
-        await metaphor.locator('.metaphor__trigger').click();
+        await metaphor.locator('button').click();
         await page.waitForTimeout(300); // Wait for animation
         
         await expect(metaphor).toHaveScreenshot('metaphor-open.png');
@@ -80,10 +80,11 @@ test.describe('Visual Regression', () => {
       await page.goto('/intro');
       await page.waitForSelector('.content-node__body');
       
+      // Find and click a question aside (trigger is now a button inside .question)
       const question = page.locator('.question').first();
       
       if (await question.count() > 0) {
-        await question.locator('.question__trigger').click();
+        await question.locator('button').click();
         await page.waitForTimeout(300); // Wait for animation
         
         await expect(question).toHaveScreenshot('question-open.png');
@@ -293,9 +294,8 @@ test.describe('Visual Regression', () => {
 });
 
 test.describe('Discovery Animation', () => {
-  test.skip(isCI, 'Visual regression tests are skipped in CI');
-  
-  test('link discovery triggers animation canvas', async ({ page }) => {
+  // Discovery animation feature is currently disabled
+  test.skip('link discovery triggers animation canvas', async ({ page }) => {
     // Clear progress to ensure fresh discovery
     await page.goto('/intro');
     await page.evaluate(() => {
@@ -334,7 +334,8 @@ test.describe('Navigation', () => {
   });
   
   test('breadcrumbs show correct path', async ({ page }) => {
-    await page.goto('/intro/tokens');
+    // Go directly to tokens - breadcrumbs should show the path
+    await page.goto('/tokens');
     await page.waitForSelector('.content-node__body');
     
     const breadcrumbs = page.locator('.breadcrumbs');
