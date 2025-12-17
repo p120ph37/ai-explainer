@@ -9,8 +9,9 @@
 
 import { useEffect, useRef } from 'preact/hooks';
 import { useSignal, useComputed } from '@preact/signals';
-import { navigateTo } from '../../router.ts';
-import { getNodeMeta } from '../../../lib/content.ts';
+import { makeStyles, mergeClasses } from '@griffel/react';
+import { navigateTo } from '@/app/router.ts';
+import { getNodeMeta } from '@/lib/content.ts';
 import { 
   markTopicDiscovered, 
   isTopicDiscovered, 
@@ -18,8 +19,125 @@ import {
   getQuestStatus,
   questStatusInfo,
   progressState,
-} from '../../progress.ts';
+} from '@/app/progress.ts';
 import type { JSX } from 'preact';
+
+// ============================================
+// STYLES (Griffel - AOT compiled)
+// ============================================
+
+const useStyles = makeStyles({
+  termLink: {
+    position: 'relative',
+    display: 'inline',
+    cursor: 'pointer',
+  },
+  
+  link: {
+    color: 'var(--color-accent)',
+    textDecorationLine: 'underline',
+    textDecorationStyle: 'dotted',
+    textUnderlineOffset: '0.2em',
+  },
+  
+  linkHover: {
+    ':hover': {
+      textDecorationStyle: 'solid',
+    },
+  },
+  
+  status: {
+    display: 'inline-block',
+    fontSize: '0.7em',
+    marginLeft: '0.2em',
+    verticalAlign: 'middle',
+    opacity: 0.7,
+    transitionProperty: 'opacity',
+    transitionDuration: 'var(--duration-fast)',
+  },
+  
+  // Status-based colors
+  statusUndiscovered: {
+    color: 'var(--color-text-muted)',
+  },
+  statusDiscovered: {
+    color: 'var(--color-warning)',
+  },
+  statusInProgress: {
+    color: 'var(--color-primary)',
+  },
+  statusComplete: {
+    color: 'var(--color-success)',
+  },
+  
+  tooltip: {
+    position: 'absolute',
+    bottom: 'calc(100% + 8px)',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    paddingTop: 'var(--space-sm)',
+    paddingBottom: 'var(--space-sm)',
+    paddingLeft: 'var(--space-sm)',
+    paddingRight: 'var(--space-sm)',
+    backgroundColor: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    boxShadow: 'var(--shadow-lg)',
+    fontSize: 'var(--font-size-sm)',
+    lineHeight: 'var(--line-height-normal)',
+    maxWidth: '280px',
+    minWidth: '180px',
+    whiteSpace: 'normal',
+    textAlign: 'left',
+    zIndex: 50,
+    pointerEvents: 'none',
+    // Arrow
+    '::after': {
+      content: '""',
+      position: 'absolute',
+      top: '100%',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      borderWidth: '6px',
+      borderStyle: 'solid',
+      borderColor: 'transparent',
+      borderTopColor: 'var(--color-border)',
+    },
+  },
+  
+  tooltipTitle: {
+    display: 'block',
+    color: 'var(--color-text)',
+    fontSize: 'var(--font-size-base)',
+    marginBottom: 'var(--space-xs)',
+  },
+  
+  tooltipSummary: {
+    color: 'var(--color-text-secondary)',
+    fontSize: 'var(--font-size-sm)',
+  },
+  
+  // Discovery animation class - applied via DOM
+  discovered: {
+    animationName: {
+      '0%': { backgroundColor: 'transparent' },
+      '20%': { 
+        backgroundColor: 'hsla(45, 100%, 60%, 0.3)',
+        boxShadow: '0 0 10px hsla(45, 100%, 60%, 0.5)',
+      },
+      '100%': { 
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+      },
+    },
+    animationDuration: '1.5s',
+    animationTimingFunction: 'ease',
+  },
+});
+
+// ============================================
+// COMPONENT
+// ============================================
 
 interface TermProps {
   id: string;
@@ -30,6 +148,7 @@ export function Term({ id, children }: TermProps) {
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const hasDiscovered = useRef(false);
   const showTooltip = useSignal(false);
+  const styles = useStyles();
   
   // Get metadata for the linked node
   const meta = getNodeMeta(id);
@@ -46,7 +165,10 @@ export function Term({ id, children }: TermProps) {
       exploredPercent: progress.exploredPercent,
       icon: statusData.icon,
       label: statusData.label,
-      className: statusData.className,
+      statusStyle: status === 'undiscovered' ? styles.statusUndiscovered
+        : status === 'discovered' ? styles.statusDiscovered
+        : status === 'in_progress' ? styles.statusInProgress
+        : styles.statusComplete,
     };
   });
   
@@ -73,9 +195,9 @@ export function Term({ id, children }: TermProps) {
           const wasNew = markTopicDiscovered(id, linkElement as HTMLElement);
           
           if (wasNew) {
-            element.classList.add('term-link--discovered');
+            element.classList.add(styles.discovered);
             setTimeout(() => {
-              element.classList.remove('term-link--discovered');
+              element.classList.remove(styles.discovered);
             }, 1500);
           }
           
@@ -134,21 +256,21 @@ export function Term({ id, children }: TermProps) {
         parentDetails.removeEventListener('toggle', checkVisibilityOnDetailsToggle);
       }
     };
-  }, [id]);
+  }, [id, styles.discovered]);
   
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event from hitting other elements during render
     navigateTo(id, { addToPath: true });
   };
   
   // Build tooltip text - show actual title and progress
   const tooltipTitle = meta?.title || id;
-  const tooltipText = `${tooltipTitle}${progressInfo.value.exploredPercent > 0 ? ` (${progressInfo.value.exploredPercent}% explored)` : ''}`;
   
   return (
     <span 
       ref={wrapperRef}
-      className={`term-link ${progressInfo.value.className}`}
+      className={styles.termLink}
       data-node-id={id}
       onMouseEnter={() => showTooltip.value = true}
       onMouseLeave={() => showTooltip.value = false}
@@ -160,21 +282,21 @@ export function Term({ id, children }: TermProps) {
         onClick={handleClick}
         tabIndex={0}
         title={tooltipTitle}
+        className={mergeClasses(styles.link, styles.linkHover)}
       >
         {children}
       </a>
       <span 
-        className="term-link__status"
+        className={mergeClasses(styles.status, progressInfo.value.statusStyle)}
         title={progressInfo.value.label}
         aria-label={progressInfo.value.label}
       >
         {progressInfo.value.icon}
       </span>
       {showTooltip.value && meta && (
-        <span className="term-link__tooltip" role="tooltip">
-          <strong>{meta.title}</strong>
-          <br />
-          <span className="term-link__tooltip-summary">{meta.summary}</span>
+        <span className={styles.tooltip} role="tooltip">
+          <strong className={styles.tooltipTitle}>{meta.title}</strong>
+          <span className={styles.tooltipSummary}>{meta.summary}</span>
         </span>
       )}
     </span>

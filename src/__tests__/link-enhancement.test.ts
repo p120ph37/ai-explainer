@@ -11,8 +11,8 @@ import {
   calculateSectionVisibility,
   isElementInViewport,
   extractNodeIdFromHref,
-} from '../app/utils/link-enhancement.ts';
-import type { QuestStatus } from '../app/progress.ts';
+} from '@/app/utils/link-enhancement.ts';
+import type { QuestStatus } from '@/app/progress.ts';
 
 describe('parseInternalLink', () => {
   test('returns null for null/empty href', () => {

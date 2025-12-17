@@ -10,12 +10,14 @@
  */
 
 import { writeFileSync, unlinkSync, existsSync, readFileSync } from 'fs';
-import { renderAppToString, renderMarkdownContent, getNodeMeta, clearCache } from '../lib/ssr.tsx';
-import { generateHtml, generateIndexHtml, escapeHtml, contentHash } from '../lib/html-template.ts';
-import { discoverContent, contentExists, getContentPath } from '../lib/content.ts';
-import mdxPlugin from '../plugins/mdx-plugin.ts';
-import variantsPlugin from '../plugins/variants-plugin.ts';
-import griffelPlugin from '../plugins/griffel-plugin.ts';
+import { renderAppToString, renderMarkdownContent, getNodeMeta, clearCache } from '@/lib/ssr.tsx';
+import { generateHtml, generateIndexHtml, escapeHtml, contentHash } from '@/lib/html-template.ts';
+import { discoverContent, contentExists, getContentPath } from '@/lib/content.ts';
+// Note: Variants are now regular content files in src/content/{page}/ subdirectories
+// They are handled by the content-plugin like any other MDX file
+import mdxPlugin from '@/plugins/mdx-plugin.ts';
+import griffelPlugin from '@/plugins/griffel-plugin.ts';
+import contentPlugin from '@/plugins/content-plugin.ts';
 import {
   loadNotes,
   saveNotes,
@@ -33,13 +35,13 @@ import {
   deleteVariant,
   getEditorialState,
   getNotesForAI,
-} from './persistence.ts';
+} from '@/editorial/persistence.ts';
 import type {
   CreateNoteRequest,
   UpdateNoteRequest,
   AddResponseRequest,
   CreateVariantRequest,
-} from './_types.ts';
+} from '@/editorial/_types.ts';
 
 const PID_FILE = '.dev.pid';
 const EDITORIAL_CSS_PATH = '/editorial/styles.css';
@@ -69,7 +71,7 @@ async function getJsBundle(): Promise<{ code: string; hash: string }> {
     outdir: './dist',
     minify: false,
     splitting: false,
-    plugins: [griffelPlugin, mdxPlugin, variantsPlugin],
+    plugins: [contentPlugin, griffelPlugin, mdxPlugin],
     target: 'browser',
     define: {
       'process.env.NODE_ENV': '"development"',

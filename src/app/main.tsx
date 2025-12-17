@@ -1,120 +1,58 @@
 /**
- * Application Entry Point - True SSR Hydration
+ * Application Entry Point - SSR Hydration + SPA Navigation
  * 
- * SSR renders the full App component to HTML.
- * Client hydrates the same component tree, taking over event handlers.
+ * Flow:
+ * 1. Initial page load: SSR renders HTML → JS hydrates → Page becomes interactive
+ * 2. SPA navigation: User clicks link → Router intercepts → Load MDX → Re-render
  * 
- * For initial page load:
- * - MDX content is already in the DOM from SSR
- * - We create a component that renders the same structure
- * - Preact attaches event handlers to existing DOM
- * 
- * For SPA navigation (future):
- * - Would need to fetch and render new content
+ * This provides:
+ * - Fast initial load (SSR HTML visible immediately)
+ * - SEO (search engines see full content)
+ * - Deep linking (each URL serves complete page)
+ * - Fast navigation (no full page reload after initial load)
  */
 
-import { hydrate } from 'preact';
-import { App } from './App.tsx';
-import { initializeTheme, getEffectiveTheme } from './theme.ts';
-import { getNodeMeta } from '../lib/content.ts';
+import { hydrate, render } from 'preact';
+import { effect } from '@preact/signals';
+import { App } from '@/app/App.tsx';
+import { initializeTheme, getEffectiveTheme } from '@/app/theme.ts';
+import { getNodeMeta, type ContentMeta } from '@/lib/content.ts';
+import { currentRoute, initRouter, registerNodeId } from '@/app/router.ts';
+import { initPageState } from '@/app/page-state.ts';
+import { MDXProvider } from '@/app/components/MDXProvider.tsx';
 
-// MDX components for client-side rendering
-import { Term } from './components/content/Term.tsx';
-import { Expandable } from './components/content/Expandable.tsx';
-import { Recognition } from './components/content/Recognition.tsx';
-import { TryThis } from './components/content/TryThis.tsx';
-import { Sources, Citation, Reference, Footnote } from './components/content/Sources.tsx';
-import { Metaphor } from './components/content/Metaphor.tsx';
-import { Question } from './components/content/Question.tsx';
-import { 
-  ScaleComparison, 
-  NetworkGraph, 
-  BarChart, 
-  TokenBoundaries,
-  LayerStack,
-  FlowDiagram,
-  DiagramPlaceholder,
-  TokenizerDemo,
-  PerceptronToy,
-  GameOfLife,
-} from './components/diagrams/index.ts';
-import { MDXProvider } from './components/MDXProvider.tsx';
+// Dynamic content modules - generated at build time by content-plugin
+// @ts-ignore - virtual module
+import { contentModules, contentIds } from 'virtual:content-modules';
 
-// MDX components map
-const mdxComponents = {
-  Term,
-  Expandable,
-  Recognition,
-  TryThis,
-  Sources,
-  Citation,
-  Reference,
-  Footnote,
-  Metaphor,
-  Question,
-  ScaleComparison,
-  NetworkGraph,
-  BarChart,
-  TokenBoundaries,
-  LayerStack,
-  FlowDiagram,
-  DiagramPlaceholder,
-  TokenizerDemo,
-  PerceptronToy,
-  GameOfLife,
-};
+import type { ComponentType } from 'preact';
 
-// Initialize theme before hydration to prevent flash
+// Initialize theme before render to prevent flash
 initializeTheme();
 
+// ============================================
+// CONTENT LOADING
+// ============================================
+
 /**
- * Get the content component for a given node ID.
- * Each MDX file is imported dynamically.
+ * Load an MDX content component by node ID
+ * Handles both base pages (e.g., "intro") and variants (e.g., "intro/research")
  */
-async function getContentComponent(nodeId: string): Promise<(() => any) | null> {
-  // Map of all available content modules
-  // These are lazy-loaded via dynamic imports
-  const modules: Record<string, () => Promise<any>> = {
-    'agents': () => import('../content/agents.mdx'),
-    'alignment': () => import('../content/alignment.mdx'),
-    'applications': () => import('../content/applications.mdx'),
-    'attention': () => import('../content/attention.mdx'),
-    'bias': () => import('../content/bias.mdx'),
-    'context-window': () => import('../content/context-window.mdx'),
-    'cutoff': () => import('../content/cutoff.mdx'),
-    'embeddings': () => import('../content/embeddings.mdx'),
-    'emergence': () => import('../content/emergence.mdx'),
-    'guardrails': () => import('../content/guardrails.mdx'),
-    'hallucinations': () => import('../content/hallucinations.mdx'),
-    'hardware': () => import('../content/hardware.mdx'),
-    'inference': () => import('../content/inference.mdx'),
-    'intro': () => import('../content/intro.mdx'),
-    'labels': () => import('../content/labels.mdx'),
-    'local': () => import('../content/local.mdx'),
-    'memory': () => import('../content/memory.mdx'),
-    'models': () => import('../content/models.mdx'),
-    'multimodal': () => import('../content/multimodal.mdx'),
-    'neural-network': () => import('../content/neural-network.mdx'),
-    'open': () => import('../content/open.mdx'),
-    'optimization': () => import('../content/optimization.mdx'),
-    'parameters': () => import('../content/parameters.mdx'),
-    'players': () => import('../content/players.mdx'),
-    'prompt-engineering': () => import('../content/prompt-engineering.mdx'),
-    'reasoning': () => import('../content/reasoning.mdx'),
-    'reward': () => import('../content/reward.mdx'),
-    'scale': () => import('../content/scale.mdx'),
-    'security': () => import('../content/security.mdx'),
-    'temperature': () => import('../content/temperature.mdx'),
-    'tokens': () => import('../content/tokens.mdx'),
-    'tools': () => import('../content/tools.mdx'),
-    'training': () => import('../content/training.mdx'),
-    'transformer': () => import('../content/transformer.mdx'),
-    'tuning': () => import('../content/tuning.mdx'),
-    'understanding': () => import('../content/understanding.mdx'),
-    'vector-databases': () => import('../content/vector-databases.mdx'),
-  };
+async function loadContent(nodeId: string): Promise<{
+  ContentComponent: ComponentType<any>;
+  meta: ContentMeta;
+} | null> {
+  // Handle special pages
+  if (nodeId === 'index') {
+    return {
+      ContentComponent: () => null, // IndexPage is rendered by App
+      meta: { id: 'index', title: 'Content Index', summary: 'Browse all topics' },
+    };
+  }
   
-  const loader = modules[nodeId];
+  // Try to load the exact nodeId first (works for both base pages and variants)
+  let loader = contentModules[nodeId];
+  
   if (!loader) {
     console.warn(`No content module found for: ${nodeId}`);
     return null;
@@ -124,63 +62,108 @@ async function getContentComponent(nodeId: string): Promise<(() => any) | null> 
     const module = await loader();
     const MdxContent = module.default;
     
-    // Return a component that renders the MDX with components
-    return () => (
+    // Wrap MDX in provider for component resolution
+    const ContentComponent = () => (
       <MDXProvider>
-        <MdxContent components={mdxComponents} />
+        <MdxContent />
       </MDXProvider>
     );
+    
+    // Get metadata
+    const meta = getNodeMeta(nodeId) || module.meta || { id: nodeId, title: nodeId, summary: '' };
+    
+    return { ContentComponent, meta };
   } catch (error) {
     console.error(`Failed to load content for ${nodeId}:`, error);
     return null;
   }
 }
 
+// ============================================
+// RENDERING
+// ============================================
+
+let appRoot: HTMLElement | null = null;
+let isInitialHydration = true;
+let currentlyRenderedNodeId: string | null = null;
+
 /**
- * Initialize and hydrate the application
+ * Render the app with given content
  */
+async function renderApp(nodeId: string) {
+  if (!appRoot) return;
+  
+  const content = await loadContent(nodeId);
+  
+  if (!content) {
+    console.error(`Failed to load content for: ${nodeId}`);
+    // Could show error page here
+    return;
+  }
+  
+  const theme = getEffectiveTheme();
+  
+  const app = (
+    <App
+      nodeId={nodeId}
+      ContentComponent={content.ContentComponent}
+      meta={content.meta}
+      initialTheme={theme}
+    />
+  );
+  
+  if (isInitialHydration) {
+    // First render: hydrate SSR content
+    hydrate(app, appRoot);
+    isInitialHydration = false;
+    currentlyRenderedNodeId = nodeId;
+    console.log(`✅ Hydrated: /${nodeId}`);
+  } else {
+    // SPA navigation: re-render with new content
+    render(app, appRoot);
+    currentlyRenderedNodeId = nodeId;
+    console.log(`✅ Navigated: /${nodeId}`);
+  }
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
 async function initApp() {
-  const appRoot = document.getElementById('app');
+  appRoot = document.getElementById('app');
   if (!appRoot) {
     console.error('App root element not found');
     return;
   }
   
+  // Register all content IDs with router for internal link detection
+  contentIds.forEach((id: string) => registerNodeId(id));
+  registerNodeId('index');
+  
   // Get initial node ID from SSR data attribute
-  const nodeId = appRoot.dataset.initialNode || 'intro';
+  const initialNodeId = appRoot.dataset.initialNode || 'intro';
   
-  // Get metadata from injected window globals
-  const meta = getNodeMeta(nodeId);
+  // Initial hydration
+  await renderApp(initialNodeId);
   
-  if (!meta) {
-    console.error(`No metadata found for node: ${nodeId}`);
-    return;
-  }
+  // Initialize router (sets up link interception, history handling)
+  initRouter();
   
-  // Load the content component
-  const ContentComponent = await getContentComponent(nodeId);
+  // Initialize page state management (beforeunload handler for scroll position)
+  initPageState();
   
-  if (!ContentComponent) {
-    console.error(`Failed to load content component for: ${nodeId}`);
-    return;
-  }
-  
-  // Get current theme
-  const theme = getEffectiveTheme();
-  
-  // Hydrate the App - Preact will match the SSR DOM and attach event handlers
-  hydrate(
-    <App
-      nodeId={nodeId}
-      ContentComponent={ContentComponent}
-      meta={meta}
-      initialTheme={theme}
-    />,
-    appRoot
-  );
-  
-  console.log(`✅ Hydrated: /${nodeId}`);
+  // Watch for route changes and re-render
+  effect(() => {
+    const nodeId = currentRoute.value.nodeId;
+    
+    // Skip if already showing this content (prevents double-render)
+    if (nodeId === currentlyRenderedNodeId) return;
+    
+    // Re-render with new content
+    renderApp(nodeId);
+  });
 }
 
-// Start hydration
+// Start the app
 initApp();

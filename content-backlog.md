@@ -61,7 +61,7 @@ Ideas for interactive widgets, visualizations, and hands-on learning experiences
   - Notes: Interactive visualization with adjustable weights, bias, and activation function; shows classification boundary and accuracy on sample points
 
 - [ ] **prompt-sandbox**: Embedded LLM prompt interface
-  - Related topics: `prompt-engineering`, `emergence`, `parameters`, `why-large`
+  - Related topics: `prompt-engineering`, `emergence`, `parameters`, `scale`
   - Notes: Embed HuggingFace Spaces to let readers try prompts without leaving the page. Key use case: side-by-side comparison of small vs large models on the same prompt — show the quantum leap from simple next-word prediction (small models) to actual reasoning (Llama-scale+). Demonstrates emergence thresholds viscerally. Options: HF Spaces iframes (free, community-hosted), or self-hosted with Groq/Gemini free tiers for faster responses
 
 - [ ] **embedding-space**: 3D visualization of word embeddings
@@ -117,7 +117,7 @@ Ideas considered but set aside (too technical for an explainer context).
 
 - [x] **what-is-llm**: What is an LLM? *(2025-12-08)*
 - [x] **tokens**: What are tokens? *(2025-12-08)*
-- [x] **why-large**: Why does scale matter? *(2025-12-08)*
+- [x] **scale**: Why does scale matter? *(2025-12-08)*
 - [x] **context-window**: The context window *(2025-12-08)*
 - [x] **neural-network**: What is a neural network? *(2025-12-08)*
 - [x] **parameters**: What are parameters? *(2025-12-08)*

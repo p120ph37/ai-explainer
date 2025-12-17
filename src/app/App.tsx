@@ -7,20 +7,20 @@
 
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { currentRoute, initRouter, registerNodeId } from './router.ts';
-import { toggleTheme, getEffectiveTheme } from './theme.ts';
-import { markVisited } from './state.ts';
-import { MarginDeoverlap } from './components/MarginDeoverlap.tsx';
-import { ProgressSidebar } from './components/ProgressSidebar.tsx';
-import { DiscoveryAnimationLayer } from './components/DiscoveryAnimation.tsx';
-import { contentRegistry } from '../lib/content.ts';
-import { Breadcrumbs } from './components/Breadcrumbs.tsx';
-import { NavLinks } from './components/NavLinks.tsx';
-import { PrerequisitesBlock } from './components/PrerequisitesBlock.tsx';
-import { MDXProvider } from './components/MDXProvider.tsx';
-import { IndexPage } from './components/IndexPage.tsx';
+import { currentRoute, initRouter, registerNodeId } from '@/app/router.ts';
+import { toggleTheme, getEffectiveTheme } from '@/app/theme.ts';
+import { markVisited } from '@/app/state.ts';
+import { MarginDeoverlap } from '@/app/components/MarginDeoverlap.tsx';
+import { ProgressSidebar } from '@/app/components/ProgressSidebar.tsx';
+import { DiscoveryAnimationLayer } from '@/app/components/DiscoveryAnimation.tsx';
+import { contentRegistry } from '@/lib/content.ts';
+import { Breadcrumbs } from '@/app/components/Breadcrumbs.tsx';
+import { NavLinks } from '@/app/components/NavLinks.tsx';
+import { PrerequisitesBlock } from '@/app/components/PrerequisitesBlock.tsx';
+import { MDXProvider } from '@/app/components/MDXProvider.tsx';
+import { IndexPage } from '@/app/components/IndexPage.tsx';
 import type { ComponentType } from 'preact';
-import type { ContentMeta } from '../lib/content.ts';
+import type { ContentMeta } from '@/lib/content.ts';
 
 // ============================================
 // TYPES

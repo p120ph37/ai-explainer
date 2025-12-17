@@ -19,8 +19,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@content/*": ["src/content/*"],
-      "@components/*": ["src/app/components/*"],
       // Alias React to our shims (re-exports preact/compat)
       // This ensures a SINGLE module instance for hooks to work correctly
       "react": ["src/shims/react.ts"],

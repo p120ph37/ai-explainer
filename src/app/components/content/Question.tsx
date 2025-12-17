@@ -7,25 +7,61 @@
  * Content is always rendered for SSR, hidden/shown via CSS.
  */
 
-import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 import { makeStyles, mergeClasses } from '@griffel/react';
+import { useCollapsible } from '@/app/hooks/useCollapsible.ts';
 
 // ============================================
-// STYLES (Griffel - zero runtime after AOT)
+// STYLES (Griffel - all styles in one place)
 // ============================================
 
-const useStylesBase = makeStyles({
-  question: {
+const useStyles = makeStyles({
+  // Base aside - mobile first (in-flow)
+  root: {
     position: 'relative',
     marginBlockStart: 'var(--space-md)',
     marginBlockEnd: 'var(--space-md)',
   },
   
-  questionOpen: {
+  // Desktop: Position in LEFT margin when collapsed
+  rootDesktop: {
+    '@media (min-width: 1200px)': {
+      position: 'absolute',
+      right: 'calc(100% + var(--space-lg))',
+      width: '280px',
+      marginBlock: 0,
+      // Deoverlap offset set by MarginDeoverlap.tsx
+      transform: 'translateY(var(--deoverlap-offset, 0))',
+      transitionProperty: 'transform',
+      transitionDuration: 'var(--duration-normal, 200ms)',
+      transitionTimingFunction: 'var(--ease-out)',
+    },
+  },
+  
+  // Open state - always in main flow
+  rootOpen: {
     borderRadius: 'var(--radius-md)',
     backgroundColor: 'var(--color-question-subtle)',
     overflow: 'hidden',
+    
+    '@media (min-width: 1200px)': {
+      position: 'relative',
+      right: 'auto',
+      width: '100%',
+      marginBlock: 'var(--space-md)',
+      animationName: {
+        from: { 
+          opacity: 0.8,
+          transform: 'translateX(-20px)',
+        },
+        to: { 
+          opacity: 1,
+          transform: 'translateX(0)',
+        },
+      },
+      animationDuration: 'var(--duration-normal, 200ms)',
+      animationTimingFunction: 'var(--ease-out)',
+    },
   },
   
   trigger: {
@@ -102,7 +138,13 @@ const useStylesBase = makeStyles({
   },
   
   body: {
-    // First/last paragraph margins handled via global CSS
+    // Paragraph margins
+    '& p:first-child': {
+      marginTop: 0,
+    },
+    '& p:last-child': {
+      marginBottom: 0,
+    },
   },
 });
 
@@ -116,25 +158,28 @@ interface QuestionProps {
 }
 
 export function Question({ title: titleText, children }: QuestionProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const styles = useStylesBase();
+  const { isOpen, triggerProps, rootProps } = useCollapsible({
+    type: 'question',
+  });
+  const styles = useStyles();
   
   return (
-    <aside className={mergeClasses(
-      'question', // BEM class for margin de-overlap system + enhance
-      styles.question,
-      isOpen && styles.questionOpen,
-      isOpen && 'question--open'
-    )}>
+    <aside 
+      {...rootProps}
+      className={mergeClasses(
+        'question', // Keep base class for parent CSS Grid positioning reference
+        styles.root,
+        !isOpen && styles.rootDesktop,
+        isOpen && styles.rootOpen
+      )}
+    >
       <button
         type="button"
         className={mergeClasses(
-          'question__trigger',
           styles.trigger,
           isOpen && styles.triggerOpen
         )}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
+        {...triggerProps}
         aria-label={isOpen ? 'Close question' : titleText}
       >
         <span className={styles.icon} aria-hidden="true">
@@ -144,12 +189,10 @@ export function Question({ title: titleText, children }: QuestionProps) {
             <circle cx="12" cy="17" r="0.5" fill="currentColor" />
           </svg>
         </span>
-        <span className={mergeClasses('question__title', styles.title)}>{titleText}</span>
+        <span className={styles.title}>{titleText}</span>
         <span className={mergeClasses(
-          'question__chevron',
           styles.chevron,
-          isOpen && styles.chevronOpen,
-          isOpen && 'question__chevron--open'
+          isOpen && styles.chevronOpen
         )} aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6l4 4 4-4" />
@@ -159,12 +202,10 @@ export function Question({ title: titleText, children }: QuestionProps) {
       
       {/* Always render content for SSR, hide via CSS */}
       <div className={mergeClasses(
-        'question__content',
         styles.content,
-        !isOpen && styles.contentHidden,
-        !isOpen && 'question__content--hidden'
+        !isOpen && styles.contentHidden
       )}>
-        <div className={mergeClasses('question__body', styles.body)}>
+        <div className={styles.body}>
           {children}
         </div>
       </div>

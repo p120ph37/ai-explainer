@@ -27,6 +27,8 @@ export interface ContentMeta {
   children?: string[];
   related?: string[];
   keywords?: string[];
+  /** If true, this page is a draft and should not be included in production builds */
+  draft?: boolean;
 }
 
 export interface ContentFile {
@@ -50,7 +52,6 @@ declare global {
   interface Window {
     __CONTENT_META__?: Record<string, ContentMeta>;
     __CONTENT_IDS__?: string[];
-    __VARIANT_META__?: Record<string, VariantMeta>;
   }
 }
 
@@ -66,7 +67,7 @@ let contentCache: ContentFile[] | null = null;
  */
 function parseFrontmatter(content: string): Record<string, any> {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return {};
+  if (!match || !match[1]) return {};
   
   const yaml = match[1];
   const result: Record<string, any> = {};
@@ -85,7 +86,7 @@ function parseFrontmatter(content: string): Record<string, any> {
     }
     
     const kvMatch = line.match(/^(\w+):\s*(.*)$/);
-    if (kvMatch) {
+    if (kvMatch && kvMatch[1] && kvMatch[2] !== undefined) {
       if (currentKey && currentArray) {
         result[currentKey] = currentArray;
       }
@@ -121,6 +122,7 @@ function extractMeta(id: string, frontmatter: Record<string, any>): ContentMeta 
     children: frontmatter.children,
     related: frontmatter.related,
     keywords: frontmatter.keywords,
+    draft: frontmatter.draft === true || frontmatter.draft === 'true',
   };
 }
 
@@ -134,10 +136,12 @@ export async function discoverContent(contentDir = "src/content"): Promise<Conte
   
   if (contentCache) return contentCache;
   
-  const glob = new Bun.Glob("*.mdx");
+  // Use **/*.mdx to find both base pages and nested variants
+  const glob = new Bun.Glob("**/*.mdx");
   const files: ContentFile[] = [];
   
   for await (const filename of glob.scan(contentDir)) {
+    // Extract ID from path: intro.mdx → 'intro', intro/research.mdx → 'intro/research'
     const id = filename.replace('.mdx', '');
     const path = `${contentDir}/${filename}`;
     const text = await Bun.file(path).text();
@@ -165,6 +169,7 @@ export async function contentExists(id: string, contentDir = "src/content"): Pro
   if (!isServer) {
     return getAllNodeIds().includes(id);
   }
+  // Handle both base pages (intro.mdx) and nested variants (intro/research.mdx)
   const path = `${contentDir}/${id}.mdx`;
   return await Bun.file(path).exists();
 }
@@ -249,46 +254,70 @@ export const specialPages: Record<string, ContentMeta> = {
 };
 
 // ============================================
-// VARIANT SUPPORT (editorial mode)
+// VARIANT SUPPORT
 // ============================================
 
-export interface VariantMeta {
-  id: string;
+// Variants are now regular content files in src/content/{page}/ subdirectories
+// Their IDs contain a slash, e.g., "intro/research"
+
+/**
+ * VariantMeta extends ContentMeta with variant-specific fields
+ * Used for backwards compatibility with editorial system
+ */
+export interface VariantMeta extends ContentMeta {
   basePageId: string;
   variantId: string;
-  title: string;
-  summary: string;
   label: string;
   isVariant: true;
 }
 
-let variantMetas: Record<string, VariantMeta> = {};
-
+/**
+ * Check if a node ID is a variant (contains a slash)
+ */
 export function isVariantId(nodeId: string): boolean {
   return nodeId.includes('/');
 }
 
+/**
+ * Parse a variant ID into base page and variant name
+ */
 export function parseVariantId(nodeId: string): { basePageId: string; variantId: string } | null {
   if (!isVariantId(nodeId)) return null;
   const parts = nodeId.split('/');
   return { basePageId: parts[0] || '', variantId: parts[1] || '' };
 }
 
+/**
+ * Get metadata for a variant
+ * Since variants are now regular content, this uses the content metadata
+ */
 export function getVariantMeta(nodeId: string): VariantMeta | undefined {
-  return variantMetas[nodeId];
+  const meta = getNodeMeta(nodeId);
+  if (!meta) return undefined;
+  
+  const parsed = parseVariantId(nodeId);
+  if (!parsed) return undefined;
+  
+  // Convert ContentMeta to VariantMeta
+  return {
+    ...meta,
+    basePageId: parsed.basePageId,
+    variantId: parsed.variantId,
+    label: meta.title,
+    isVariant: true,
+  };
 }
 
+/**
+ * Get all variant IDs (IDs that contain a slash)
+ */
 export function getAllVariantIds(): string[] {
-  return Object.keys(variantMetas);
+  return getAllNodeIds().filter(isVariantId);
 }
 
-export async function initializeVariants(): Promise<void> {
-  if (!isServer && window.__VARIANT_META__) {
-    variantMetas = window.__VARIANT_META__;
-    console.log(`[Content] Registered ${Object.keys(variantMetas).length} variants`);
-  }
-}
-
+/**
+ * Get metadata for either a base page or a variant
+ */
 export function getNodeOrVariantMeta(nodeId: string): ContentMeta | VariantMeta | undefined {
   return isVariantId(nodeId) ? getVariantMeta(nodeId) : getNodeMeta(nodeId);
 }

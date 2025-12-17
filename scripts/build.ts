@@ -9,12 +9,13 @@
  * Output is identical to what the dev server produces.
  */
 
-import mdxPlugin from '../src/plugins/mdx-plugin.ts';
-import contentPlugin from '../src/plugins/content-plugin.ts';
+import mdxPlugin from '@/plugins/mdx-plugin.ts';
+import griffelPlugin from '@/plugins/griffel-plugin.ts';
+import contentPlugin from '@/plugins/content-plugin.ts';
 import { mkdir } from 'fs/promises';
-import { renderMdxContent, getNodeMeta } from '../src/lib/ssr.tsx';
-import { generateHtml, generateIndexHtml } from '../src/lib/html-template.ts';
-import { getAllNodeIds, type NodeMeta } from '../src/lib/node-metadata.ts';
+import { renderAppToString, getNodeMeta } from '@/lib/ssr.tsx';
+import { generateHtml, generateIndexHtml } from '@/lib/html-template.ts';
+import { discoverContent, type ContentMeta } from '@/lib/content.ts';
 
 console.log('🔨 Building Frontier AI Explainer...\n');
 
@@ -29,7 +30,7 @@ const jsResult = await Bun.build({
   outdir: './dist',
   minify: true,
   splitting: true,
-  plugins: [mdxPlugin, contentPlugin],
+  plugins: [contentPlugin, griffelPlugin, mdxPlugin],
   target: 'browser',
   naming: {
     entry: '[name].[hash].js',
@@ -88,13 +89,27 @@ console.log(`   ✓ ${cssFiles.length} CSS files`);
 
 console.log('📄 Generating HTML pages with SSR...');
 
-const nodeIds = getAllNodeIds();
-const allMetas: NodeMeta[] = [];
+// Discover all content
+const allContent = await discoverContent();
+
+// Filter out draft pages for production build
+const publicContent = allContent.filter(c => !c.meta.draft);
+const draftsSkipped = allContent.length - publicContent.length;
+
+// Build metadata maps
+const allMeta: Record<string, ContentMeta> = {};
+const allIds: string[] = [];
+for (const c of publicContent) {
+  allMeta[c.id] = c.meta;
+  allIds.push(c.id);
+}
+
+const allMetas: ContentMeta[] = [];
 let pagesGenerated = 0;
 
-// Generate page for each content node
-for (const nodeId of nodeIds) {
-  const rendered = await renderMdxContent(nodeId);
+// Generate page for each non-draft content node
+for (const { id: nodeId, meta } of publicContent) {
+  const rendered = await renderAppToString(nodeId);
   
   if (rendered) {
     allMetas.push(rendered.meta);
@@ -102,9 +117,12 @@ for (const nodeId of nodeIds) {
     const html = generateHtml({
       meta: rendered.meta,
       contentHtml: rendered.html,
+      ssrStyleElements: rendered.styleElements,
       jsPath: mainJsPath,
       cssPath: '/styles',
       isDev: false,
+      allContentMeta: allMeta,
+      allContentIds: allIds,
     });
     
     await mkdir(`./dist/${nodeId}`, { recursive: true });
@@ -115,15 +133,22 @@ for (const nodeId of nodeIds) {
   }
 }
 
+if (draftsSkipped > 0) {
+  console.log(`   ⚠ Skipped ${draftsSkipped} draft pages`);
+}
+
 // Generate root index.html (serves intro)
-const introRendered = await renderMdxContent('intro');
+const introRendered = await renderAppToString('intro');
 if (introRendered) {
   const rootHtml = generateHtml({
     meta: { ...introRendered.meta, id: '' },
     contentHtml: introRendered.html,
+    ssrStyleElements: introRendered.styleElements,
     jsPath: mainJsPath,
     cssPath: '/styles',
     isDev: false,
+    allContentMeta: allMeta,
+    allContentIds: allIds,
   });
   await Bun.write('./dist/index.html', rootHtml);
   pagesGenerated++;
@@ -132,9 +157,12 @@ if (introRendered) {
 // Generate index page
 const indexHtml = generateIndexHtml({
   nodes: allMetas,
+  ssrStyleElements: '',
   jsPath: mainJsPath,
   cssPath: '/styles',
   isDev: false,
+  allContentMeta: allMeta,
+  allContentIds: allIds,
 });
 await mkdir('./dist/index', { recursive: true });
 await Bun.write('./dist/index/index.html', indexHtml);

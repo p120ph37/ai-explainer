@@ -22,7 +22,7 @@
     {
       "id": "mj0p74sf-89hdi8",
       "pageId": "tokens",
-      "variantId": "research-voice",
+      "variantId": "research",
       "anchor": {
         "type": "text-selection",
         "selectedText": "Interactive exploration",
@@ -45,7 +45,7 @@
     {
       "id": "mj0pa5dc-90o60s",
       "pageId": "tokens",
-      "variantId": "research-voice",
+      "variantId": "research",
       "anchor": {
         "type": "text-selection",
         "selectedText": "Typical vocabulary sizes are 50,000-100,000 tokens",
@@ -68,7 +68,7 @@
     {
       "id": "mj0pdmid-uu14vy",
       "pageId": "tokens",
-      "variantId": "research-voice",
+      "variantId": "research",
       "anchor": {
         "type": "text-selection",
         "selectedText": "Strawberry example",
@@ -91,7 +91,7 @@
     {
       "id": "mj0pg9ae-awsmvf",
       "pageId": "tokens",
-      "variantId": "research-voice",
+      "variantId": "research",
       "anchor": {
         "type": "text-selection",
         "selectedText": "Tiktokenizer web tool",

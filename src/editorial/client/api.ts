@@ -16,7 +16,7 @@ import type {
   NoteStatus,
   NotePriority,
   NoteAnchor,
-} from '../_types.ts';
+} from '@/editorial/_types.ts';
 
 const API_BASE = '/api/editorial';
 

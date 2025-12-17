@@ -16,6 +16,8 @@
  */
 
 import { signal } from '@preact/signals';
+import { saveCurrentPageState, restorePageState, prepareForNewPage, type ExtendedHistoryState } from '@/app/page-state.ts';
+import { getNodeMeta } from '@/lib/content.ts';
 
 export interface RouteState {
   nodeId: string;
@@ -33,6 +35,20 @@ export const isNavigating = signal(false);
 
 // Known internal node IDs (populated at runtime from content registry)
 const knownNodeIds = new Set<string>();
+
+// Track if router is already initialized (prevents double-binding on hot reload)
+let isRouterInitialized = false;
+
+/**
+ * Get the page title for a given nodeId and update document.title
+ */
+function getAndSetPageTitle(nodeId: string): string {
+  const meta = getNodeMeta(nodeId);
+  const title = meta?.title || nodeId;
+  const fullTitle = `${title} | LLM Explainer`;
+  document.title = fullTitle;
+  return title;
+}
 
 /**
  * Register a node ID as a valid internal route
@@ -125,6 +141,16 @@ export async function navigateTo(
 ): Promise<void> {
   const current = currentRoute.value;
   
+  
+  // Save current page state before navigating away
+  // This captures scroll position and open/closed collapsibles
+  if (!options.replace) {
+    saveCurrentPageState();
+  }
+  
+  // Prepare for new page (clear collapsible state for fresh page)
+  prepareForNewPage();
+  
   // Build new path
   let newPath: string[];
   
@@ -145,11 +171,20 @@ export async function navigateTo(
   // e.g., /tokens or /tokens/metaphor-voice
   const url = `/${nodeId}`;
   
+  // Get title for the new page (but DON'T set document.title yet!)
+  // Browsers capture document.title for the entry you're LEAVING,
+  // so we must pushState first, then update document.title
+  const meta = getNodeMeta(nodeId);
+  const pageTitle = meta?.title || nodeId;
+  
   if (options.replace) {
-    window.history.replaceState(newRoute, '', url);
+    window.history.replaceState(newRoute, pageTitle, url);
   } else {
-    window.history.pushState(newRoute, '', url);
+    window.history.pushState(newRoute, pageTitle, url);
   }
+  
+  // NOW update document.title (after pushState, so the previous entry keeps its title)
+  document.title = `${pageTitle} | LLM Explainer`;
   
   // Update route state (triggers re-render)
   currentRoute.value = newRoute;
@@ -171,17 +206,9 @@ export function navigateUp(): void {
   const newPath = current.path.slice(0, -1);
   const nodeId = newPath[newPath.length - 1] || 'intro';
   
-  const newRoute: RouteState = {
-    nodeId,
-    path: newPath,
-  };
-  
-  // Update URL and history
-  window.history.pushState(newRoute, '', `/${nodeId}`);
-  currentRoute.value = newRoute;
-  
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  // Use navigateTo for proper state handling
+  // Don't add to path since we're going up
+  navigateTo(nodeId, { addToPath: false });
 }
 
 /**
@@ -189,6 +216,11 @@ export function navigateUp(): void {
  * Intercepts internal links for SPA-like navigation
  */
 function handleLinkClick(event: MouseEvent): void {
+  // Skip if already handled by a component's onClick (e.g., Term, InternalLink)
+  if (event.defaultPrevented) {
+    return;
+  }
+  
   // Ignore if modifier keys are pressed (new tab, etc.)
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
     return;
@@ -257,23 +289,53 @@ function handleLinkClick(event: MouseEvent): void {
 
 /**
  * Handle popstate (browser back/forward)
+ * Restores destination page's UI state (scroll, collapsibles)
+ * 
+ * Note: The page we're leaving already has its scroll position saved
+ * via the continuous scroll listener in page-state.ts
  */
 function handlePopState(event: PopStateEvent): void {
-  if (event.state) {
-    currentRoute.value = event.state as RouteState;
-  } else {
-    // Parse from URL
-    currentRoute.value = parsePathname(window.location.pathname);
-  }
+  const state = event.state as ExtendedHistoryState | null;
   
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  if (state) {
+    // Set up restoration BEFORE triggering re-render
+    // This allows components to check pendingRestore during their render
+    restorePageState(state);
+    
+    // Now update route (triggers re-render)
+    currentRoute.value = {
+      nodeId: state.nodeId,
+      path: state.path,
+    };
+    
+    // Update document title AFTER navigation
+    const meta = getNodeMeta(state.nodeId);
+    document.title = `${meta?.title || state.nodeId} | LLM Explainer`;
+  } else {
+    // Parse from URL (no saved state)
+    const parsed = parsePathname(window.location.pathname);
+    
+    currentRoute.value = parsed;
+    
+    // Update document title AFTER navigation
+    const meta = getNodeMeta(parsed.nodeId);
+    document.title = `${meta?.title || parsed.nodeId} | LLM Explainer`;
+    
+    // No UI state to restore - scroll to top
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
 }
 
 /**
  * Initialize the router
  */
 export function initRouter(): void {
+  // Prevent double initialization (especially on hot reload)
+  if (isRouterInitialized) {
+    return;
+  }
+  isRouterInitialized = true;
+  
   // Get initial node from page data attribute or URL
   const initialNodeId = getInitialNodeId();
   const pathname = window.location.pathname;
@@ -286,7 +348,8 @@ export function initRouter(): void {
     initialRoute = { nodeId: initialNodeId, path: [initialNodeId] };
     // Replace URL to include the node path
     if (initialNodeId !== 'intro') {
-      window.history.replaceState(initialRoute, '', `/${initialNodeId}`);
+      const pageTitle = getAndSetPageTitle(initialNodeId);
+      window.history.replaceState(initialRoute, pageTitle, `/${initialNodeId}`);
     }
   } else {
     // Parse from URL
@@ -295,8 +358,9 @@ export function initRouter(): void {
   
   currentRoute.value = initialRoute;
   
-  // Store initial state
-  window.history.replaceState(initialRoute, '', window.location.pathname);
+  // Set document title and store initial state
+  const pageTitle = getAndSetPageTitle(initialRoute.nodeId);
+  window.history.replaceState(initialRoute, pageTitle, window.location.pathname);
   
   // Set up event listeners
   document.addEventListener('click', handleLinkClick);
@@ -304,11 +368,12 @@ export function initRouter(): void {
 }
 
 /**
- * Clean up router (for testing)
+ * Clean up router (for testing or hot reload)
  */
 export function destroyRouter(): void {
   document.removeEventListener('click', handleLinkClick);
   window.removeEventListener('popstate', handlePopState);
+  isRouterInitialized = false;
 }
 
 /**

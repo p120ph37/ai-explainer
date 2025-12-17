@@ -2,6 +2,56 @@
  * Network graph visualization - Pure CSS/SVG implementation
  */
 
+import { makeStyles } from '@griffel/react';
+
+const useStyles = makeStyles({
+  container: {
+    width: '100%',
+    marginBlockStart: 'var(--space-lg)',
+    marginBlockEnd: 'var(--space-lg)',
+    paddingTop: 'var(--space-md)',
+    paddingBottom: 'var(--space-md)',
+    paddingLeft: 'var(--space-md)',
+    paddingRight: 'var(--space-md)',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-lg)',
+    overflow: 'hidden',
+  },
+  title: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    color: 'var(--color-text)',
+    textAlign: 'center',
+    marginBottom: 'var(--space-md)',
+  },
+  svg: {
+    width: '100%',
+    height: 'auto',
+    maxHeight: '400px',
+  },
+  legend: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 'var(--space-md)',
+    marginTop: 'var(--space-md)',
+    flexWrap: 'wrap',
+  },
+  legendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-2xs)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-muted)',
+  },
+  legendDot: {
+    width: '12px',
+    height: '12px',
+    borderRadius: '50%',
+  },
+});
+
 export interface NetworkNode {
   id: string;
   label: string;
@@ -46,6 +96,8 @@ export function NetworkGraph({
   ariaLabel,
   layout = 'auto',
 }: NetworkGraphProps) {
+  const styles = useStyles();
+  
   // Simple auto-layout based on groups
   const groups = [...new Set(nodes.map(n => n.group || 'default'))];
   const width = 600;
@@ -75,12 +127,12 @@ export function NetworkGraph({
 
   return (
     <div 
-      className="diagram-container network-graph"
+      className={styles.container}
       role="img"
       aria-label={ariaLabel || title || 'Network graph'}
     >
-      {title && <div className="diagram-title">{title}</div>}
-      <svg viewBox={`0 0 ${width} ${height}`} className="network-graph__svg">
+      {title && <div className={styles.title}>{title}</div>}
+      <svg viewBox={`0 0 ${width} ${height}`} className={styles.svg}>
         <defs>
           <marker
             id="arrowhead"
@@ -176,11 +228,11 @@ export function NetworkGraph({
       </svg>
       
       {/* Legend */}
-      <div className="network-graph__legend">
+      <div className={styles.legend}>
         {groups.map(group => (
-          <div key={group} className="network-graph__legend-item">
+          <div key={group} className={styles.legendItem}>
             <span 
-              className="network-graph__legend-dot"
+              className={styles.legendDot}
               style={{ backgroundColor: groupColors[group] || groupColors.default }}
             />
             <span>{group}</span>

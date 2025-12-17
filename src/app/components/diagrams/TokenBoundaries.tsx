@@ -6,6 +6,89 @@
  */
 
 import type { JSX } from 'preact';
+import { makeStyles, mergeClasses } from '@griffel/react';
+
+const useStyles = makeStyles({
+  container: {
+    marginBlockStart: 'var(--space-lg)',
+    marginBlockEnd: 'var(--space-lg)',
+    paddingTop: 'var(--space-md)',
+    paddingBottom: 'var(--space-md)',
+    paddingLeft: 'var(--space-md)',
+    paddingRight: 'var(--space-md)',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-lg)',
+  },
+  title: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    color: 'var(--color-text-muted)',
+    marginBottom: 'var(--space-sm)',
+  },
+  original: {
+    marginBottom: 'var(--space-md)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: 'var(--font-size-sm)',
+  },
+  originalLabel: {
+    color: 'var(--color-text-muted)',
+    marginRight: 'var(--space-xs)',
+  },
+  originalText: {
+    backgroundColor: 'var(--color-bg-subtle)',
+    paddingTop: 'var(--space-3xs)',
+    paddingBottom: 'var(--space-3xs)',
+    paddingLeft: 'var(--space-xs)',
+    paddingRight: 'var(--space-xs)',
+    borderRadius: 'var(--radius-sm)',
+  },
+  tokensContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '2px',
+    fontFamily: 'var(--font-mono)',
+    fontSize: 'var(--font-size-base)',
+    lineHeight: 1.6,
+  },
+  token: {
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingTop: 'var(--space-3xs)',
+    paddingBottom: 'var(--space-3xs)',
+    paddingLeft: 'var(--space-2xs)',
+    paddingRight: 'var(--space-2xs)',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--color-border)',
+    transitionProperty: 'transform',
+    transitionDuration: 'var(--duration-fast)',
+    transitionTimingFunction: 'var(--ease-out)',
+    ':hover': {
+      transform: 'translateY(-2px)',
+    },
+  },
+  tokenHighlight: {
+    borderColor: 'var(--color-accent)',
+    borderWidth: '2px',
+  },
+  tokenText: {
+    whiteSpace: 'pre',
+  },
+  tokenId: {
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-muted)',
+    marginTop: 'var(--space-3xs)',
+  },
+  count: {
+    marginTop: 'var(--space-sm)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-muted)',
+    textAlign: 'right',
+  },
+});
 
 export interface TokenData {
   text: string;
@@ -42,39 +125,41 @@ export function TokenBoundaries({
   title,
   originalText,
 }: TokenBoundariesProps) {
+  const styles = useStyles();
+  
   return (
-    <div className="token-boundaries">
-      {title && <div className="token-boundaries__title">{title}</div>}
+    <div className={styles.container}>
+      {title && <div className={styles.title}>{title}</div>}
       
       {originalText && (
-        <div className="token-boundaries__original">
-          <span className="token-boundaries__original-label">Original:</span>
-          <code className="token-boundaries__original-text">{originalText}</code>
+        <div className={styles.original}>
+          <span className={styles.originalLabel}>Original:</span>
+          <code className={styles.originalText}>{originalText}</code>
         </div>
       )}
       
-      <div className="token-boundaries__container">
+      <div className={styles.tokensContainer}>
         {tokens.map((token, i) => (
           <span
             key={i}
-            className={`token-boundaries__token ${token.highlight ? 'token-boundaries__token--highlight' : ''}`}
+            className={mergeClasses(styles.token, token.highlight && styles.tokenHighlight)}
             style={{
               backgroundColor: token.highlight 
                 ? highlightColor 
                 : tokenColors[i % tokenColors.length],
             }}
           >
-            <span className="token-boundaries__text">
+            <span className={styles.tokenText}>
               {token.text.replace(/ /g, '␣')}
             </span>
             {showIds && token.id !== undefined && (
-              <span className="token-boundaries__id">{token.id}</span>
+              <span className={styles.tokenId}>{token.id}</span>
             )}
           </span>
         ))}
       </div>
       
-      <div className="token-boundaries__count">
+      <div className={styles.count}>
         {tokens.length} token{tokens.length !== 1 ? 's' : ''}
       </div>
     </div>

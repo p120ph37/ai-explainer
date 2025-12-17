@@ -8,6 +8,206 @@
 
 import { useState, useMemo, useCallback } from 'preact/hooks';
 import type { JSX } from 'preact';
+import { makeStyles } from '@griffel/react';
+
+const useStyles = makeStyles({
+  container: {
+    paddingTop: 'var(--space-lg)',
+    paddingBottom: 'var(--space-lg)',
+    paddingLeft: 'var(--space-md)',
+    paddingRight: 'var(--space-md)',
+    backgroundColor: 'var(--color-surface-raised)',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--color-border)',
+    marginBlockStart: 'var(--space-lg)',
+    marginBlockEnd: 'var(--space-lg)',
+  },
+  title: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-lg)',
+    fontWeight: 600,
+    color: 'var(--color-text)',
+    marginBottom: 'var(--space-md)',
+    textAlign: 'center',
+  },
+  layout: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 'var(--space-lg)',
+    '@media (max-width: 640px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  viz: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+  },
+  svg: {
+    width: '100%',
+    maxWidth: '240px',
+    height: 'auto',
+    aspectRatio: '1 / 1',
+  },
+  testPoint: {
+    cursor: 'grab',
+    transitionProperty: 'transform',
+    transitionDuration: 'var(--duration-fast)',
+    ':hover': {
+      transform: 'scale(1.2)',
+    },
+    ':active': {
+      cursor: 'grabbing',
+    },
+  },
+  legend: {
+    display: 'flex',
+    gap: 'var(--space-md)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-muted)',
+  },
+  legendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-2xs)',
+  },
+  legendDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    border: '2px solid var(--color-surface)',
+  },
+  legendLine: {
+    width: '16px',
+    height: '2px',
+    backgroundColor: 'var(--color-accent)',
+  },
+  controls: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  controlGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-2xs)',
+  },
+  controlLabel: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+  },
+  controlLabelStrong: {
+    color: 'var(--color-text)',
+    fontFamily: 'var(--font-mono)',
+  },
+  slider: {
+    width: '100%',
+    height: '6px',
+    appearance: 'none',
+    backgroundColor: 'var(--color-bg-subtle)',
+    borderRadius: 'var(--radius-sm)',
+    cursor: 'pointer',
+    '::-webkit-slider-thumb': {
+      appearance: 'none',
+      width: '14px',
+      height: '14px',
+      borderRadius: '50%',
+      backgroundColor: 'var(--color-accent)',
+      border: '2px solid var(--color-surface)',
+      cursor: 'pointer',
+      transitionProperty: 'transform',
+      transitionDuration: 'var(--duration-fast)',
+    },
+    '::-webkit-slider-thumb:hover': {
+      transform: 'scale(1.2)',
+    },
+    '::-moz-range-thumb': {
+      width: '14px',
+      height: '14px',
+      borderRadius: '50%',
+      backgroundColor: 'var(--color-accent)',
+      border: '2px solid var(--color-surface)',
+      cursor: 'pointer',
+    },
+  },
+  select: {
+    paddingTop: 'var(--space-2xs)',
+    paddingBottom: 'var(--space-2xs)',
+    paddingLeft: 'var(--space-xs)',
+    paddingRight: 'var(--space-xs)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    backgroundColor: 'var(--color-bg-subtle)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--color-text)',
+    cursor: 'pointer',
+  },
+  divider: {
+    height: '1px',
+    backgroundColor: 'var(--color-border-subtle)',
+    marginTop: 'var(--space-xs)',
+    marginBottom: 'var(--space-xs)',
+  },
+  output: {
+    marginTop: 'var(--space-md)',
+    paddingTop: 'var(--space-md)',
+    borderTop: '1px solid var(--color-border-subtle)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  formula: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    flexWrap: 'wrap',
+  },
+  formulaLabel: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+  },
+  formulaCode: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 'var(--font-size-sm)',
+    backgroundColor: 'var(--color-bg-subtle)',
+    paddingTop: 'var(--space-3xs)',
+    paddingBottom: 'var(--space-3xs)',
+    paddingLeft: 'var(--space-2xs)',
+    paddingRight: 'var(--space-2xs)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--color-text)',
+  },
+  result: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 'var(--space-md)',
+  },
+  resultItem: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+  },
+  resultStrong: {
+    color: 'var(--color-text)',
+    fontFamily: 'var(--font-mono)',
+  },
+  hint: {
+    marginTop: 'var(--space-md)',
+    paddingTop: 'var(--space-sm)',
+    paddingBottom: 'var(--space-sm)',
+    paddingLeft: 'var(--space-sm)',
+    paddingRight: 'var(--space-sm)',
+    backgroundColor: 'var(--color-accent-subtle)',
+    borderRadius: 'var(--radius-md)',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-secondary)',
+    lineHeight: 'var(--line-height-relaxed)',
+  },
+});
 
 export interface PerceptronToyProps {
   /** Title for the demo */
@@ -51,6 +251,8 @@ const generateSamplePoints = (): Point[] => [
 export function PerceptronToy({
   title = 'Interactive Perceptron',
 }: PerceptronToyProps) {
+  const styles = useStyles();
+  
   // Weights and bias
   const [w1, setW1] = useState(1.0);
   const [w2, setW2] = useState(1.0);
@@ -114,15 +316,15 @@ export function PerceptronToy({
   );
   
   return (
-    <div className="perceptron-toy">
-      {title && <div className="perceptron-toy__title">{title}</div>}
+    <div className={styles.container}>
+      {title && <div className={styles.title}>{title}</div>}
       
-      <div className="perceptron-toy__layout">
+      <div className={styles.layout}>
         {/* Visualization */}
-        <div className="perceptron-toy__viz">
+        <div className={styles.viz}>
           <svg 
             viewBox={`0 0 ${svgSize} ${svgSize}`} 
-            className="perceptron-toy__svg"
+            className={styles.svg}
             aria-label="Perceptron classification visualization"
           >
             {/* Grid background */}
@@ -191,7 +393,7 @@ export function PerceptronToy({
               fill={testOutput.activated >= 0.5 ? 'var(--color-success)' : 'var(--color-warning)'}
               stroke="var(--color-text)"
               strokeWidth="2"
-              className="perceptron-toy__test-point"
+              className={styles.testPoint}
             />
             
             {/* Axis labels */}
@@ -203,27 +405,27 @@ export function PerceptronToy({
             </text>
           </svg>
           
-          <div className="perceptron-toy__legend">
-            <span className="perceptron-toy__legend-item">
-              <span className="perceptron-toy__legend-dot" style={{ background: 'var(--color-warning)' }} />
+          <div className={styles.legend}>
+            <span className={styles.legendItem}>
+              <span className={styles.legendDot} style={{ background: 'var(--color-warning)' }} />
               Class 0
             </span>
-            <span className="perceptron-toy__legend-item">
-              <span className="perceptron-toy__legend-dot" style={{ background: 'var(--color-success)' }} />
+            <span className={styles.legendItem}>
+              <span className={styles.legendDot} style={{ background: 'var(--color-success)' }} />
               Class 1
             </span>
-            <span className="perceptron-toy__legend-item">
-              <span className="perceptron-toy__legend-line" />
+            <span className={styles.legendItem}>
+              <span className={styles.legendLine} />
               Boundary
             </span>
           </div>
         </div>
         
         {/* Controls */}
-        <div className="perceptron-toy__controls">
-          <div className="perceptron-toy__control-group">
-            <label className="perceptron-toy__control-label">
-              Weight w₁: <strong>{w1.toFixed(2)}</strong>
+        <div className={styles.controls}>
+          <div className={styles.controlGroup}>
+            <label className={styles.controlLabel}>
+              Weight w₁: <strong className={styles.controlLabelStrong}>{w1.toFixed(2)}</strong>
             </label>
             <input
               type="range"
@@ -232,13 +434,13 @@ export function PerceptronToy({
               step="0.1"
               value={w1}
               onInput={handleSliderChange(setW1)}
-              className="perceptron-toy__slider"
+              className={styles.slider}
             />
           </div>
           
-          <div className="perceptron-toy__control-group">
-            <label className="perceptron-toy__control-label">
-              Weight w₂: <strong>{w2.toFixed(2)}</strong>
+          <div className={styles.controlGroup}>
+            <label className={styles.controlLabel}>
+              Weight w₂: <strong className={styles.controlLabelStrong}>{w2.toFixed(2)}</strong>
             </label>
             <input
               type="range"
@@ -247,13 +449,13 @@ export function PerceptronToy({
               step="0.1"
               value={w2}
               onInput={handleSliderChange(setW2)}
-              className="perceptron-toy__slider"
+              className={styles.slider}
             />
           </div>
           
-          <div className="perceptron-toy__control-group">
-            <label className="perceptron-toy__control-label">
-              Bias: <strong>{bias.toFixed(2)}</strong>
+          <div className={styles.controlGroup}>
+            <label className={styles.controlLabel}>
+              Bias: <strong className={styles.controlLabelStrong}>{bias.toFixed(2)}</strong>
             </label>
             <input
               type="range"
@@ -262,16 +464,16 @@ export function PerceptronToy({
               step="0.1"
               value={bias}
               onInput={handleSliderChange(setBias)}
-              className="perceptron-toy__slider"
+              className={styles.slider}
             />
           </div>
           
-          <div className="perceptron-toy__control-group">
-            <label className="perceptron-toy__control-label">Activation:</label>
+          <div className={styles.controlGroup}>
+            <label className={styles.controlLabel}>Activation:</label>
             <select
               value={activation}
               onChange={(e) => setActivation((e.target as HTMLSelectElement).value as ActivationType)}
-              className="perceptron-toy__select"
+              className={styles.select}
             >
               <option value="step">Step (binary)</option>
               <option value="sigmoid">Sigmoid</option>
@@ -280,11 +482,11 @@ export function PerceptronToy({
             </select>
           </div>
           
-          <div className="perceptron-toy__divider" />
+          <div className={styles.divider} />
           
-          <div className="perceptron-toy__control-group">
-            <label className="perceptron-toy__control-label">
-              Test x₁: <strong>{testX.toFixed(2)}</strong>
+          <div className={styles.controlGroup}>
+            <label className={styles.controlLabel}>
+              Test x₁: <strong className={styles.controlLabelStrong}>{testX.toFixed(2)}</strong>
             </label>
             <input
               type="range"
@@ -293,13 +495,13 @@ export function PerceptronToy({
               step="0.05"
               value={testX}
               onInput={handleSliderChange(setTestX)}
-              className="perceptron-toy__slider"
+              className={styles.slider}
             />
           </div>
           
-          <div className="perceptron-toy__control-group">
-            <label className="perceptron-toy__control-label">
-              Test x₂: <strong>{testY.toFixed(2)}</strong>
+          <div className={styles.controlGroup}>
+            <label className={styles.controlLabel}>
+              Test x₂: <strong className={styles.controlLabelStrong}>{testY.toFixed(2)}</strong>
             </label>
             <input
               type="range"
@@ -308,34 +510,34 @@ export function PerceptronToy({
               step="0.05"
               value={testY}
               onInput={handleSliderChange(setTestY)}
-              className="perceptron-toy__slider"
+              className={styles.slider}
             />
           </div>
         </div>
       </div>
       
       {/* Output display */}
-      <div className="perceptron-toy__output">
-        <div className="perceptron-toy__formula">
-          <span className="perceptron-toy__formula-label">Computation:</span>
-          <code>
+      <div className={styles.output}>
+        <div className={styles.formula}>
+          <span className={styles.formulaLabel}>Computation:</span>
+          <code className={styles.formulaCode}>
             ({w1.toFixed(1)} × {testX.toFixed(2)}) + ({w2.toFixed(1)} × {testY.toFixed(2)}) + ({bias.toFixed(1)}) = {testOutput.weightedSum.toFixed(2)}
           </code>
         </div>
-        <div className="perceptron-toy__result">
-          <span className="perceptron-toy__result-item">
-            Weighted sum: <strong>{testOutput.weightedSum.toFixed(3)}</strong>
+        <div className={styles.result}>
+          <span className={styles.resultItem}>
+            Weighted sum: <strong className={styles.resultStrong}>{testOutput.weightedSum.toFixed(3)}</strong>
           </span>
-          <span className="perceptron-toy__result-item">
-            After {activation}: <strong>{testOutput.activated.toFixed(3)}</strong>
+          <span className={styles.resultItem}>
+            After {activation}: <strong className={styles.resultStrong}>{testOutput.activated.toFixed(3)}</strong>
           </span>
-          <span className="perceptron-toy__result-item">
-            Accuracy: <strong>{accuracy}%</strong>
+          <span className={styles.resultItem}>
+            Accuracy: <strong className={styles.resultStrong}>{accuracy}%</strong>
           </span>
         </div>
       </div>
       
-      <div className="perceptron-toy__hint">
+      <div className={styles.hint}>
         <strong>Try it:</strong> Adjust the weights and bias to move the decision boundary. Can you get 100% accuracy on the sample points? Notice how the boundary is always a straight line — that's the limitation of a single perceptron.
       </div>
     </div>

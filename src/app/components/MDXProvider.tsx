@@ -7,7 +7,7 @@
 
 import { MDXProvider as BaseMDXProvider } from '@mdx-js/preact';
 import type { ComponentChildren, JSX } from 'preact';
-import { InternalLink } from './InternalLink.tsx';
+import { InternalLink } from '@/app/components/InternalLink.tsx';
 
 // Custom anchor component that detects internal links
 function CustomAnchor({ href, children, ...props }: JSX.HTMLAttributes<HTMLAnchorElement>) {

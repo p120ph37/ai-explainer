@@ -5,9 +5,9 @@
  * It provides the EditorialLayer component and related utilities.
  */
 
-export { EditorialLayer } from './components/EditorialLayer.tsx';
-export { isEditorialMode } from './state.ts';
-export { editorialApi } from './api.ts';
+export { EditorialLayer } from '@/editorial/client/components/EditorialLayer.tsx';
+export { isEditorialMode } from '@/editorial/client/state.ts';
+export { editorialApi } from '@/editorial/client/api.ts';
 
 // Re-export types
 export type {
@@ -19,5 +19,5 @@ export type {
   NoteStatus,
   NotePriority,
   TextSelectionAnchor,
-} from '../_types.ts';
+} from '@/editorial/_types.ts';
 

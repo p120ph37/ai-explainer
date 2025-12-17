@@ -1,0 +1,131 @@
+---
+title: "What is a Transformer? — Research Voice"
+summary: "Examines claims and provides supporting evidence, research, and additional context."
+draft: true
+---
+
+## Core Claims and Evidence
+
+### Claim: The Transformer architecture powers modern LLMs
+
+**Original paper:** "Attention Is All You Need" (Vaswani et al., Google, 2017): https://arxiv.org/abs/1706.03762
+
+**Adoption:** Every major LLM uses Transformer architecture or close variants:
+- GPT series (OpenAI): decoder-only Transformer
+- Claude series (Anthropic): decoder-only Transformer
+- LLaMA series (Meta): decoder-only Transformer
+- Gemini (Google): Transformer variant
+
+**Impact:** The paper has over 100,000 citations, making it one of the most influential ML papers ever.
+
+---
+
+### Claim: Transformers replaced RNNs due to parallelism and long-range dependency handling
+
+**RNN limitations documented:**
+- "On the difficulty of training recurrent neural networks" (Pascanu et al., 2013): vanishing/exploding gradients
+- Sequential dependencies prevent parallelization
+- Information degrades over long sequences
+
+**Transformer advantages:**
+- All positions computed in parallel: O(1) sequential operations vs O(n) for RNNs
+- Direct attention between any positions: O(1) path length vs O(n)
+- Better GPU utilization due to matrix multiplication dominance
+
+---
+
+### Claim: Transformer consists of self-attention, feed-forward networks, layer norm, and residuals
+
+**Architecture components:**
+
+**Self-attention:** Queries, keys, values computed from input. Attention weights from query-key similarity. Output is weighted sum of values.
+
+**Feed-forward network:** Two linear transformations with nonlinearity: FFN(x) = W₂ · ReLU(W₁ · x + b₁) + b₂
+
+**Layer normalization:** Normalizes activations for training stability.
+
+**Residual connections:** x + Sublayer(x) allows gradients to flow through deep networks.
+
+**Visual explanation:** Jay Alammar's "The Illustrated Transformer": https://jalammar.github.io/illustrated-transformer/
+
+---
+
+### Claim: Encoder-decoder, encoder-only, and decoder-only variants exist
+
+**Configurations:**
+- **Encoder-decoder** (original Transformer, T5): encoder processes input, decoder generates output
+- **Encoder-only** (BERT): bidirectional attention, good for classification/embedding
+- **Decoder-only** (GPT, Claude): autoregressive generation with masked attention
+
+**Why decoder-only dominated LLMs:** Simpler, scales well, naturally fits text generation. Encoder-decoder adds complexity without clear benefit for pure generation tasks.
+
+---
+
+### Claim: Transformers scale predictably with size
+
+**Scaling laws:** "Scaling Laws for Neural Language Models" (Kaplan et al., 2020): loss decreases predictably with model size, data, and compute.
+
+**Reliability:** This predictability enabled confident investment in scale. If you knew 10x compute → X% improvement, you could plan research and budget accordingly.
+
+**Contrast with other architectures:** Many architectures showed promise at small scale but hit walls. Transformers kept improving.
+
+---
+
+## Additional Research and Context
+
+### Attention variants
+
+**Multi-head attention:** Run multiple attention mechanisms in parallel with different learned projections. Typical: 8-96 heads.
+
+**Efficient attention variants:**
+- Sparse attention (Longformer, BigBird)
+- Linear attention (Performers)
+- Flash Attention (memory-efficient implementation)
+
+### Position encodings
+
+**Problem:** Attention is permutation-invariant; doesn't inherently know position.
+
+**Solutions:**
+- Sinusoidal (original): Fixed pattern based on position
+- Learned absolute: Train position embeddings
+- Rotary (RoPE): Rotate query/key vectors based on position
+- ALiBi: Add linear bias based on position distance
+
+**Reference:** "RoFormer: Enhanced Transformer with Rotary Position Embedding" (Su et al., 2021)
+
+### Post-Transformer architectures
+
+**Research directions:**
+- State space models (Mamba): Linear complexity alternatives
+- Mixture of experts: Sparse activation for efficiency
+- Retrieval-augmented: External memory beyond context window
+
+**Status:** Transformers remain dominant; alternatives show promise for specific use cases.
+
+### Vision Transformers
+
+**ViT paper:** "An Image is Worth 16x16 Words" (Dosovitskiy et al., 2020): https://arxiv.org/abs/2010.11929
+
+**Key insight:** Transformer architecture transfers to images by treating patches as tokens.
+
+**Impact:** Transformers now dominate computer vision too, not just NLP.
+
+---
+
+## Recommended Resources
+
+**For understanding:**
+1. Original "Attention Is All You Need" paper (readable, foundational)
+2. Jay Alammar's "The Illustrated Transformer" (visual walkthrough)
+3. 3Blue1Brown "But what is a GPT?" (video explanation)
+
+**For implementation:**
+1. "The Annotated Transformer" (Harvard NLP): https://nlp.seas.harvard.edu/annotated-transformer/
+2. Karpathy's nanoGPT
+3. Hugging Face transformers library source
+
+**For research:**
+1. Scaling laws papers
+2. Efficient attention papers
+3. Post-Transformer architecture papers

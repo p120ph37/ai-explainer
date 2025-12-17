@@ -1,10 +1,9 @@
 # Bun configuration
 
-[serve.static]
-# Plugins for the dev server's HTML bundling
-plugins = ["./src/plugins/mdx-plugin.ts"]
+# Preload registers MDX plugin for both runtime imports (SSR) and Bun.build()
+preload = ["./src/plugins/preload.ts"]
 
 # Test configuration
 [test]
-preload = ["./src/__tests__/preload-plugins.ts", "./src/__tests__/setup.ts"]
+preload = ["./src/plugins/preload.ts", "./src/__tests__/preload-plugins.ts", "./src/__tests__/setup.ts"]
 root = "./src/__tests__"

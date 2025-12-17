@@ -12,8 +12,8 @@ import {
   createPopoverPosition,
   cancelNoteCreation,
   createNote,
-} from '../state.ts';
-import type { NotePriority } from '../../_types.ts';
+} from '@/editorial/client/state.ts';
+import type { NotePriority } from '@/editorial/_types.ts';
 
 const PRIORITY_OPTIONS: { value: NotePriority; label: string }[] = [
   { value: 'critical', label: '🔴 Critical' },

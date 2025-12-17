@@ -8,8 +8,8 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { loadNotes, saveNotes, markAnchorInvalid } from './persistence.ts';
-import type { EditorialNote, TextSelectionAnchor } from './_types.ts';
+import { loadNotes, saveNotes, markAnchorInvalid } from '@/editorial/persistence.ts';
+import type { EditorialNote, TextSelectionAnchor } from '@/editorial/_types.ts';
 
 const CONTENT_DIR = 'src/content';
 

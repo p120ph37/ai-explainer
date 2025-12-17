@@ -9,9 +9,9 @@
  */
 
 import { useEffect } from 'preact/hooks';
-import { EditorialPanel } from './EditorialPanel.tsx';
-import { SelectionToolbar } from './SelectionToolbar.tsx';
-import { CreateNotePopover } from './CreateNotePopover.tsx';
+import { EditorialPanel } from '@/editorial/client/components/EditorialPanel.tsx';
+import { SelectionToolbar } from '@/editorial/client/components/SelectionToolbar.tsx';
+import { CreateNotePopover } from '@/editorial/client/components/CreateNotePopover.tsx';
 import {
   isEditorialMode,
   loadPageData,
@@ -22,8 +22,8 @@ import {
   pendingSelection,
   isCreatingNote,
   cancelNoteCreation,
-} from '../state.ts';
-import type { TextSelectionAnchor } from '../../_types.ts';
+} from '@/editorial/client/state.ts';
+import type { TextSelectionAnchor } from '@/editorial/_types.ts';
 
 interface EditorialLayerProps {
   pageId: string;

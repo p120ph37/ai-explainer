@@ -12,6 +12,264 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'preact/hooks';
 import type { JSX } from 'preact';
+import { makeStyles, mergeClasses } from '@griffel/react';
+
+const useStyles = makeStyles({
+  container: {
+    paddingTop: 'var(--space-md)',
+    paddingBottom: 'var(--space-md)',
+    paddingLeft: 'var(--space-md)',
+    paddingRight: 'var(--space-md)',
+    backgroundColor: 'var(--color-surface-raised)',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--color-border)',
+    marginBlockStart: 'var(--space-lg)',
+    marginBlockEnd: 'var(--space-lg)',
+  },
+  title: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-lg)',
+    fontWeight: 600,
+    color: 'var(--color-text)',
+    marginBottom: 'var(--space-sm)',
+    textAlign: 'center',
+  },
+  controls: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: 'var(--space-xs)',
+    rowGap: '2px',
+    marginBottom: 'var(--space-sm)',
+  },
+  selectGroup: {
+    display: 'flex',
+    gap: '2px',
+  },
+  selectWrapper: {
+    position: 'relative',
+    display: 'inline-block',
+    height: '32px',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    ':focus-within': {
+      borderColor: 'var(--color-accent)',
+    },
+  },
+  selectSizer: {
+    visibility: 'hidden',
+    height: 0,
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    paddingLeft: 'var(--space-2xs)',
+    paddingRight: 'var(--space-2xs)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-xs)',
+  },
+  selectSizerSpan: {
+    whiteSpace: 'nowrap',
+    paddingRight: 'calc(var(--space-2xs) + 10px)',
+  },
+  selectFacade: {
+    display: 'flex',
+    alignItems: 'center',
+    height: '100%',
+    paddingLeft: 'var(--space-2xs)',
+    paddingRight: 'var(--space-2xs)',
+    gap: 'var(--space-2xs)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text)',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+  },
+  selectText: {
+    flex: 1,
+  },
+  selectChevron: {
+    color: 'var(--color-text-muted)',
+    flexShrink: 0,
+  },
+  selectNative: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0,
+    cursor: 'pointer',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+  },
+  playbackGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '2px',
+  },
+  buttons: {
+    display: 'flex',
+    gap: '2px',
+  },
+  btn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '32px',
+    height: '32px',
+    padding: 0,
+    color: 'var(--color-text)',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    cursor: 'pointer',
+    transitionProperty: 'all',
+    transitionDuration: 'var(--duration-fast)',
+    transitionTimingFunction: 'var(--ease-out)',
+    ':hover:not(:disabled)': {
+      borderColor: 'var(--color-accent)',
+      backgroundColor: 'var(--color-accent-subtle)',
+    },
+    ':disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+    },
+  },
+  btnActive: {
+    backgroundColor: 'var(--color-accent)',
+    color: 'var(--color-surface)',
+    ':hover:not(:disabled)': {
+      backgroundColor: 'var(--color-accent)',
+      color: 'var(--color-surface)',
+    },
+  },
+  speed: {
+    display: 'flex',
+    alignItems: 'stretch',
+    height: '32px',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    overflow: 'hidden',
+  },
+  speedValue: {
+    display: 'flex',
+    alignItems: 'center',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text)',
+    paddingLeft: 'var(--space-2xs)',
+    paddingRight: 'var(--space-2xs)',
+    whiteSpace: 'nowrap',
+  },
+  speedUnit: {
+    color: 'var(--color-text-muted)',
+    marginLeft: '1px',
+  },
+  speedButtons: {
+    display: 'flex',
+    flexDirection: 'column',
+    borderLeft: '1px solid var(--color-border)',
+  },
+  speedBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    width: '20px',
+    padding: 0,
+    margin: 0,
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: 'var(--color-text)',
+    cursor: 'pointer',
+    transitionProperty: 'background-color',
+    transitionDuration: '0.15s',
+    transitionTimingFunction: 'ease',
+    ':first-child': {
+      borderBottom: '1px solid var(--color-border)',
+    },
+    ':hover': {
+      backgroundColor: 'var(--color-bg-subtle)',
+    },
+    ':active': {
+      backgroundColor: 'var(--color-border)',
+    },
+  },
+  stats: {
+    display: 'flex',
+    gap: '2px',
+  },
+  stat: {
+    display: 'flex',
+    alignItems: 'center',
+    height: '32px',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    paddingLeft: 'var(--space-2xs)',
+    paddingRight: 'var(--space-2xs)',
+    gap: '2px',
+    cursor: 'default',
+    transitionProperty: 'border-color',
+    transitionDuration: '0.15s',
+    transitionTimingFunction: 'ease',
+    ':hover': {
+      borderColor: 'var(--color-text-muted)',
+    },
+  },
+  statLabel: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-muted)',
+  },
+  statValue: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text)',
+    minWidth: '3ch',
+    textAlign: 'right',
+  },
+  extinct: {
+    color: 'var(--color-error, #dc2626)',
+    fontSize: 'var(--font-size-sm)',
+    animationName: {
+      '0%, 100%': { opacity: 1 },
+      '50%': { opacity: 0.5 },
+    },
+    animationDuration: '1s',
+    animationTimingFunction: 'ease-in-out',
+    animationIterationCount: 'infinite',
+  },
+  grid: {
+    display: 'grid',
+    gap: '1px',
+    backgroundColor: 'var(--color-border-subtle)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    overflow: 'hidden',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    userSelect: 'none',
+  },
+  cell: {
+    aspectRatio: '1 / 1',
+    backgroundColor: 'var(--color-surface)',
+    cursor: 'pointer',
+    transitionProperty: 'background-color',
+    transitionDuration: '50ms',
+    ':hover': {
+      backgroundColor: 'var(--color-bg-subtle)',
+    },
+  },
+  cellAlive: {
+    backgroundColor: 'var(--color-accent)',
+    ':hover': {
+      backgroundColor: 'var(--color-accent)',
+      opacity: 0.8,
+    },
+  },
+});
 
 export interface GameOfLifeProps {
   /** Initial grid width in cells */
@@ -577,19 +835,21 @@ export function GameOfLife({
   
   const currentPresetInfo = getPresetInfo(selectedPreset);
   
+  const styles = useStyles();
+  
   return (
     <div 
       ref={containerRef}
-      className="game-of-life"
+      className={styles.container}
       onMouseLeave={() => setIsDragging(false)}
     >
-      {title && <div className="game-of-life__title">{title}</div>}
-        <div className="game-of-life__controls">
-          <div className="game-of-life__select-group">
+      {title && <div className={styles.title}>{title}</div>}
+        <div className={styles.controls}>
+          <div className={styles.selectGroup}>
             {/* Preset selector with custom styling */}
-            <div className="game-of-life__select-wrapper" title={currentPresetInfo.description}>
+            <div className={styles.selectWrapper} title={currentPresetInfo.description}>
               {/* Sizer: renders all options invisibly to establish max width */}
-              <div className="game-of-life__select-sizer" aria-hidden="true">
+              <div className={styles.selectSizer} aria-hidden="true">
                 {PRESET_GROUPS.flatMap(group => 
                   group.presets.map(key => {
                     const info = getPresetInfo(key);
@@ -598,9 +858,9 @@ export function GameOfLife({
                 )}
               </div>
               {/* Visible facade showing current value */}
-              <div className="game-of-life__select-facade">
-                <span className="game-of-life__select-text">{currentPresetInfo.name}</span>
-                <svg className="game-of-life__select-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className={styles.selectFacade}>
+                <span className={styles.selectText}>{currentPresetInfo.name}</span>
+                <svg className={styles.selectChevron} width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M1 1L5 5L9 1"/>
                 </svg>
               </div>
@@ -608,7 +868,7 @@ export function GameOfLife({
               <select
                 value={selectedPreset}
                 onChange={handlePresetChange}
-                className="game-of-life__select-native"
+                className={styles.selectNative}
               >
                 {PRESET_GROUPS.map(group => (
                   <optgroup key={group.label} label={group.label}>
@@ -626,17 +886,17 @@ export function GameOfLife({
             </div>
 
             {/* Size selector with custom styling */}
-            <div className="game-of-life__select-wrapper">
+            <div className={styles.selectWrapper}>
               {/* Sizer: renders all options invisibly to establish max width */}
-              <div className="game-of-life__select-sizer" aria-hidden="true">
+              <div className={styles.selectSizer} aria-hidden="true">
                 {GRID_SIZES.map((size) => (
                   <span key={size.label}>{size.label}</span>
                 ))}
               </div>
               {/* Visible facade showing current value */}
-              <div className="game-of-life__select-facade">
-                <span className="game-of-life__select-text">{GRID_SIZES[selectedSizeIndex]?.label}</span>
-                <svg className="game-of-life__select-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className={styles.selectFacade}>
+                <span className={styles.selectText}>{GRID_SIZES[selectedSizeIndex]?.label}</span>
+                <svg className={styles.selectChevron} width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M1 1L5 5L9 1"/>
                 </svg>
               </div>
@@ -644,7 +904,7 @@ export function GameOfLife({
               <select
                 value={String(selectedSizeIndex)}
                 onChange={handleSizeChange}
-                className="game-of-life__select-native"
+                className={styles.selectNative}
               >
                 {GRID_SIZES.map((size, index) => (
                   <option key={size.label} value={String(index)}>
@@ -656,10 +916,10 @@ export function GameOfLife({
           </div>
           
           {/* Wrap-unit: playback controls + speed */}
-          <div className="game-of-life__playback-group">
-            <div className="game-of-life__buttons">
+          <div className={styles.playbackGroup}>
+            <div className={styles.buttons}>
               <button
-                className={`game-of-life__btn ${isPlaying ? 'game-of-life__btn--active' : ''}`}
+                className={mergeClasses(styles.btn, isPlaying && styles.btnActive)}
                 onClick={() => !isExtinct && setIsPlaying(!isPlaying)}
                 disabled={isExtinct}
                 title={isExtinct ? 'Extinct' : isPlaying ? 'Pause' : 'Play'}
@@ -676,7 +936,7 @@ export function GameOfLife({
                 )}
               </button>
               <button
-                className="game-of-life__btn"
+                className={styles.btn}
                 onClick={step}
                 disabled={isPlaying || isExtinct}
                 title="Step"
@@ -687,7 +947,7 @@ export function GameOfLife({
                 </svg>
               </button>
               <button
-                className="game-of-life__btn"
+                className={styles.btn}
                 onClick={() => loadPreset(selectedPreset)}
                 title="Reset"
               >
@@ -698,12 +958,12 @@ export function GameOfLife({
               </button>
             </div>
             
-            <div className="game-of-life__speed" title="Speed (generations/sec)">
-              <span className="game-of-life__speed-value">{speed}<span className="game-of-life__speed-unit">/s</span></span>
-              <div className="game-of-life__speed-buttons">
+            <div className={styles.speed} title="Speed (generations/sec)">
+              <span className={styles.speedValue}>{speed}<span className={styles.speedUnit}>/s</span></span>
+              <div className={styles.speedButtons}>
                 <button
                   type="button"
-                  className="game-of-life__speed-btn"
+                  className={styles.speedBtn}
                   onClick={() => setSpeed(s => Math.min(60, s + 1))}
                   aria-label="Increase speed"
                 >
@@ -713,7 +973,7 @@ export function GameOfLife({
                 </button>
                 <button
                   type="button"
-                  className="game-of-life__speed-btn"
+                  className={styles.speedBtn}
                   onClick={() => setSpeed(s => Math.max(1, s - 1))}
                   aria-label="Decrease speed"
                 >
@@ -725,21 +985,21 @@ export function GameOfLife({
             </div>
           </div>
           
-          <div className="game-of-life__stats">
-            <span className="game-of-life__stat" title="Generation: Number of simulation steps">
-              <span className="game-of-life__stat-label">Gen</span>
-              <span className="game-of-life__stat-value">{generation}</span>
+          <div className={styles.stats}>
+            <span className={styles.stat} title="Generation: Number of simulation steps">
+              <span className={styles.statLabel}>Gen</span>
+              <span className={styles.statValue}>{generation}</span>
             </span>
-            <span className="game-of-life__stat" title="Population: Number of living cells">
-              <span className="game-of-life__stat-label">Pop</span>
-              <span className="game-of-life__stat-value">{aliveCount}</span>
-              {isExtinct && <span className="game-of-life__extinct">☠</span>}
+            <span className={styles.stat} title="Population: Number of living cells">
+              <span className={styles.statLabel}>Pop</span>
+              <span className={styles.statValue}>{aliveCount}</span>
+              {isExtinct && <span className={styles.extinct}>☠</span>}
             </span>
           </div>
         </div>
         
         <div
-          className="game-of-life__grid"
+          className={styles.grid}
           style={{
             gridTemplateColumns: `repeat(${gridWidth}, 1fr)`,
             maxWidth: `${gridWidth * 20 + gridWidth - 1 + 2}px`, // maxCellSize * cols + gaps + border
@@ -749,7 +1009,7 @@ export function GameOfLife({
             row.map((cell, x) => (
               <div
                 key={`${x}-${y}`}
-                className={`game-of-life__cell ${cell ? 'game-of-life__cell--alive' : ''}`}
+                className={mergeClasses(styles.cell, cell && styles.cellAlive)}
                 onMouseDown={() => handleCellMouseDown(x, y)}
                 onMouseEnter={() => handleCellMouseEnter(x, y)}
               />

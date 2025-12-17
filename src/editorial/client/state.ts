@@ -12,8 +12,8 @@ import type {
   TextSelectionAnchor,
   NoteStatus,
   NotePriority,
-} from '../_types.ts';
-import { editorialApi } from './api.ts';
+} from '@/editorial/_types.ts';
+import { editorialApi } from '@/editorial/client/api.ts';
 
 /**
  * Check if editorial mode is enabled

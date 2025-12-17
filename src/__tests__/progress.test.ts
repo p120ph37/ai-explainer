@@ -16,7 +16,7 @@ import {
   resetNodeProgress,
   resetAllProgress,
   questStatusInfo,
-} from '../app/progress.ts';
+} from '@/app/progress.ts';
 
 // Mock localStorage
 const localStorageMock = (() => {

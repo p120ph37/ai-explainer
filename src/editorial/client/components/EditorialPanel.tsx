@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'preact/hooks';
-import { NoteCard } from './NoteCard.tsx';
+import { NoteCard } from '@/editorial/client/components/NoteCard.tsx';
 import {
   panelOpen,
   closePanel,
@@ -25,8 +25,8 @@ import {
   errorMessage,
   clearError,
   createPageNote,
-} from '../state.ts';
-import type { NoteStatus, NotePriority } from '../../_types.ts';
+} from '@/editorial/client/state.ts';
+import type { NoteStatus, NotePriority } from '@/editorial/_types.ts';
 
 const STATUS_OPTIONS: { value: NoteStatus; label: string }[] = [
   { value: 'open', label: 'Open' },

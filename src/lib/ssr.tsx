@@ -4,99 +4,27 @@
  * Renders the full App component to HTML for SEO and fast initial paint.
  * The same component tree is hydrated on the client.
  * 
+ * MDX files are imported directly using Bun's preload plugin (src/plugins/preload.ts)
+ * which registers @mdx-js/esbuild for runtime transpilation.
+ * 
  * Uses @griffel/react's RendererProvider for CSS-in-JS SSR support.
  */
 
 import * as preact from 'preact';
-import { h, Fragment } from 'preact';
+import { h } from 'preact';
 import renderToString from 'preact-render-to-string';
-import { evaluate } from '@mdx-js/mdx';
-import * as runtime from 'preact/jsx-runtime';
-import remarkFrontmatter from 'remark-frontmatter';
-import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
-import remarkStripImports from './remark-strip-imports.ts';
-import { type ContentMeta, specialPages } from './content.ts';
-import { App } from '../app/App.tsx';
+import { type ContentMeta, specialPages } from '@/lib/content.ts';
+import { App } from '@/app/App.tsx';
 
 // Griffel SSR imports
 import { createDOMRenderer, renderToStyleElements, RendererProvider } from '@griffel/react';
 
-// Import our custom MDX components
-import { Term } from '../app/components/content/Term.tsx';
-import { Expandable } from '../app/components/content/Expandable.tsx';
-import { Recognition } from '../app/components/content/Recognition.tsx';
-import { TryThis } from '../app/components/content/TryThis.tsx';
-import { Sources, Citation, Reference, Footnote } from '../app/components/content/Sources.tsx';
-import { Metaphor } from '../app/components/content/Metaphor.tsx';
-import { Question } from '../app/components/content/Question.tsx';
-
-// Import diagram components
-import { 
-  ScaleComparison, 
-  NetworkGraph, 
-  BarChart, 
-  TokenBoundaries,
-  LayerStack,
-  FlowDiagram,
-  DiagramPlaceholder,
-  TokenizerDemo,
-  PerceptronToy,
-  GameOfLife,
-} from '../app/components/diagrams/index.ts';
-
-// Custom components for MDX - these replace imports during SSR
-const mdxComponents = {
-  // Content components
-  Term,
-  Expandable,
-  Recognition,
-  TryThis,
-  Sources,
-  Citation,
-  Reference,
-  Footnote,
-  Metaphor,
-  Question,
-  // Diagram components
-  ScaleComparison,
-  NetworkGraph,
-  BarChart,
-  TokenBoundaries,
-  LayerStack,
-  FlowDiagram,
-  DiagramPlaceholder,
-  TokenizerDemo,
-  PerceptronToy,
-  GameOfLife,
-};
-
-// Cache compiled modules
+// Cache imported modules
 const moduleCache = new Map<string, { default: any; meta: ContentMeta }>();
 
 /**
- * Compile and evaluate MDX content
- */
-async function compileMdx(content: string): Promise<{ default: any; meta: any }> {
-  const result = await evaluate(content, {
-    ...runtime,
-    Fragment,
-    jsx: h,
-    jsxs: h,
-    remarkPlugins: [
-      remarkStripImports,  // Strip imports before frontmatter processing
-      remarkFrontmatter,
-      [remarkMdxFrontmatter, { name: 'meta' }],
-    ],
-    development: false,
-    useMDXComponents: () => mdxComponents,
-  });
-  
-  return result as { default: any; meta: any };
-}
-
-/**
- * Load and compile an MDX file, returning component and meta
- * Uses direct file path: src/content/{id}.mdx
+ * Load an MDX module via dynamic import
+ * Bun's preload plugin handles the MDX transpilation
  */
 export async function loadMdxModule(nodeId: string, contentDir: string = 'src/content'): Promise<{ default: any; meta: ContentMeta } | null> {
   // Check cache
@@ -106,7 +34,7 @@ export async function loadMdxModule(nodeId: string, contentDir: string = 'src/co
   }
   
   try {
-    // Direct file path - no registry lookup needed
+    // Check if file exists first
     const fullPath = `${contentDir}/${nodeId}.mdx`;
     const file = Bun.file(fullPath);
     
@@ -114,8 +42,8 @@ export async function loadMdxModule(nodeId: string, contentDir: string = 'src/co
       return null;
     }
     
-    const content = await file.text();
-    const module = await compileMdx(content);
+    // Dynamic import - Bun's preload plugin handles MDX transpilation
+    const module = await import(`@/content/${nodeId}.mdx`);
     
     // Ensure meta has required fields
     const meta: ContentMeta = {
@@ -134,7 +62,7 @@ export async function loadMdxModule(nodeId: string, contentDir: string = 'src/co
     moduleCache.set(cacheKey, result);
     return result;
   } catch (error) {
-    console.error(`Failed to compile MDX for ${nodeId}:`, error);
+    console.error(`Failed to load MDX for ${nodeId}:`, error);
     return null;
   }
 }
@@ -149,10 +77,9 @@ export async function renderMdxContent(nodeId: string, contentDir: string = 'src
   const Component = module.default;
   
   try {
-    // Render the MDX component with our custom components
-    const html = renderToString(
-      <Component components={mdxComponents} />
-    );
+    // MDX components are provided via @mdx-js/preact's MDXProvider
+    // which is configured in the preload plugin
+    const html = renderToString(<Component />);
     
     return { html, meta: module.meta };
   } catch (error) {
@@ -200,10 +127,8 @@ export async function renderAppToString(
   // createDOMRenderer(undefined) creates an in-memory renderer for SSR
   const renderer = createDOMRenderer(undefined as unknown as Document);
   
-  // Create a wrapper component that provides the MDX components
-  const ContentWithComponents = () => (
-    <module.default components={mdxComponents} />
-  );
+  // MDX components are provided via @mdx-js/preact's MDXProvider
+  const ContentComponent = module.default;
   
   try {
     // Render the full App with the content, wrapped in RendererProvider
@@ -213,7 +138,7 @@ export async function renderAppToString(
       { renderer },
       h(App, {
         nodeId,
-        ContentComponent: ContentWithComponents,
+        ContentComponent,
         meta: module.meta,
         initialTheme: 'light',
       })
@@ -238,15 +163,27 @@ export async function renderAppToString(
 /**
  * Render markdown/MDX content string to HTML
  * Used for rendering variant content in editorial mode
+ * 
+ * Note: This uses @mdx-js/mdx's evaluate() for runtime compilation of strings.
+ * File-based MDX uses Bun's preload plugin instead.
  */
 export async function renderMarkdownContent(content: string): Promise<string> {
+  // Lazy import evaluate only when needed (editorial mode)
+  const { evaluate } = await import('@mdx-js/mdx');
+  const { h, Fragment } = await import('preact');
+  const runtime = await import('preact/jsx-runtime');
+  
   try {
-    const module = await compileMdx(content);
-    const Component = module.default;
+    const result = await evaluate(content, {
+      ...runtime,
+      Fragment,
+      jsx: h,
+      jsxs: h,
+      development: false,
+    });
     
-    const html = renderToString(
-      <Component components={mdxComponents} />
-    );
+    const Component = result.default;
+    const html = renderToString(<Component />);
     
     return html;
   } catch (error) {

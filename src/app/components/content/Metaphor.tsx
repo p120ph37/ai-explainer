@@ -7,25 +7,61 @@
  * Content is always rendered for SSR, hidden/shown via CSS.
  */
 
-import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 import { makeStyles, mergeClasses } from '@griffel/react';
+import { useCollapsible } from '@/app/hooks/useCollapsible.ts';
 
 // ============================================
-// STYLES (Griffel - AOT compiled)
+// STYLES (Griffel - all styles in one place)
 // ============================================
 
-const useStylesBase = makeStyles({
-  metaphor: {
+const useStyles = makeStyles({
+  // Base aside - mobile first (in-flow)
+  root: {
     position: 'relative',
     marginBlockStart: 'var(--space-md)',
     marginBlockEnd: 'var(--space-md)',
   },
   
-  metaphorOpen: {
+  // Desktop: Position in RIGHT margin when collapsed
+  rootDesktop: {
+    '@media (min-width: 1200px)': {
+      position: 'absolute',
+      left: 'calc(100% + var(--space-lg))',
+      width: '280px',
+      marginBlock: 0,
+      // Deoverlap offset set by MarginDeoverlap.tsx
+      transform: 'translateY(var(--deoverlap-offset, 0))',
+      transitionProperty: 'transform',
+      transitionDuration: 'var(--duration-normal, 200ms)',
+      transitionTimingFunction: 'var(--ease-out)',
+    },
+  },
+  
+  // Open state - always in main flow
+  rootOpen: {
     borderRadius: 'var(--radius-md)',
     backgroundColor: 'var(--color-metaphor-subtle)',
     overflow: 'hidden',
+    
+    '@media (min-width: 1200px)': {
+      position: 'relative',
+      left: 'auto',
+      width: '100%',
+      marginBlock: 'var(--space-md)',
+      animationName: {
+        from: { 
+          opacity: 0.8,
+          transform: 'translateX(20px)',
+        },
+        to: { 
+          opacity: 1,
+          transform: 'translateX(0)',
+        },
+      },
+      animationDuration: 'var(--duration-normal, 200ms)',
+      animationTimingFunction: 'var(--ease-out)',
+    },
   },
   
   trigger: {
@@ -103,6 +139,13 @@ const useStylesBase = makeStyles({
   
   body: {
     color: 'var(--color-text-muted)',
+    // Paragraph margins
+    '& p:first-child': {
+      marginTop: 0,
+    },
+    '& p:last-child': {
+      marginBottom: 0,
+    },
   },
 });
 
@@ -116,25 +159,28 @@ interface MetaphorProps {
 }
 
 export function Metaphor({ title, children }: MetaphorProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const styles = useStylesBase();
+  const { isOpen, triggerProps, rootProps } = useCollapsible({
+    type: 'metaphor',
+  });
+  const styles = useStyles();
   
   return (
-    <aside className={mergeClasses(
-      'metaphor', // BEM class for margin de-overlap system + enhance
-      styles.metaphor,
-      isOpen && styles.metaphorOpen,
-      isOpen && 'metaphor--open'
-    )}>
+    <aside 
+      {...rootProps}
+      className={mergeClasses(
+        'metaphor', // Keep base class for parent CSS Grid positioning reference
+        styles.root,
+        !isOpen && styles.rootDesktop,
+        isOpen && styles.rootOpen
+      )}
+    >
       <button
         type="button"
         className={mergeClasses(
-          'metaphor__trigger',
           styles.trigger,
           isOpen && styles.triggerOpen
         )}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
+        {...triggerProps}
         aria-label={isOpen ? 'Close metaphor' : title}
       >
         <span className={styles.icon} aria-hidden="true">
@@ -143,12 +189,10 @@ export function Metaphor({ title, children }: MetaphorProps) {
             <circle cx="12" cy="12" r="3" />
           </svg>
         </span>
-        <span className={mergeClasses('metaphor__title', styles.title)}>{title}</span>
+        <span className={styles.title}>{title}</span>
         <span className={mergeClasses(
-          'metaphor__chevron',
           styles.chevron,
-          isOpen && styles.chevronOpen,
-          isOpen && 'metaphor__chevron--open'
+          isOpen && styles.chevronOpen
         )} aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6l4 4 4-4" />
@@ -158,12 +202,10 @@ export function Metaphor({ title, children }: MetaphorProps) {
       
       {/* Always render content for SSR, hide via CSS */}
       <div className={mergeClasses(
-        'metaphor__content',
         styles.content,
-        !isOpen && styles.contentHidden,
-        !isOpen && 'metaphor__content--hidden'
+        !isOpen && styles.contentHidden
       )}>
-        <div className={mergeClasses('metaphor__body', styles.body)}>
+        <div className={styles.body}>
           {children}
         </div>
       </div>

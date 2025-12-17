@@ -253,17 +253,20 @@ const contentImports: Record<string, () => Promise<ContentModule>> = {
 
 ### How It Works
 
-The MDX plugin (`src/plugins/mdx-plugin.ts`) is registered via `bunfig.toml`:
+The MDX plugin is registered globally via Bun's preload mechanism in `bunfig.toml`:
 
 ```toml
-[serve.static]
-plugins = ["./src/plugins/mdx-plugin.ts"]
+preload = ["./src/plugins/preload.ts"]
 ```
+
+The preload script (`src/plugins/preload.ts`) registers the MDX plugin from `src/plugins/mdx-plugin.ts`, which applies to both:
+- **Runtime imports** (SSR): `import()` calls during server-side rendering
+- **Bun.build()**: Client-side JS bundle compilation
 
 When Bun encounters an `.mdx` import, the plugin:
 1. Extracts YAML frontmatter as the `meta` export
-2. Compiles Markdown + JSX to Preact components via `@mdx-js/mdx`
-3. Returns the transformed code to the bundler
+2. Compiles Markdown + JSX to Preact components via `@mdx-js/esbuild`
+3. Configures `@mdx-js/preact` as the provider for MDX components
 
 This happens in-memory with full HMR support.
 

@@ -10,8 +10,8 @@ import {
   contentRegistry,
   getAllNodeIds,
   getNodeMeta,
-} from '../lib/content.ts';
-import type { ContentMeta } from '../lib/content.ts';
+} from '@/lib/content.ts';
+import type { ContentMeta } from '@/lib/content.ts';
 
 describe('Content Structure', () => {
   describe('All registered nodes', () => {

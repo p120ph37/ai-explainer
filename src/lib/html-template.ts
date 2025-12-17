@@ -5,7 +5,7 @@
  * Used by both dev server and build script to ensure consistency.
  */
 
-import type { ContentMeta } from './content.ts';
+import type { ContentMeta } from '@/lib/content.ts';
 
 // Alias for backwards compatibility
 type NodeMeta = ContentMeta;

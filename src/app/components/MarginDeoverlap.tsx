@@ -4,6 +4,11 @@
  * Detects and fixes overlapping margin asides (Questions on left, Metaphors on right,
  * Recognitions on either side based on their dynamic positioning).
  * Runs on mount and when asides open/close.
+ * 
+ * Uses data attributes for state tracking:
+ * - data-collapsible="question|metaphor|recognition"
+ * - data-open="true|false"
+ * - data-margin="left|right" (for Recognition only)
  */
 
 import { useEffect } from 'preact/hooks';
@@ -51,15 +56,15 @@ function deoverlapSide(selectors: string[]) {
 function deoverlapAll() {
   // Small delay to let layout settle after open/close animations
   requestAnimationFrame(() => {
-    // Left margin: Questions + left-positioned Recognitions
+    // Left margin: Questions + left-positioned Recognitions (when closed)
     deoverlapSide([
-      '.question:not(.question--open)',
-      '.recognition--aside.recognition--left:not(.recognition--open)'
+      '[data-collapsible="question"][data-open="false"]',
+      '[data-collapsible="recognition"][data-open="false"][data-margin="left"]'
     ]);
-    // Right margin: Metaphors + right-positioned Recognitions
+    // Right margin: Metaphors + right-positioned Recognitions (when closed)
     deoverlapSide([
-      '.metaphor:not(.metaphor--open)',
-      '.recognition--aside.recognition--right:not(.recognition--open)'
+      '[data-collapsible="metaphor"][data-open="false"]',
+      '[data-collapsible="recognition"][data-open="false"][data-margin="right"]'
     ]);
   });
 }
@@ -72,12 +77,12 @@ export function MarginDeoverlap() {
     // Re-run when window resizes
     window.addEventListener('resize', deoverlapAll);
     
-    // Re-run when any aside opens/closes (listen for class changes)
+    // Re-run when any aside opens/closes (listen for data-open changes)
     const observer = new MutationObserver((mutations) => {
       const relevantChange = mutations.some(m => 
         m.type === 'attributes' && 
-        m.attributeName === 'class' &&
-        (m.target as Element).matches?.('.metaphor, .question, .recognition--aside')
+        m.attributeName === 'data-open' &&
+        (m.target as Element).matches?.('[data-collapsible]')
       );
       if (relevantChange) {
         deoverlapAll();
@@ -87,7 +92,7 @@ export function MarginDeoverlap() {
     observer.observe(document.body, {
       attributes: true,
       subtree: true,
-      attributeFilter: ['class']
+      attributeFilter: ['data-open']
     });
     
     return () => {
@@ -99,4 +104,3 @@ export function MarginDeoverlap() {
   // This component renders nothing, it just runs the effect
   return null;
 }
-

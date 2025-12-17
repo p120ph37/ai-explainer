@@ -9,8 +9,192 @@
 
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { getNodeMeta, type ContentMeta } from '../../lib/content.ts';
-import { resetAllProgress, progressStats } from '../progress.ts';
+import { makeStyles, mergeClasses } from '@griffel/react';
+import { getNodeMeta, getAllNodeIds, type ContentMeta } from '@/lib/content.ts';
+import { resetAllProgress, progressStats } from '@/app/progress.ts';
+
+// ============================================
+// STYLES (Griffel - AOT compiled)
+// ============================================
+
+const useStyles = makeStyles({
+  indexPage: {
+    maxWidth: 'var(--content-width)',
+    marginInline: 'auto',
+  },
+  
+  contentHeader: {
+    marginBottom: 'var(--space-xl)',
+  },
+  
+  headerTitle: {
+    fontFamily: 'var(--font-heading)',
+    fontSize: 'var(--font-size-2xl)',
+    fontWeight: 700,
+    color: 'var(--color-text-heading)',
+    marginBottom: 'var(--space-sm)',
+  },
+  
+  contentSummary: {
+    fontSize: 'var(--font-size-lg)',
+    color: 'var(--color-text-muted)',
+  },
+  
+  intro: {
+    marginBottom: 'var(--space-xl)',
+    color: 'var(--color-text-body)',
+    lineHeight: 'var(--line-height-relaxed)',
+  },
+  
+  categories: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-xl)',
+  },
+  
+  categoryTitle: {
+    fontFamily: 'var(--font-heading)',
+    fontSize: 'var(--font-size-lg)',
+    fontWeight: 600,
+    color: 'var(--color-primary)',
+    marginBottom: 'var(--space-md)',
+    paddingBottom: 'var(--space-xs)',
+    borderBottom: '2px solid var(--color-primary)',
+  },
+  
+  list: {
+    listStyleType: 'none',
+    paddingLeft: 0,
+    marginTop: 0,
+    marginBottom: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-xs)',
+  },
+  
+  item: {
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  
+  link: {
+    display: 'block',
+    paddingTop: 'var(--space-sm)',
+    paddingBottom: 'var(--space-sm)',
+    paddingLeft: 'var(--space-md)',
+    paddingRight: 'var(--space-md)',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border-subtle)',
+    borderRadius: 'var(--radius-md)',
+    textDecorationLine: 'none',
+    transitionProperty: 'all',
+    transitionDuration: '0.15s',
+    transitionTimingFunction: 'ease',
+    ':hover': {
+      backgroundColor: 'var(--color-bg-subtle)',
+      borderColor: 'var(--color-primary)',
+      transform: 'translateX(4px)',
+    },
+  },
+  
+  title: {
+    display: 'block',
+    fontFamily: 'var(--font-heading)',
+    fontSize: 'var(--font-size-md)',
+    fontWeight: 600,
+    color: 'var(--color-text-heading)',
+    marginBottom: 'var(--space-2xs)',
+  },
+  
+  linkHoverTitle: {
+    // Applied on hover via parent
+  },
+  
+  summary: {
+    display: 'block',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+    lineHeight: 'var(--line-height-normal)',
+  },
+  
+  stats: {
+    marginTop: 'var(--space-xl)',
+    paddingTop: 'var(--space-lg)',
+    borderTop: '1px solid var(--color-border-subtle)',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+    textAlign: 'center',
+  },
+  
+  progress: {
+    marginTop: 'var(--space-lg)',
+    paddingTop: 'var(--space-md)',
+    paddingBottom: 'var(--space-md)',
+    paddingLeft: 'var(--space-md)',
+    paddingRight: 'var(--space-md)',
+    backgroundColor: 'var(--color-bg-subtle)',
+    borderRadius: 'var(--radius-md)',
+    textAlign: 'center',
+  },
+  
+  progressTitle: {
+    marginTop: 0,
+    marginBottom: 'var(--space-sm)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    color: 'var(--color-text-secondary)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+  },
+  
+  progressText: {
+    marginTop: 0,
+    marginBottom: 'var(--space-md)',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+  },
+  
+  resetButton: {
+    paddingTop: 'var(--space-xs)',
+    paddingBottom: 'var(--space-xs)',
+    paddingLeft: 'var(--space-md)',
+    paddingRight: 'var(--space-md)',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-error)',
+    backgroundColor: 'transparent',
+    border: '1px solid var(--color-error)',
+    borderRadius: 'var(--radius-sm)',
+    cursor: 'pointer',
+    transitionProperty: 'all',
+    transitionDuration: 'var(--transition-fast)',
+    ':hover': {
+      color: 'var(--color-bg)',
+      backgroundColor: 'var(--color-error)',
+    },
+  },
+  
+  loading: {
+    paddingTop: 'var(--space-xl)',
+    paddingBottom: 'var(--space-xl)',
+    paddingLeft: 'var(--space-xl)',
+    paddingRight: 'var(--space-xl)',
+    textAlign: 'center',
+    color: 'var(--color-text-muted)',
+  },
+  
+  error: {
+    paddingTop: 'var(--space-xl)',
+    paddingBottom: 'var(--space-xl)',
+    paddingLeft: 'var(--space-xl)',
+    paddingRight: 'var(--space-xl)',
+    textAlign: 'center',
+    color: 'var(--color-text-muted)',
+  },
+});
+
+// ============================================
+// COMPONENT
+// ============================================
 
 interface NodeInfo {
   id: string;
@@ -25,22 +209,11 @@ const categoryOrder = [
   'Safety & Alignment',
 ];
 
-// List of all node IDs to load (matches _registry.ts)
-const allNodeIds = [
-  'intro',
-  'tokens', 'why-large', 'context-window', 'neural-network', 'parameters',
-  'embeddings', 'attention', 'transformer', 'labels', 'training',
-  'reward', 'tuning', 'inference', 'temperature', 'emergence',
-  'hallucinations', 'understanding', 'prompt-engineering', 'tools',
-  'vector-databases', 'hardware',
-  'models', 'players', 'open',
-  'bias', 'alignment',
-];
-
 export function IndexPage() {
   const nodes = useSignal<NodeInfo[]>([]);
   const loading = useSignal(true);
   const error = useSignal<string | null>(null);
+  const styles = useStyles();
   
   useEffect(() => {
     async function loadAllNodes() {
@@ -50,15 +223,30 @@ export function IndexPage() {
       try {
         const loadedNodes: NodeInfo[] = [];
         
-        for (const nodeId of allNodeIds) {
+        // Get all content IDs dynamically
+        const allIds = getAllNodeIds();
+        
+        for (const nodeId of allIds) {
+          // Skip variants (IDs with '/') - they're sub-pages
+          if (nodeId.includes('/')) continue;
+          
           const meta = getNodeMeta(nodeId);
-          if (meta) {
-            loadedNodes.push({
-              id: nodeId,
-              meta,
-            });
-          }
+          
+          // Skip draft pages
+          if (!meta || meta.draft) continue;
+          
+          loadedNodes.push({
+            id: nodeId,
+            meta,
+          });
         }
+        
+        // Sort by order field
+        loadedNodes.sort((a, b) => {
+          const orderA = a.meta.order ?? 999;
+          const orderB = b.meta.order ?? 999;
+          return orderA - orderB;
+        });
         
         nodes.value = loadedNodes;
       } catch (e) {
@@ -74,16 +262,16 @@ export function IndexPage() {
   
   if (loading.value) {
     return (
-      <div className="index-page">
-        <div className="index-loading">Loading content index...</div>
+      <div className={styles.indexPage}>
+        <div className={styles.loading}>Loading content index...</div>
       </div>
     );
   }
   
   if (error.value) {
     return (
-      <div className="index-page">
-        <div className="index-error">{error.value}</div>
+      <div className={styles.indexPage}>
+        <div className={styles.error}>{error.value}</div>
       </div>
     );
   }
@@ -113,35 +301,35 @@ export function IndexPage() {
   ];
   
   return (
-    <article className="index-page content-node">
-      <header className="content-header">
-        <h1>Content Index</h1>
-        <p className="content-summary">
+    <article className={mergeClasses(styles.indexPage, 'content-node')}>
+      <header className={styles.contentHeader}>
+        <h1 className={styles.headerTitle}>Content Index</h1>
+        <p className={styles.contentSummary}>
           A complete listing of all topics in this explainer, organized by category.
         </p>
       </header>
       
-      <div className="index-content">
-        <p className="index-intro">
+      <div>
+        <p className={styles.intro}>
           This index provides an alternate way to explore the content. 
           You can also navigate through the inline links within each topic, 
           which connect related concepts together.
         </p>
         
-        <nav className="index-categories" aria-label="Content categories">
+        <nav className={styles.categories} aria-label="Content categories">
           {sortedCategories.map(category => {
             const categoryNodes = grouped.get(category);
             if (!categoryNodes || categoryNodes.length === 0) return null;
             
             return (
-              <section key={category} className="index-category">
-                <h2>{category}</h2>
-                <ul className="index-list">
+              <section key={category}>
+                <h2 className={styles.categoryTitle}>{category}</h2>
+                <ul className={styles.list}>
                   {categoryNodes.map(node => (
-                    <li key={node.id} className="index-item">
-                      <a href={`/${node.id}`} className="index-link">
-                        <span className="index-title">{node.meta.title}</span>
-                        <span className="index-summary">{node.meta.summary}</span>
+                    <li key={node.id} className={styles.item}>
+                      <a href={`/${node.id}`} className={styles.link}>
+                        <span className={styles.title}>{node.meta.title}</span>
+                        <span className={styles.summary}>{node.meta.summary}</span>
                       </a>
                     </li>
                   ))}
@@ -151,21 +339,21 @@ export function IndexPage() {
           })}
         </nav>
         
-        <div className="index-stats">
+        <div className={styles.stats}>
           <p>
             <strong>{nodes.value.length}</strong> topics across{' '}
             <strong>{grouped.size}</strong> categories
           </p>
         </div>
         
-        <div className="index-progress">
-          <h3>Your Progress</h3>
-          <p>
+        <div className={styles.progress}>
+          <h3 className={styles.progressTitle}>Your Progress</h3>
+          <p className={styles.progressText}>
             <strong>{progressStats.value.discovered}</strong> topics discovered,{' '}
             <strong>{progressStats.value.fullyExplored}</strong> complete
           </p>
           <button 
-            className="index-reset-button"
+            className={styles.resetButton}
             onClick={() => {
               if (confirm('Clear all progress? This will reset your discovery and reading progress.')) {
                 resetAllProgress();

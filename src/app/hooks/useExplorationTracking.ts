@@ -11,8 +11,8 @@
 
 import { useEffect, useRef, useCallback } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { updateExploredPercent, markVisited, markTopicDiscovered, getQuestStatus, questStatusInfo, isOnIndexPage } from '../progress.ts';
-import { contentRegistry } from '../../lib/content.ts';
+import { updateExploredPercent, markVisited, markTopicDiscovered, getQuestStatus, questStatusInfo, isOnIndexPage } from '@/app/progress.ts';
+import { contentRegistry } from '@/lib/content.ts';
 
 interface ContentSection {
   /** Unique ID for this section */

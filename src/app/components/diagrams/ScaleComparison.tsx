@@ -5,6 +5,72 @@
  * Uses native SVG without external dependencies.
  */
 
+import { makeStyles } from '@griffel/react';
+
+const useStyles = makeStyles({
+  container: {
+    width: '100%',
+    marginBlockStart: 'var(--space-lg)',
+    marginBlockEnd: 'var(--space-lg)',
+    paddingTop: 'var(--space-md)',
+    paddingBottom: 'var(--space-md)',
+    paddingLeft: 'var(--space-md)',
+    paddingRight: 'var(--space-md)',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-lg)',
+    overflow: 'hidden',
+  },
+  title: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    color: 'var(--color-text)',
+    textAlign: 'center',
+    marginBottom: 'var(--space-md)',
+  },
+  chart: {
+    position: 'relative',
+  },
+  row: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: 'var(--space-sm)',
+  },
+  label: {
+    width: '120px',
+    flexShrink: 0,
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+    textAlign: 'right',
+    paddingRight: 'var(--space-sm)',
+  },
+  barContainer: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+  },
+  bar: {
+    height: '24px',
+    borderRadius: 'var(--radius-sm)',
+    transitionProperty: 'width',
+    transitionDuration: 'var(--duration-normal)',
+    transitionTimingFunction: 'var(--ease-out)',
+  },
+  value: {
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-muted)',
+    whiteSpace: 'nowrap',
+  },
+  unit: {
+    textAlign: 'center',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-muted)',
+    marginTop: 'var(--space-sm)',
+  },
+});
+
 export interface ScaleComparisonData {
   label: string;
   value: number;
@@ -43,6 +109,7 @@ export function ScaleComparison({
   title,
   ariaLabel,
 }: ScaleComparisonProps) {
+  const styles = useStyles();
   const maxValue = Math.max(...data.map(d => d.value));
   const minValue = Math.min(...data.map(d => d.value).filter(v => v > 0));
   
@@ -56,59 +123,33 @@ export function ScaleComparison({
     return (value / (maxValue * 1.1)) * 100;
   };
 
-  const barHeight = 28;
-  const labelWidth = 120;
-  const padding = 20;
-
   return (
     <div 
-      className="diagram-container scale-comparison"
+      className={styles.container}
       role="img"
       aria-label={ariaLabel || title || 'Scale comparison chart'}
     >
-      {title && <div className="diagram-title">{title}</div>}
-      <div className="scale-comparison__chart">
+      {title && <div className={styles.title}>{title}</div>}
+      <div className={styles.chart}>
         {data.map((d, i) => (
-          <div key={d.label} className="scale-comparison__row">
-            <div className="scale-comparison__label">{d.label}</div>
-            <div className="scale-comparison__bar-container">
+          <div key={d.label} className={styles.row}>
+            <div className={styles.label}>{d.label}</div>
+            <div className={styles.barContainer}>
               <div 
-                className="scale-comparison__bar"
+                className={styles.bar}
                 style={{
                   width: `${getScale(d.value)}%`,
                   backgroundColor: d.color || 'var(--color-accent)',
                 }}
               />
-              <span className="scale-comparison__value">
+              <span className={styles.value}>
                 {formatNumber(d.value)}{d.annotation ? ` ${d.annotation}` : ''}
               </span>
             </div>
           </div>
         ))}
-        {thresholds.map((threshold, i) => {
-          const position = getScale(threshold.value);
-          if (position < 0 || position > 100) return null;
-          return (
-            <div 
-              key={i}
-              className="scale-comparison__threshold"
-              style={{ left: `calc(${labelWidth}px + ${position}% * (100% - ${labelWidth}px) / 100)` }}
-            >
-              <div 
-                className="scale-comparison__threshold-line"
-                style={{ borderColor: threshold.color || 'var(--color-accent)' }}
-              />
-              <span 
-                className="scale-comparison__threshold-label"
-                style={{ color: threshold.color || 'var(--color-accent)' }}
-              >
-                {threshold.label}
-              </span>
-            </div>
-          );
-        })}
       </div>
-      {unit && <div className="scale-comparison__unit">{unit}</div>}
+      {unit && <div className={styles.unit}>{unit}</div>}
     </div>
   );
 }

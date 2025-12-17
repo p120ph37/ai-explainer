@@ -4,9 +4,9 @@
  * Used for progressive disclosure of deeper detail.
  */
 
-import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 import { makeStyles, mergeClasses } from '@griffel/react';
+import { useCollapsible } from '@/app/hooks/useCollapsible.ts';
 
 // ============================================
 // STYLES (Griffel - AOT compiled)
@@ -74,6 +74,10 @@ const useStylesBase = makeStyles({
     paddingRight: 'var(--space-md)',
     borderTop: '1px solid var(--color-border-subtle)',
   },
+  
+  contentHidden: {
+    display: 'none',
+  },
 });
 
 // ============================================
@@ -93,18 +97,25 @@ export function Expandable({
   defaultOpen = false,
   children 
 }: ExpandableProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const { isOpen, toggle, rootProps } = useCollapsible({
+    type: 'expandable',
+    defaultOpen,
+  });
   const styles = useStylesBase();
   
   return (
     <details 
+      {...rootProps}
       className={mergeClasses(
         'expandable',
         styles.expandable,
         level === 'advanced' && 'expandable--advanced'
       )}
       open={isOpen}
-      onToggle={(e) => setIsOpen((e.target as HTMLDetailsElement).open)}
+      onToggle={(e) => {
+        const newOpen = (e.target as HTMLDetailsElement).open;
+        if (newOpen !== isOpen) toggle();
+      }}
     >
       <summary className={mergeClasses(
         styles.trigger,
@@ -126,7 +137,10 @@ export function Expandable({
           <path d="M4 6l4 4 4-4" />
         </svg>
       </summary>
-      <div className={styles.content}>
+      <div className={mergeClasses(
+        styles.content,
+        !isOpen && styles.contentHidden
+      )}>
         {children}
       </div>
     </details>

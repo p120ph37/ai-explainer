@@ -12,7 +12,232 @@
  */
 
 import { useState, useEffect } from 'preact/hooks';
+import { makeStyles, mergeClasses } from '@griffel/react';
 import type { ComponentChildren } from 'preact';
+
+// ============================================
+// STYLES (Griffel - AOT compiled)
+// ============================================
+
+const useStyles = makeStyles({
+  // Sources section container
+  sources: {
+    marginTop: 'var(--space-xl)',
+    paddingTop: 'var(--space-lg)',
+    borderTop: '1px solid var(--color-border-subtle)',
+  },
+  
+  sourcesReferences: {
+    borderTop: '1px dashed var(--color-border-subtle)',
+  },
+  
+  sourcesTitle: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    color: 'var(--color-text-muted)',
+    marginBottom: 'var(--space-sm)',
+  },
+  
+  sourcesList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  
+  // Citation styles
+  citation: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 'var(--space-sm)',
+    fontSize: 'var(--font-size-sm)',
+  },
+  
+  citationType: {
+    flexShrink: 0,
+    paddingTop: 'var(--space-3xs)',
+    paddingBottom: 'var(--space-3xs)',
+    paddingLeft: 'var(--space-2xs)',
+    paddingRight: 'var(--space-2xs)',
+    borderRadius: 'var(--radius-sm)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-xs)',
+    fontWeight: 500,
+  },
+  
+  citationTypePaper: {
+    backgroundColor: 'color-mix(in srgb, var(--color-cite-paper) 15%, transparent)',
+    color: 'var(--color-cite-paper)',
+  },
+  
+  citationTypeVideo: {
+    backgroundColor: 'color-mix(in srgb, var(--color-cite-video) 15%, transparent)',
+    color: 'var(--color-cite-video)',
+  },
+  
+  citationTypeDocs: {
+    backgroundColor: 'color-mix(in srgb, var(--color-cite-docs) 15%, transparent)',
+    color: 'var(--color-cite-docs)',
+  },
+  
+  citationTypeArticle: {
+    backgroundColor: 'color-mix(in srgb, var(--color-cite-article) 15%, transparent)',
+    color: 'var(--color-cite-article)',
+  },
+  
+  citationInfo: {
+    flex: 1,
+  },
+  
+  citationTitle: {
+    color: 'var(--color-link)',
+  },
+  
+  citationRefNumber: {
+    color: 'var(--color-accent)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 500,
+    marginLeft: 'var(--space-2xs)',
+    opacity: 0.8,
+  },
+  
+  citationMeta: {
+    color: 'var(--color-text-muted)',
+    marginTop: 'var(--space-3xs)',
+  },
+  
+  // Highlight animation for citations
+  citationHighlighted: {
+    borderRadius: 'var(--radius-sm)',
+    animationName: {
+      '0%, 20%': { 
+        backgroundColor: 'var(--color-accent-subtle)',
+        boxShadow: '0 0 0 4px var(--color-accent-subtle)',
+      },
+      '100%': { 
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+      },
+    },
+    animationDuration: '2s',
+    animationTimingFunction: 'ease-out',
+  },
+  
+  // Reference styles
+  referencesList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  
+  reference: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 'var(--space-xs)',
+    fontSize: 'var(--font-size-sm)',
+  },
+  
+  referenceNumber: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--font-size-xs)',
+    fontWeight: 600,
+    color: 'var(--color-text-subtle)',
+    minWidth: '1.5em',
+    flexShrink: 0,
+  },
+  
+  referenceBacklink: {
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-subtle)',
+    textDecorationLine: 'none',
+    opacity: 0.6,
+    transitionProperty: 'opacity',
+    transitionDuration: 'var(--duration-fast)',
+    transitionTimingFunction: 'var(--ease-out)',
+    ':hover': {
+      opacity: 1,
+    },
+  },
+  
+  referenceType: {
+    fontSize: 'var(--font-size-xs)',
+  },
+  
+  referenceInfo: {
+    flex: 1,
+  },
+  
+  referenceTitle: {
+    color: 'var(--color-link)',
+  },
+  
+  referenceMeta: {
+    color: 'var(--color-text-muted)',
+    fontSize: 'var(--font-size-xs)',
+  },
+  
+  // Footnote styles
+  footnote: {
+    position: 'relative',
+    fontSize: '0.75em',
+    lineHeight: 1,
+    verticalAlign: 'super',
+  },
+  
+  footnoteLink: {
+    color: 'var(--color-accent)',
+    textDecorationLine: 'none',
+    fontFamily: 'var(--font-ui)',
+    fontWeight: 500,
+    paddingLeft: '0.1em',
+    paddingRight: '0.1em',
+    borderRadius: 'var(--radius-sm)',
+    transitionProperty: 'background',
+    transitionDuration: 'var(--duration-fast)',
+    transitionTimingFunction: 'var(--ease-out)',
+    ':hover': {
+      backgroundColor: 'var(--color-accent-subtle)',
+    },
+  },
+  
+  footnoteTooltip: {
+    position: 'absolute',
+    bottom: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    paddingTop: 'var(--space-2xs)',
+    paddingBottom: 'var(--space-2xs)',
+    paddingLeft: 'var(--space-xs)',
+    paddingRight: 'var(--space-xs)',
+    backgroundColor: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--font-size-xs)',
+    fontFamily: 'var(--font-ui)',
+    fontWeight: 'normal',
+    color: 'var(--color-text)',
+    whiteSpace: 'nowrap',
+    maxWidth: '300px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    zIndex: 100,
+    boxShadow: 'var(--shadow-md)',
+    pointerEvents: 'none',
+    animationName: {
+      from: {
+        opacity: 0,
+        transform: 'translateX(-50%) translateY(4px)',
+      },
+      to: {
+        opacity: 1,
+        transform: 'translateX(-50%) translateY(0)',
+      },
+    },
+    animationDuration: '0.15s',
+    animationTimingFunction: 'ease-out',
+  },
+});
 
 type CitationType = 'paper' | 'video' | 'docs' | 'article';
 
@@ -44,10 +269,11 @@ interface FurtherReadingProps {
 }
 
 export function FurtherReading({ children }: FurtherReadingProps) {
+  const styles = useStyles();
   return (
-    <section className="sources">
-      <h4 className="sources__title">Further Reading</h4>
-      <div className="sources__list">
+    <section className={styles.sources}>
+      <h4 className={styles.sourcesTitle}>Further Reading</h4>
+      <div className={styles.sourcesList}>
         {children}
       </div>
     </section>
@@ -63,10 +289,11 @@ interface ReferencesProps {
 }
 
 export function References({ children }: ReferencesProps) {
+  const styles = useStyles();
   return (
-    <section className="sources sources--references">
-      <h4 className="sources__title">References</h4>
-      <div className="references__list">
+    <section className={mergeClasses(styles.sources, styles.sourcesReferences)}>
+      <h4 className={styles.sourcesTitle}>References</h4>
+      <div className={styles.referencesList}>
         {children}
       </div>
     </section>
@@ -90,6 +317,7 @@ interface CitationProps {
 
 export function Citation({ id, type, title, url, authors, source, year }: CitationProps) {
   const { emoji, label } = typeLabels[type];
+  const styles = useStyles();
   
   // Register this citation's title for footnote tooltips
   useEffect(() => {
@@ -106,24 +334,29 @@ export function Citation({ id, type, title, url, authors, source, year }: Citati
     year?.toString(),
   ].filter(Boolean);
   
+  const typeStyle = type === 'paper' ? styles.citationTypePaper
+    : type === 'video' ? styles.citationTypeVideo
+    : type === 'docs' ? styles.citationTypeDocs
+    : styles.citationTypeArticle;
+  
   return (
     <div 
-      className="citation"
+      className={styles.citation}
       id={id !== undefined ? `ref-${id}` : undefined}
       data-ref-id={id}
     >
-      <span className={`citation__type citation__type--${type}`}>
+      <span className={mergeClasses(styles.citationType, typeStyle)}>
         {emoji} {label}
       </span>
-      <div className="citation__info">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="citation__title">
+      <div className={styles.citationInfo}>
+        <a href={url} target="_blank" rel="noopener noreferrer" className={styles.citationTitle}>
           {title}
         </a>
         {id !== undefined && (
-          <span className="citation__ref-number">[{id}]</span>
+          <span className={styles.citationRefNumber}>[{id}]</span>
         )}
         {metaParts.length > 0 && (
-          <div className="citation__meta">
+          <div className={styles.citationMeta}>
             {metaParts.join(' · ')}
           </div>
         )}
@@ -148,6 +381,7 @@ interface ReferenceProps {
 
 export function Reference({ id, type = 'article', title, url, authors, source, year }: ReferenceProps) {
   const { emoji } = typeLabels[type];
+  const styles = useStyles();
   
   const metaParts = [
     authors,
@@ -156,18 +390,18 @@ export function Reference({ id, type = 'article', title, url, authors, source, y
   ].filter(Boolean);
   
   return (
-    <div className="reference" id={`ref-${id}`} data-ref-id={id}>
-      <span className="reference__number">{id}.</span>
-      <a href={`#fn-${id}`} className="reference__backlink" aria-label="Back to text">
+    <div className={styles.reference} id={`ref-${id}`} data-ref-id={id}>
+      <span className={styles.referenceNumber}>{id}.</span>
+      <a href={`#fn-${id}`} className={styles.referenceBacklink} aria-label="Back to text">
         ↩
       </a>
-      <span className="reference__type">{emoji}</span>
-      <div className="reference__info">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="reference__title">
+      <span className={styles.referenceType}>{emoji}</span>
+      <div className={styles.referenceInfo}>
+        <a href={url} target="_blank" rel="noopener noreferrer" className={styles.referenceTitle}>
           {title}
         </a>
         {metaParts.length > 0 && (
-          <span className="reference__meta"> — {metaParts.join(', ')}</span>
+          <span className={styles.referenceMeta}> — {metaParts.join(', ')}</span>
         )}
       </div>
     </div>
@@ -185,6 +419,7 @@ interface FootnoteProps {
 export function Footnote({ id }: FootnoteProps) {
   const [tooltipTitle, setTooltipTitle] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
+  const styles = useStyles();
   
   // Get the citation title for tooltip (may not be available immediately)
   useEffect(() => {
@@ -208,30 +443,30 @@ export function Footnote({ id }: FootnoteProps) {
       citation.scrollIntoView({ behavior: 'smooth', block: 'center' });
       
       // Trigger highlight animation
-      citation.classList.add('citation--highlighted');
+      citation.classList.add(styles.citationHighlighted);
       setTimeout(() => {
-        citation.classList.remove('citation--highlighted');
+        citation.classList.remove(styles.citationHighlighted);
       }, 2000);
     }
   };
   
   return (
     <sup 
-      className="footnote" 
+      className={styles.footnote} 
       id={`fn-${id}`}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
       <a 
         href={`#ref-${id}`} 
-        className="footnote__link" 
+        className={styles.footnoteLink} 
         aria-label={tooltipTitle ? `Reference ${id}: ${tooltipTitle}` : `Reference ${id}`}
         onClick={handleClick}
       >
         [{id}]
       </a>
       {showTooltip && tooltipTitle && (
-        <span className="footnote__tooltip" role="tooltip">
+        <span className={styles.footnoteTooltip} role="tooltip">
           {tooltipTitle}
         </span>
       )}
@@ -241,10 +476,11 @@ export function Footnote({ id }: FootnoteProps) {
 
 // Keep Sources as an alias for backwards compatibility, but it's deprecated
 export function Sources({ children }: { children: ComponentChildren }) {
+  const styles = useStyles();
   return (
-    <section className="sources">
-      <h4 className="sources__title">Sources & Further Reading</h4>
-      <div className="sources__list">
+    <section className={styles.sources}>
+      <h4 className={styles.sourcesTitle}>Sources & Further Reading</h4>
+      <div className={styles.sourcesList}>
         {children}
       </div>
     </section>

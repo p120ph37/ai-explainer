@@ -5,8 +5,8 @@
  * Allows the user to create a note anchored to the selection.
  */
 
-import { selectionToolbarPosition, hideSelectionToolbar, startNoteCreation, pendingSelection } from '../state.ts';
-import type { TextSelectionAnchor } from '../../_types.ts';
+import { selectionToolbarPosition, hideSelectionToolbar, startNoteCreation, pendingSelection } from '@/editorial/client/state.ts';
+import type { TextSelectionAnchor } from '@/editorial/_types.ts';
 
 export function SelectionToolbar() {
   const position = selectionToolbarPosition.value;

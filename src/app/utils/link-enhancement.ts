@@ -7,7 +7,7 @@
  * - Determining if a link should be enhanced
  */
 
-import type { QuestStatus } from '../progress.ts';
+import type { QuestStatus } from '@/app/progress.ts';
 
 export interface LinkInfo {
   /** The href attribute value */

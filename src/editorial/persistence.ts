@@ -8,7 +8,7 @@
  * These files are NOT gitignored - they can be committed as work-in-progress.
  */
 
-import { existsSync, mkdirSync, readdirSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, statSync } from 'fs';
 import type {
   EditorialNote,
   EditorialState,
@@ -19,11 +19,12 @@ import type {
   AddResponseRequest,
   CreateVariantRequest,
   NoteAnchor,
-} from './_types.ts';
+} from '@/editorial/_types.ts';
 
 const EDITORIAL_DIR = './editorial';
 const NOTES_FILE = `${EDITORIAL_DIR}/notes.json`;
-const VARIANTS_DIR = `${EDITORIAL_DIR}/variants`;
+// Variants are now in src/content/{page}/ subdirectories as .mdx files
+const CONTENT_DIR = './src/content';
 
 /**
  * Generate a unique ID for notes/responses
@@ -45,9 +46,6 @@ function now(): string {
 function ensureDirectories(): void {
   if (!existsSync(EDITORIAL_DIR)) {
     mkdirSync(EDITORIAL_DIR, { recursive: true });
-  }
-  if (!existsSync(VARIANTS_DIR)) {
-    mkdirSync(VARIANTS_DIR, { recursive: true });
   }
 }
 
@@ -271,40 +269,41 @@ export async function loadVariants(pageId: string): Promise<PageVariants | null>
   
   const variants: PageVariant[] = [];
   
-  // 1. Load from JSON file if it exists
-  const jsonFile = Bun.file(`${VARIANTS_DIR}/${pageId}.json`);
-  if (await jsonFile.exists()) {
+  // Variants are now in src/content/{page}/ as .mdx files
+  const variantDir = `${CONTENT_DIR}/${pageId}`;
+  if (existsSync(variantDir) && statSync(variantDir).isDirectory()) {
     try {
-      const jsonData = await jsonFile.json() as PageVariants;
-      if (jsonData.variants) {
-        variants.push(...jsonData.variants);
-      }
-    } catch (error) {
-      console.error(`Failed to load JSON variants for ${pageId}:`, error);
-    }
-  }
-  
-  // 2. Load from markdown files in subdirectory if it exists
-  const voiceDir = `${VARIANTS_DIR}/${pageId}`;
-  if (existsSync(voiceDir)) {
-    try {
-      const files = readdirSync(voiceDir);
+      const files = readdirSync(variantDir);
       for (const file of files) {
-        if (file.endsWith('.md')) {
-          const variantId = file.replace('.md', '');
-          // Skip if already loaded from JSON
-          if (variants.some(v => v.id === variantId)) continue;
+        if (file.endsWith('.mdx')) {
+          const variantId = file.replace('.mdx', '');
           
-          const content = await Bun.file(`${voiceDir}/${file}`).text();
-          // Extract label from first line if it's a heading
-          const firstLine = content.split('\n')[0];
-          const labelMatch = firstLine.match(/^#\s+(.+)/);
-          const label = labelMatch ? labelMatch[1] : variantId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          const content = await Bun.file(`${variantDir}/${file}`).text();
+          
+          // Extract title from frontmatter or first heading
+          let label = variantId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          let description = '';
+          
+          // Try to parse frontmatter
+          const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+          if (frontmatterMatch) {
+            const yamlLines = frontmatterMatch[1].split('\n');
+            for (const line of yamlLines) {
+              const titleMatch = line.match(/^title:\s*"?(.+?)"?\s*$/);
+              const summaryMatch = line.match(/^summary:\s*"?(.+?)"?\s*$/);
+              if (titleMatch) label = titleMatch[1];
+              if (summaryMatch) description = summaryMatch[1];
+            }
+          } else {
+            // Fallback: extract from first heading
+            const headingMatch = content.match(/^#\s+(.+)/m);
+            if (headingMatch) label = headingMatch[1];
+          }
           
           variants.push({
             id: variantId,
             label,
-            description: `Voice variant: ${variantId}`,
+            description: description || `Variant: ${variantId}`,
             content,
             createdAt: now(),
             updatedAt: now(),
@@ -312,7 +311,7 @@ export async function loadVariants(pageId: string): Promise<PageVariants | null>
         }
       }
     } catch (error) {
-      console.error(`Failed to load voice variants for ${pageId}:`, error);
+      console.error(`Failed to load variants for ${pageId}:`, error);
     }
   }
   
@@ -332,10 +331,30 @@ export async function loadVariants(pageId: string): Promise<PageVariants | null>
 export async function saveVariants(variants: PageVariants): Promise<void> {
   ensureDirectories();
   
-  await Bun.write(
-    `${VARIANTS_DIR}/${variants.pageId}.json`,
-    JSON.stringify(variants, null, 2)
-  );
+  // Write each variant as an MDX file in src/content/{pageId}/
+  const variantDir = `${CONTENT_DIR}/${variants.pageId}`;
+  if (!existsSync(variantDir)) {
+    mkdirSync(variantDir, { recursive: true });
+  }
+  
+  for (const variant of variants.variants) {
+    const filePath = `${variantDir}/${variant.id}.mdx`;
+    
+    // Build MDX content with frontmatter
+    const frontmatter = [
+      '---',
+      `title: "${variant.label}"`,
+      `summary: "${variant.description}"`,
+      'draft: true',
+      '---',
+      '',
+    ].join('\n');
+    
+    // Remove existing frontmatter from content if present
+    const contentWithoutFrontmatter = variant.content.replace(/^---\n[\s\S]*?\n---\n*/, '');
+    
+    await Bun.write(filePath, frontmatter + contentWithoutFrontmatter);
+  }
 }
 
 /**
@@ -391,41 +410,47 @@ export async function updateVariant(
   variantId: string,
   content: string
 ): Promise<PageVariant | null> {
-  const variants = await loadVariants(pageId);
+  const filePath = `${CONTENT_DIR}/${pageId}/${variantId}.mdx`;
   
-  if (!variants) {
+  if (!existsSync(filePath)) {
     return null;
   }
   
-  const variant = variants.variants.find(v => v.id === variantId);
-  if (!variant) {
-    return null;
-  }
+  // Read existing file to preserve frontmatter metadata
+  const existingContent = await Bun.file(filePath).text();
+  const frontmatterMatch = existingContent.match(/^---\n([\s\S]*?)\n---\n*/);
   
-  variant.content = content;
-  variant.updatedAt = now();
+  // Preserve frontmatter if it exists
+  const newContent = frontmatterMatch 
+    ? frontmatterMatch[0] + content.replace(/^---\n[\s\S]*?\n---\n*/, '')
+    : `---\ntitle: "${variantId}"\nsummary: "Variant for ${pageId}"\ndraft: true\n---\n\n${content}`;
   
-  await saveVariants(variants);
-  return variant;
+  await Bun.write(filePath, newContent);
+  
+  // Return updated variant info
+  return {
+    id: variantId,
+    label: variantId,
+    description: `Variant for ${pageId}`,
+    content: newContent,
+    createdAt: now(),
+    updatedAt: now(),
+  };
 }
 
 /**
  * Delete a variant
  */
 export async function deleteVariant(pageId: string, variantId: string): Promise<boolean> {
-  const variants = await loadVariants(pageId);
+  const filePath = `${CONTENT_DIR}/${pageId}/${variantId}.mdx`;
   
-  if (!variants) {
+  if (!existsSync(filePath)) {
     return false;
   }
   
-  const index = variants.variants.findIndex(v => v.id === variantId);
-  if (index === -1) {
-    return false;
-  }
-  
-  variants.variants.splice(index, 1);
-  await saveVariants(variants);
+  // Delete the file
+  const { unlink } = await import('fs/promises');
+  await unlink(filePath);
   
   return true;
 }
@@ -439,15 +464,16 @@ export async function getEditorialState(): Promise<EditorialState> {
   const notes = await loadNotes();
   const variants: Record<string, PageVariants> = {};
   
-  // Load all variant files
-  if (existsSync(VARIANTS_DIR)) {
-    const files = readdirSync(VARIANTS_DIR);
-    for (const file of files) {
-      if (file.endsWith('.json')) {
-        const pageId = file.replace('.json', '');
-        const pageVariants = await loadVariants(pageId);
+  // Scan content directory for variant subdirectories
+  if (existsSync(CONTENT_DIR)) {
+    const entries = readdirSync(CONTENT_DIR);
+    for (const entry of entries) {
+      const entryPath = `${CONTENT_DIR}/${entry}`;
+      if (statSync(entryPath).isDirectory()) {
+        // This is a page directory that may contain variants
+        const pageVariants = await loadVariants(entry);
         if (pageVariants) {
-          variants[pageId] = pageVariants;
+          variants[entry] = pageVariants;
         }
       }
     }

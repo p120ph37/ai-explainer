@@ -5,14 +5,14 @@
  */
 
 import { useState } from 'preact/hooks';
-import type { EditorialNote, NoteStatus } from '../../_types.ts';
+import type { EditorialNote, NoteStatus } from '@/editorial/_types.ts';
 import { 
   selectNote, 
   selectedNoteId, 
   updateNote, 
   deleteNote,
   addNoteResponse,
-} from '../state.ts';
+} from '@/editorial/client/state.ts';
 
 interface NoteCardProps {
   note: EditorialNote;

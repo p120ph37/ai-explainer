@@ -5,7 +5,7 @@
  */
 
 import { describe, test, expect, beforeEach, mock } from 'bun:test';
-import { currentRoute, navigateTo, navigateUp, type RouteState } from '../app/router.ts';
+import { currentRoute, navigateTo, navigateUp, type RouteState } from '@/app/router.ts';
 
 // Mock window.location and history
 const mockHistory: { state: RouteState | null }[] = [];

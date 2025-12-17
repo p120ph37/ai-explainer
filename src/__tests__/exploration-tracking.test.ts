@@ -12,11 +12,11 @@ import {
   markVisited, 
   getNodeProgress,
   resetAllProgress,
-} from '../app/progress.ts';
+} from '@/app/progress.ts';
 import {
   calculateExplorationPercent,
   calculateSectionVisibility,
-} from '../app/utils/link-enhancement.ts';
+} from '@/app/utils/link-enhancement.ts';
 
 describe('Exploration Tracking', () => {
   beforeEach(() => {

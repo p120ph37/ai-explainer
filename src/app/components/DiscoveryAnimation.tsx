@@ -8,8 +8,18 @@
  */
 
 import { useEffect, useRef } from 'preact/hooks';
-import { onDiscovery } from '../progress.ts';
-import { getNodeMeta } from '../../lib/content.ts';
+import { makeStyles } from '@griffel/react';
+import { onDiscovery } from '@/app/progress.ts';
+import { getNodeMeta } from '@/lib/content.ts';
+
+const useStyles = makeStyles({
+  canvas: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 'var(--z-toast)',
+    pointerEvents: 'none',
+  },
+});
 
 interface Particle {
   id: number;
@@ -287,10 +297,12 @@ export function DiscoveryAnimationLayer() {
     }
   }, []);
   
+  const styles = useStyles();
+  
   return (
     <canvas
       ref={canvasRef}
-      className="discovery-canvas"
+      className={styles.canvas}
       aria-hidden="true"
     />
   );

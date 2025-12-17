@@ -10,11 +10,12 @@
  */
 
 import { writeFileSync, unlinkSync } from 'fs';
-import { renderAppToString, getNodeMeta, clearCache } from './lib/ssr.tsx';
-import { generateHtml, generateIndexHtml, contentHash } from './lib/html-template.ts';
-import { discoverContent, contentExists, clearContentCache } from './lib/content.ts';
-import mdxPlugin from './plugins/mdx-plugin.ts';
-import griffelPlugin from './plugins/griffel-plugin.ts';
+import { renderAppToString, getNodeMeta, clearCache } from '@/lib/ssr.tsx';
+import { generateHtml, generateIndexHtml, contentHash } from '@/lib/html-template.ts';
+import { discoverContent, contentExists, clearContentCache } from '@/lib/content.ts';
+import mdxPlugin from '@/plugins/mdx-plugin.ts';
+import griffelPlugin from '@/plugins/griffel-plugin.ts';
+import contentPlugin from '@/plugins/content-plugin.ts';
 
 const PID_FILE = '.dev.pid';
 
@@ -45,7 +46,7 @@ async function buildBundles(): Promise<string> {
     outdir: './dist',
     minify: false,
     splitting: false,
-    plugins: [griffelPlugin, mdxPlugin],
+    plugins: [contentPlugin, griffelPlugin, mdxPlugin],
     target: 'browser',
     define: {
       'process.env.NODE_ENV': '"development"',
@@ -90,6 +91,7 @@ const server = Bun.serve({
   port: 3000,
   
   async fetch(req) {
+    try {
     const url = new URL(req.url);
     const pathname = url.pathname;
     
@@ -148,7 +150,8 @@ const server = Bun.serve({
     }
     
     // Handle content routes
-    const nodeId = pathname === '/' ? 'intro' : pathname.slice(1).split('/')[0];
+    // Node IDs can contain slashes for variants (e.g., "intro/research")
+    const nodeId = pathname === '/' ? 'intro' : pathname.slice(1).replace(/\/$/, '');
     
     // Special case: index page
     if (nodeId === 'index') {
@@ -206,6 +209,10 @@ const server = Bun.serve({
     return new Response(html, {
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
+    } catch (error) {
+      console.error('Request error:', error);
+      return new Response(`Error: ${error}`, { status: 500 });
+    }
   },
   
   development: false,

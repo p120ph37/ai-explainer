@@ -1,16 +1,18 @@
 /**
- * MDX Plugin for Bun
+ * MDX Plugin Configuration
  * 
- * Uses @mdx-js/esbuild with remark plugins for frontmatter.
- * Configured via bunfig.toml [serve.static] plugins.
+ * Single source of truth for MDX compilation settings.
+ * Used by both:
+ * - preload.ts (runtime imports for SSR)
+ * - Bun.build() (client-side bundling)
  */
 
 import mdx from '@mdx-js/esbuild';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 
-// Configure MDX with Preact and frontmatter support
-const mdxPlugin = mdx({
+// MDX configuration options
+export const mdxConfig = {
   jsxImportSource: 'preact',
   remarkPlugins: [
     remarkFrontmatter,
@@ -20,6 +22,9 @@ const mdxPlugin = mdx({
   // This tells compiled MDX to use useMDXComponents from @mdx-js/preact
   providerImportSource: '@mdx-js/preact',
   development: process.env.NODE_ENV !== 'production',
-});
+};
+
+// Pre-configured plugin instance
+const mdxPlugin = mdx(mdxConfig);
 
 export default mdxPlugin;

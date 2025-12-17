@@ -3,7 +3,7 @@
  */
 
 import { describe, test, expect, beforeEach, mock } from 'bun:test';
-import { onDiscovery, markTopicDiscovered, resetAllProgress } from '../app/progress.ts';
+import { onDiscovery, markTopicDiscovered, resetAllProgress } from '@/app/progress.ts';
 
 // Helper to create a mock element
 const createMockElement = () => {

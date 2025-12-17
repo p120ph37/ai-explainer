@@ -11,8 +11,9 @@
 
 import { useEffect, useRef } from 'preact/hooks';
 import { useSignal, useComputed } from '@preact/signals';
-import { navigateTo } from '../router.ts';
-import { getNodeMeta } from '../../lib/content.ts';
+import { makeStyles, mergeClasses } from '@griffel/react';
+import { navigateTo } from '@/app/router.ts';
+import { getNodeMeta } from '@/lib/content.ts';
 import { 
   markTopicDiscovered, 
   isTopicDiscovered, 
@@ -20,8 +21,119 @@ import {
   getQuestStatus,
   questStatusInfo,
   progressState,
-} from '../progress.ts';
+} from '@/app/progress.ts';
 import type { ComponentChildren, JSX } from 'preact';
+
+// ============================================
+// STYLES (Griffel - AOT compiled)
+// ============================================
+
+const useStyles = makeStyles({
+  internalLink: {
+    position: 'relative',
+    display: 'inline',
+  },
+  
+  link: {
+    color: 'var(--color-accent)',
+    textDecorationLine: 'underline',
+    textDecorationStyle: 'dotted',
+    textUnderlineOffset: '0.2em',
+    ':hover': {
+      textDecorationStyle: 'solid',
+    },
+  },
+  
+  status: {
+    display: 'inline-block',
+    fontSize: '0.7em',
+    marginLeft: '0.2em',
+    verticalAlign: 'middle',
+    opacity: 0.7,
+    fontStyle: 'normal', // Don't inherit italics from container
+    transitionProperty: 'opacity',
+    transitionDuration: 'var(--duration-fast)',
+  },
+  
+  // Status-based colors
+  statusUndiscovered: {
+    color: 'var(--color-text-muted)',
+  },
+  statusDiscovered: {
+    color: 'var(--color-warning)',
+  },
+  statusInProgress: {
+    color: 'var(--color-primary)',
+  },
+  statusComplete: {
+    color: 'var(--color-success)',
+  },
+  
+  tooltip: {
+    position: 'absolute',
+    bottom: 'calc(100% + 8px)',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    paddingTop: 'var(--space-xs)',
+    paddingBottom: 'var(--space-xs)',
+    paddingLeft: 'var(--space-sm)',
+    paddingRight: 'var(--space-sm)',
+    backgroundColor: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    boxShadow: 'var(--shadow-lg)',
+    fontSize: 'var(--font-size-sm)',
+    whiteSpace: 'nowrap',
+    textAlign: 'center',
+    zIndex: 50,
+    pointerEvents: 'none',
+    // Arrow
+    '::after': {
+      content: '""',
+      position: 'absolute',
+      top: '100%',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      borderWidth: '6px',
+      borderStyle: 'solid',
+      borderColor: 'transparent',
+      borderTopColor: 'var(--color-border)',
+    },
+  },
+  
+  tooltipTitle: {
+    display: 'block',
+    color: 'var(--color-text)',
+  },
+  
+  tooltipProgress: {
+    display: 'block',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-text-muted)',
+    marginTop: '2px',
+  },
+  
+  // Discovery animation class - applied via DOM
+  discovered: {
+    animationName: {
+      '0%': { backgroundColor: 'transparent' },
+      '20%': { 
+        backgroundColor: 'hsla(45, 100%, 60%, 0.3)',
+        boxShadow: '0 0 10px hsla(45, 100%, 60%, 0.5)',
+      },
+      '100%': { 
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+      },
+    },
+    animationDuration: '1.5s',
+    animationTimingFunction: 'ease',
+  },
+});
+
+// ============================================
+// COMPONENT
+// ============================================
 
 interface InternalLinkProps extends Omit<JSX.HTMLAttributes<HTMLAnchorElement>, 'href'> {
   /** The node ID this link points to */
@@ -34,6 +146,7 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const hasDiscovered = useRef(false);
   const showTooltip = useSignal(false);
+  const styles = useStyles();
   
   // Get metadata for the linked node
   const meta = getNodeMeta(nodeId);
@@ -50,7 +163,10 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
       exploredPercent: progress.exploredPercent,
       icon: statusData.icon,
       label: statusData.label,
-      className: statusData.className,
+      statusStyle: status === 'undiscovered' ? styles.statusUndiscovered
+        : status === 'discovered' ? styles.statusDiscovered
+        : status === 'in_progress' ? styles.statusInProgress
+        : styles.statusComplete,
     };
   });
   
@@ -77,9 +193,9 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
           const wasNew = markTopicDiscovered(nodeId, linkElement as HTMLElement);
           
           if (wasNew) {
-            element.classList.add('internal-link--discovered');
+            element.classList.add(styles.discovered);
             setTimeout(() => {
-              element.classList.remove('internal-link--discovered');
+              element.classList.remove(styles.discovered);
             }, 1500);
           }
           
@@ -135,10 +251,11 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
         parentDetails.removeEventListener('toggle', checkVisibilityOnDetailsToggle);
       }
     };
-  }, [nodeId]);
+  }, [nodeId, styles.discovered]);
   
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event from hitting other elements during render
     navigateTo(nodeId, { addToPath: true });
   };
   
@@ -148,7 +265,7 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
   return (
     <span 
       ref={wrapperRef}
-      className={`internal-link ${progressInfo.value.className} ${className || ''}`}
+      className={mergeClasses(styles.internalLink, className)}
       data-node-id={nodeId}
       onMouseEnter={() => showTooltip.value = true}
       onMouseLeave={() => showTooltip.value = false}
@@ -157,21 +274,22 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
         href={`/${nodeId}`}
         onClick={handleClick}
         title={tooltipTitle}
+        className={styles.link}
         {...props}
       >
         {children}
       </a>
       <span 
-        className="internal-link__status"
+        className={mergeClasses(styles.status, progressInfo.value.statusStyle)}
         aria-label={progressInfo.value.label}
       >
         {progressInfo.value.icon}
       </span>
       {showTooltip.value && meta && (
-        <span className="internal-link__tooltip" role="tooltip">
-          <strong>{meta.title}</strong>
+        <span className={styles.tooltip} role="tooltip">
+          <strong className={styles.tooltipTitle}>{meta.title}</strong>
           {progressInfo.value.exploredPercent > 0 && (
-            <span className="internal-link__progress">
+            <span className={styles.tooltipProgress}>
               {progressInfo.value.exploredPercent}% explored
             </span>
           )}

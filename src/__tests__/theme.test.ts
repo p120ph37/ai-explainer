@@ -8,7 +8,7 @@ import {
   getThemePreference,
   setTheme,
   toggleTheme,
-} from '../app/theme.ts';
+} from '@/app/theme.ts';
 
 // Mock matchMedia
 const createMatchMedia = (matches: boolean) => ({
