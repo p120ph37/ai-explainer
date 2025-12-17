@@ -21,6 +21,7 @@ import {
   getQuestStatus,
   questStatusInfo,
   progressState,
+  PROGRESS_TRACKING_DISABLED,
 } from '@/app/progress.ts';
 import type { ComponentChildren, JSX } from 'preact';
 
@@ -279,12 +280,14 @@ export function InternalLink({ nodeId, children, className, ...props }: Internal
       >
         {children}
       </a>
-      <span 
-        className={mergeClasses(styles.status, progressInfo.value.statusStyle)}
-        aria-label={progressInfo.value.label}
-      >
-        {progressInfo.value.icon}
-      </span>
+      {!PROGRESS_TRACKING_DISABLED && (
+        <span 
+          className={mergeClasses(styles.status, progressInfo.value.statusStyle)}
+          aria-label={progressInfo.value.label}
+        >
+          {progressInfo.value.icon}
+        </span>
+      )}
       {showTooltip.value && meta && (
         <span className={styles.tooltip} role="tooltip">
           <strong className={styles.tooltipTitle}>{meta.title}</strong>

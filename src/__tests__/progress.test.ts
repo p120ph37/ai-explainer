@@ -1,5 +1,7 @@
 /**
  * Tests for the progress tracking system
+ * 
+ * NOTE: These tests are skipped when PROGRESS_TRACKING_DISABLED is true
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
@@ -16,7 +18,11 @@ import {
   resetNodeProgress,
   resetAllProgress,
   questStatusInfo,
+  PROGRESS_TRACKING_DISABLED,
 } from '@/app/progress.ts';
+
+// Skip all tests in this file if progress tracking is disabled
+const describeIfEnabled = PROGRESS_TRACKING_DISABLED ? describe.skip : describe;
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -32,7 +38,7 @@ const localStorageMock = (() => {
 // @ts-ignore - mock global localStorage
 globalThis.localStorage = localStorageMock;
 
-describe('Progress Tracking', () => {
+describeIfEnabled('Progress Tracking', () => {
   beforeEach(() => {
     // Reset all progress before each test
     resetAllProgress();
@@ -217,7 +223,7 @@ describe('Progress Tracking', () => {
   });
 });
 
-describe('Persistence', () => {
+describeIfEnabled('Persistence', () => {
   beforeEach(() => {
     resetAllProgress();
     localStorageMock.clear();

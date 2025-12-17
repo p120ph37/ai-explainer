@@ -3,6 +3,8 @@
  * 
  * Tests DOM-based content scanning and exploration calculations
  * using happy-dom for a realistic DOM environment.
+ * 
+ * NOTE: These tests are skipped when PROGRESS_TRACKING_DISABLED is true
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
@@ -12,13 +14,17 @@ import {
   markVisited, 
   getNodeProgress,
   resetAllProgress,
+  PROGRESS_TRACKING_DISABLED,
 } from '@/app/progress.ts';
 import {
   calculateExplorationPercent,
   calculateSectionVisibility,
 } from '@/app/utils/link-enhancement.ts';
 
-describe('Exploration Tracking', () => {
+// Skip all tests in this file if progress tracking is disabled
+const describeIfEnabled = PROGRESS_TRACKING_DISABLED ? describe.skip : describe;
+
+describeIfEnabled('Exploration Tracking', () => {
   beforeEach(() => {
     resetAllProgress();
     document.body.innerHTML = '';

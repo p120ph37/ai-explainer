@@ -19,6 +19,7 @@ import {
   getQuestStatus,
   questStatusInfo,
   progressState,
+  PROGRESS_TRACKING_DISABLED,
 } from '@/app/progress.ts';
 import type { JSX } from 'preact';
 
@@ -286,13 +287,15 @@ export function Term({ id, children }: TermProps) {
       >
         {children}
       </a>
-      <span 
-        className={mergeClasses(styles.status, progressInfo.value.statusStyle)}
-        title={progressInfo.value.label}
-        aria-label={progressInfo.value.label}
-      >
-        {progressInfo.value.icon}
-      </span>
+      {!PROGRESS_TRACKING_DISABLED && (
+        <span 
+          className={mergeClasses(styles.status, progressInfo.value.statusStyle)}
+          title={progressInfo.value.label}
+          aria-label={progressInfo.value.label}
+        >
+          {progressInfo.value.icon}
+        </span>
+      )}
       {showTooltip.value && meta && (
         <span className={styles.tooltip} role="tooltip">
           <strong className={styles.tooltipTitle}>{meta.title}</strong>

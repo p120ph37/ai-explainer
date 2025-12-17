@@ -11,8 +11,9 @@ import { currentRoute, initRouter, registerNodeId } from '@/app/router.ts';
 import { toggleTheme, getEffectiveTheme } from '@/app/theme.ts';
 import { markVisited } from '@/app/state.ts';
 import { MarginDeoverlap } from '@/app/components/MarginDeoverlap.tsx';
-import { ProgressSidebar } from '@/app/components/ProgressSidebar.tsx';
-import { DiscoveryAnimationLayer } from '@/app/components/DiscoveryAnimation.tsx';
+// DISABLED: Quest Log / exploration tracking - will be re-added in a different form
+// import { ProgressSidebar } from '@/app/components/ProgressSidebar.tsx';
+// import { DiscoveryAnimationLayer } from '@/app/components/DiscoveryAnimation.tsx';
 import { contentRegistry } from '@/lib/content.ts';
 import { Breadcrumbs } from '@/app/components/Breadcrumbs.tsx';
 import { NavLinks } from '@/app/components/NavLinks.tsx';
@@ -255,8 +256,9 @@ export function App({
       
       <AppFooter />
       
-      <ProgressSidebar />
-      <DiscoveryAnimationLayer />
+      {/* DISABLED: Quest Log / exploration tracking - will be re-added in a different form */}
+      {/* <ProgressSidebar /> */}
+      {/* <DiscoveryAnimationLayer /> */}
       
       {/* Editorial layer - client-only, lazy-loaded */}
       {isEditorialMode() && <EditorialLayerLoader pageId={getEditorialPageId(nodeId)} />}

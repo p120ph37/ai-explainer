@@ -14,6 +14,13 @@
 
 import { signal, computed } from '@preact/signals';
 
+// ============================================
+// FEATURE FLAG: Disable progress/exploration tracking
+// Set to true to disable the Quest Log and all progress indicators
+// This is temporary while we redesign the system
+// ============================================
+export const PROGRESS_TRACKING_DISABLED = true;
+
 export type QuestStatus = 'undiscovered' | 'discovered' | 'in_progress' | 'complete';
 
 interface NodeProgress {
@@ -86,6 +93,9 @@ export function isOnIndexPage(): boolean {
  * Get progress for a specific node
  */
 export function getNodeProgress(nodeId: string): NodeProgress {
+  if (PROGRESS_TRACKING_DISABLED) {
+    return { exploredPercent: 0 };
+  }
   return progressState.value.nodes[nodeId] || {
     exploredPercent: 0,
   };
@@ -106,6 +116,9 @@ export function countDiscoveredTopics(topicIds: string[] | undefined | null): nu
  * @param linkedTopics - Array of topic IDs linked from this page (children + related)
  */
 export function getQuestStatus(nodeId: string, linkedTopics?: string[]): QuestStatus {
+  if (PROGRESS_TRACKING_DISABLED) {
+    return 'undiscovered';
+  }
   const progress = getNodeProgress(nodeId);
   const allDiscovered = progressState.value.allDiscoveredTopics;
   
@@ -148,6 +161,9 @@ export function markTopicDiscovered(
   nodeId: string, 
   sourceElement?: HTMLElement
 ): boolean {
+  if (PROGRESS_TRACKING_DISABLED) {
+    return false;
+  }
   const current = progressState.value;
   
   // Check if already globally discovered

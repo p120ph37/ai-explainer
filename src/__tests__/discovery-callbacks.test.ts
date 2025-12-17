@@ -1,9 +1,11 @@
 /**
  * Tests for the discovery callback system
+ * 
+ * NOTE: These tests are skipped when PROGRESS_TRACKING_DISABLED is true
  */
 
 import { describe, test, expect, beforeEach, mock } from 'bun:test';
-import { onDiscovery, markTopicDiscovered, resetAllProgress } from '@/app/progress.ts';
+import { onDiscovery, markTopicDiscovered, resetAllProgress, PROGRESS_TRACKING_DISABLED } from '@/app/progress.ts';
 
 // Helper to create a mock element
 const createMockElement = () => {
@@ -23,7 +25,10 @@ const createMockElement = () => {
   return element as HTMLElement;
 };
 
-describe('Discovery Callbacks', () => {
+// Skip all tests in this file if progress tracking is disabled
+const describeIfEnabled = PROGRESS_TRACKING_DISABLED ? describe.skip : describe;
+
+describeIfEnabled('Discovery Callbacks', () => {
   beforeEach(() => {
     resetAllProgress();
   });
