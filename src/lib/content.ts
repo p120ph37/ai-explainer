@@ -26,6 +26,8 @@ export interface ContentMeta {
   prerequisites?: string[];
   children?: string[];
   related?: string[];
+  /** Automatically extracted internal links from MDX content */
+  links?: string[];
   keywords?: string[];
   /** If true, this page is a draft and should not be included in production builds */
   draft?: boolean;
@@ -128,6 +130,7 @@ function extractMeta(id: string, frontmatter: Record<string, any>): ContentMeta 
 
 /**
  * Discover all content files (server-side only)
+ * Now includes automatic link extraction from MDX content
  */
 export async function discoverContent(contentDir = "src/content"): Promise<ContentFile[]> {
   if (!isServer) {
@@ -140,6 +143,7 @@ export async function discoverContent(contentDir = "src/content"): Promise<Conte
   const glob = new Bun.Glob("**/*.mdx");
   const files: ContentFile[] = [];
   
+  // First pass: collect all files and their metadata
   for await (const filename of glob.scan(contentDir)) {
     // Extract ID from path: intro.mdx → 'intro', intro/research.mdx → 'intro/research'
     const id = filename.replace('.mdx', '');
@@ -149,6 +153,21 @@ export async function discoverContent(contentDir = "src/content"): Promise<Conte
     const meta = extractMeta(id, frontmatter);
     
     files.push({ id, path, meta });
+  }
+  
+  // Second pass: extract links from each file
+  // We need all IDs first to validate links
+  const { extractInternalLinks } = await import('./link-extraction.ts');
+  const validPageIds = new Set(
+    files
+      .filter(f => !f.meta.draft && !f.id.includes('/'))
+      .map(f => f.id)
+  );
+  
+  for (const file of files) {
+    const text = await Bun.file(file.path).text();
+    const links = extractInternalLinks(text, validPageIds);
+    file.meta.links = links;
   }
   
   files.sort((a, b) => {

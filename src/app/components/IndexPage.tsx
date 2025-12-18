@@ -7,11 +7,12 @@
  * Category information is read from each node's frontmatter metadata.
  */
 
-import { useEffect } from 'preact/hooks';
+import { useEffect, useMemo } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
 import { makeStyles, mergeClasses } from '@griffel/react';
 import { getNodeMeta, getAllNodeIds, type ContentMeta } from '@/lib/content.ts';
 import { resetAllProgress, progressStats } from '@/app/progress.ts';
+import { SitemapNetworkGraph } from './diagrams/SitemapNetworkGraph.tsx';
 
 // ============================================
 // STYLES (Griffel - AOT compiled)
@@ -190,6 +191,28 @@ const useStyles = makeStyles({
     textAlign: 'center',
     color: 'var(--color-text-muted)',
   },
+  
+  sitemapSection: {
+    marginTop: 'var(--space-2xl)',
+    marginBottom: 'var(--space-2xl)',
+    paddingTop: 'var(--space-xl)',
+    borderTop: '2px solid var(--color-border-subtle)',
+  },
+  
+  sitemapTitle: {
+    fontFamily: 'var(--font-heading)',
+    fontSize: 'var(--font-size-xl)',
+    fontWeight: 600,
+    color: 'var(--color-text-heading)',
+    marginBottom: 'var(--space-md)',
+  },
+  
+  sitemapDescription: {
+    fontSize: 'var(--font-size-md)',
+    color: 'var(--color-text-muted)',
+    marginBottom: 'var(--space-lg)',
+    lineHeight: 'var(--line-height-relaxed)',
+  },
 });
 
 // ============================================
@@ -300,6 +323,15 @@ export function IndexPage() {
     ...[...grouped.keys()].filter(c => !categoryOrder.includes(c)),
   ];
   
+  // Build metadata map for sitemap diagram
+  const allMeta = useMemo(() => {
+    const metaMap: Record<string, ContentMeta> = {};
+    for (const node of nodes.value) {
+      metaMap[node.id] = node.meta;
+    }
+    return metaMap;
+  }, [nodes.value]);
+  
   return (
     <article className={mergeClasses(styles.indexPage, 'content-node')}>
       <header className={styles.contentHeader}>
@@ -315,6 +347,16 @@ export function IndexPage() {
           You can also navigate through the inline links within each topic, 
           which connect related concepts together.
         </p>
+        
+        <section className={styles.sitemapSection}>
+          <h2 className={styles.sitemapTitle}>Content Network</h2>
+          <p className={styles.sitemapDescription}>
+            This interactive network shows how topics link to each other. Each arrow represents a link 
+            from one page to another. The layout is automatically generated based on the actual links 
+            in the content. Click any node to navigate to that topic.
+          </p>
+          <SitemapNetworkGraph allMeta={allMeta} />
+        </section>
         
         <nav className={styles.categories} aria-label="Content categories">
           {sortedCategories.map(category => {

@@ -19,6 +19,8 @@
     "test:e2e:update": "bunx playwright test --update-snapshots",
     "test:all": "bun test && playwright test",
     "validate": "bun scripts/validate-content.ts",
+    "validate:graph": "bun scripts/validate-graph.ts",
+    "show:links": "bun scripts/show-link-graph.ts",
     "editorial:validate": "bun src/editorial/validate-anchors.ts"
   },
   "devDependencies": {
@@ -27,6 +29,7 @@
     "@griffel/core": "^1.19.2",
     "@playwright/test": "^1.57.0",
     "@types/bun": "latest",
+    "@types/d3-force": "^3.0.10",
     "happy-dom": "^20.0.11"
   },
   "peerDependencies": {
@@ -39,6 +42,7 @@
     "@mdx-js/preact": "^3.1.1",
     "@preact/signals": "^2.5.1",
     "@visx/axis": "^3.12.0",
+    "@visx/event": "^3.12.0",
     "@visx/group": "^3.12.0",
     "@visx/hierarchy": "^3.12.0",
     "@visx/network": "^3.12.0",
@@ -47,6 +51,7 @@
     "@visx/shape": "^3.12.0",
     "@visx/text": "^3.12.0",
     "@visx/tooltip": "^3.12.0",
+    "d3-force": "^3.0.0",
     "gpt-tokenizer": "^3.4.0",
     "preact": "^10.28.0",
     "preact-render-to-string": "^6.6.3",
