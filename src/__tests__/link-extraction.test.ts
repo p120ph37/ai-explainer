@@ -3,7 +3,7 @@
  */
 
 import { test, expect, describe } from 'bun:test';
-import { extractInternalLinks } from '@/lib/link-extraction.ts';
+import { extractInternalLinks, extractInternalLinksWithValidation } from '@/lib/link-extraction.ts';
 
 describe('extractInternalLinks', () => {
   const validPageIds = new Set(['intro', 'tokens', 'scale', 'emergence', 'context-window']);
@@ -135,5 +135,114 @@ Just some text with no links.
   });
 });
 
+describe('extractInternalLinksWithValidation', () => {
+  const validPageIds = new Set(['intro', 'tokens', 'scale']);
+  
+  test('returns both valid and invalid links', () => {
+    const content = `
+Valid: [tokens](/tokens)
+Invalid: [nonexistent](/nonexistent)
+Also invalid: <Term id="missing" />
+    `;
+    
+    const result = extractInternalLinksWithValidation(content, validPageIds);
+    expect(result.links).toEqual(['tokens']);
+    expect(result.invalidLinks).toEqual(['missing', 'nonexistent']);
+  });
+  
+  test('returns empty invalidLinks when all links are valid', () => {
+    const content = `[tokens](/tokens) and [scale](/scale)`;
+    
+    const result = extractInternalLinksWithValidation(content, validPageIds);
+    expect(result.links).toEqual(['scale', 'tokens']);
+    expect(result.invalidLinks).toEqual([]);
+  });
+  
+  test('detects invalid Term component references', () => {
+    const content = `<Term id="nonexistent">text</Term>`;
+    
+    const result = extractInternalLinksWithValidation(content, validPageIds);
+    expect(result.links).toEqual([]);
+    expect(result.invalidLinks).toEqual(['nonexistent']);
+  });
+});
 
+describe('Content link integrity', () => {
+  test('all internal links in non-draft pages point to valid pages', async () => {
+    const CONTENT_DIR = './src/content';
+    
+    // Parse frontmatter to check draft status
+    function parseFrontmatter(content: string): Record<string, any> {
+      const match = content.match(/^---\n([\s\S]*?)\n---/);
+      if (!match || !match[1]) return {};
+      
+      const yaml = match[1];
+      const result: Record<string, any> = {};
+      
+      for (const line of yaml.split('\n')) {
+        const kvMatch = line.match(/^(\w+):\s*(.*)$/);
+        if (kvMatch && kvMatch[1] && kvMatch[2] !== undefined) {
+          const value = kvMatch[2].trim();
+          if (value === 'true') result[kvMatch[1]] = true;
+          else if (value === 'false') result[kvMatch[1]] = false;
+          else if (value && value !== '[]') result[kvMatch[1]] = value.replace(/^["']|["']$/g, '');
+        }
+      }
+      
+      return result;
+    }
+    
+    // Discover all MDX files
+    const glob = new Bun.Glob('**/*.mdx');
+    const files: Array<{ id: string; path: string; isDraft: boolean }> = [];
+    
+    for await (const filename of glob.scan(CONTENT_DIR)) {
+      const id = filename.replace('.mdx', '');
+      const path = `${CONTENT_DIR}/${filename}`;
+      const text = await Bun.file(path).text();
+      const frontmatter = parseFrontmatter(text);
+      const isDraft = frontmatter.draft === true;
+      
+      files.push({ id, path, isDraft });
+    }
+    
+    // Get valid page IDs (non-draft, non-variant)
+    const validPageIds = new Set(
+      files
+        .filter(f => !f.isDraft && !f.id.includes('/'))
+        .map(f => f.id)
+    );
+    
+    const brokenLinks: Array<{ page: string; invalidLinks: string[] }> = [];
+    
+    // Check each non-draft, non-variant page for broken links
+    for (const file of files) {
+      // Skip drafts and variants
+      if (file.isDraft || file.id.includes('/')) continue;
+      
+      const text = await Bun.file(file.path).text();
+      const result = extractInternalLinksWithValidation(text, validPageIds);
+      
+      if (result.invalidLinks.length > 0) {
+        brokenLinks.push({
+          page: file.id,
+          invalidLinks: result.invalidLinks,
+        });
+      }
+    }
+    
+    // Format error message if there are broken links
+    if (brokenLinks.length > 0) {
+      const errorMessages = brokenLinks.map(
+        ({ page, invalidLinks }) => `  ${page}: ${invalidLinks.join(', ')}`
+      ).join('\n');
+      
+      throw new Error(
+        `Found broken internal links in non-draft pages:\n${errorMessages}`
+      );
+    }
+    
+    expect(brokenLinks).toEqual([]);
+  });
+});
 

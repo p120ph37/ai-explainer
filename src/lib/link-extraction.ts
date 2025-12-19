@@ -2,17 +2,26 @@
  * Link extraction from MDX content
  * 
  * Parses MDX files to extract internal page links automatically.
- * This replaces manual children/related metadata with dynamic link discovery.
+ * Validates that all internal links point to valid pages.
  */
+
+export interface LinkExtractionResult {
+  links: string[];
+  invalidLinks: string[];
+}
 
 /**
  * Extract internal page links from MDX content
  * 
  * Finds markdown links like [text](/page-id) and <Term id="page-id">
- * Returns unique list of page IDs that are linked from this content.
+ * Returns unique list of valid page IDs and any invalid links found.
  */
-export function extractInternalLinks(mdxContent: string, validPageIds: Set<string>): string[] {
+export function extractInternalLinksWithValidation(
+  mdxContent: string, 
+  validPageIds: Set<string>
+): LinkExtractionResult {
   const links = new Set<string>();
+  const invalidLinks = new Set<string>();
   
   // Pattern 1: Markdown links [text](/page-id) or [text](./page-id)
   const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
@@ -53,9 +62,14 @@ export function extractInternalLinks(mdxContent: string, validPageIds: Set<strin
       pageId = pageId.slice(0, anchorIndex);
     }
     
-    // Only include if it's a valid page ID
-    if (pageId && validPageIds.has(pageId)) {
+    // Skip empty after processing
+    if (!pageId) continue;
+    
+    // Check if it's a valid page ID
+    if (validPageIds.has(pageId)) {
       links.add(pageId);
+    } else {
+      invalidLinks.add(pageId);
     }
   }
   
@@ -64,8 +78,12 @@ export function extractInternalLinks(mdxContent: string, validPageIds: Set<strin
   
   while ((match = termRegex.exec(mdxContent)) !== null) {
     const pageId = match[1];
-    if (pageId && validPageIds.has(pageId)) {
+    if (!pageId) continue;
+    
+    if (validPageIds.has(pageId)) {
       links.add(pageId);
+    } else {
+      invalidLinks.add(pageId);
     }
   }
   
@@ -80,12 +98,43 @@ export function extractInternalLinks(mdxContent: string, validPageIds: Set<strin
       pageId = pageId.slice(0, -1);
     }
     
-    if (pageId && validPageIds.has(pageId)) {
+    if (!pageId) continue;
+    
+    if (validPageIds.has(pageId)) {
       links.add(pageId);
+    } else {
+      invalidLinks.add(pageId);
     }
   }
   
-  return Array.from(links).sort();
+  return {
+    links: Array.from(links).sort(),
+    invalidLinks: Array.from(invalidLinks).sort(),
+  };
+}
+
+/**
+ * Extract internal page links from MDX content (simple version)
+ * 
+ * Finds markdown links like [text](/page-id) and <Term id="page-id">
+ * Returns unique list of page IDs that are linked from this content.
+ * Logs warnings for invalid links.
+ */
+export function extractInternalLinks(
+  mdxContent: string, 
+  validPageIds: Set<string>,
+  sourceFile?: string
+): string[] {
+  const result = extractInternalLinksWithValidation(mdxContent, validPageIds);
+  
+  // Warn about invalid links
+  if (result.invalidLinks.length > 0 && sourceFile) {
+    console.warn(
+      `⚠️  Invalid internal links in ${sourceFile}: ${result.invalidLinks.join(', ')}`
+    );
+  }
+  
+  return result.links;
 }
 
 /**
@@ -97,7 +146,7 @@ export async function extractLinksFromFile(
 ): Promise<string[]> {
   try {
     const content = await Bun.file(filePath).text();
-    return extractInternalLinks(content, validPageIds);
+    return extractInternalLinks(content, validPageIds, filePath);
   } catch (error) {
     console.error(`Failed to extract links from ${filePath}:`, error);
     return [];
@@ -133,6 +182,3 @@ export async function buildLinkGraph(
   
   return linkGraph;
 }
-
-
-

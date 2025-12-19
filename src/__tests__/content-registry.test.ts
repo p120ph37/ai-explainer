@@ -94,19 +94,18 @@ describe('Content Registry', () => {
       expect(related).toEqual([]);
     });
 
-    test('returns children and related nodes', () => {
+    test('returns linked nodes', () => {
       registerMeta({
-        id: 'parent-node',
-        title: 'Parent',
-        summary: 'Has children',
-        children: ['child-1', 'child-2'],
-        related: ['related-1'],
+        id: 'linked-node',
+        title: 'Linked',
+        summary: 'Has links',
+        links: ['link-1', 'link-2', 'link-3'],
       });
       
-      const related = getRelatedNodes('parent-node');
-      expect(related).toContain('child-1');
-      expect(related).toContain('child-2');
-      expect(related).toContain('related-1');
+      const related = getRelatedNodes('linked-node');
+      expect(related).toContain('link-1');
+      expect(related).toContain('link-2');
+      expect(related).toContain('link-3');
     });
   });
 
@@ -139,20 +138,16 @@ describe('ContentMeta validation', () => {
       id: 'full-meta-test',
       title: 'Full Metadata',
       summary: 'Testing all fields',
-      children: ['child-1'],
-      related: ['related-1'],
+      links: ['link-1'],
       prerequisites: ['prereq-1'],
-      category: 'Test Category',
       order: 10,
     };
     
     registerMeta(fullMeta);
     const retrieved = getNodeMeta('full-meta-test');
     
-    expect(retrieved?.children).toEqual(['child-1']);
-    expect(retrieved?.related).toEqual(['related-1']);
+    expect(retrieved?.links).toEqual(['link-1']);
     expect(retrieved?.prerequisites).toEqual(['prereq-1']);
-    expect(retrieved?.category).toBe('Test Category');
     expect(retrieved?.order).toBe(10);
   });
 });

@@ -21,11 +21,8 @@ export interface ContentMeta {
   id: string;
   title: string;
   summary: string;
-  category?: string;
   order?: number;
   prerequisites?: string[];
-  children?: string[];
-  related?: string[];
   /** Automatically extracted internal links from MDX content */
   links?: string[];
   keywords?: string[];
@@ -118,11 +115,8 @@ function extractMeta(id: string, frontmatter: Record<string, any>): ContentMeta 
     id,
     title: frontmatter.title || id,
     summary: frontmatter.summary || '',
-    category: frontmatter.category,
     order: frontmatter.order ? parseInt(frontmatter.order, 10) : undefined,
     prerequisites: frontmatter.prerequisites,
-    children: frontmatter.children,
-    related: frontmatter.related,
     keywords: frontmatter.keywords,
     draft: frontmatter.draft === true || frontmatter.draft === 'true',
   };
@@ -131,6 +125,9 @@ function extractMeta(id: string, frontmatter: Record<string, any>): ContentMeta 
 /**
  * Discover all content files (server-side only)
  * Now includes automatic link extraction from MDX content
+ * 
+ * Note: When used as a Bun macro, this runs at bundle time.
+ * Changes to MDX files require re-bundling to take effect.
  */
 export async function discoverContent(contentDir = "src/content"): Promise<ContentFile[]> {
   if (!isServer) {
@@ -166,7 +163,7 @@ export async function discoverContent(contentDir = "src/content"): Promise<Conte
   
   for (const file of files) {
     const text = await Bun.file(file.path).text();
-    const links = extractInternalLinks(text, validPageIds);
+    const links = extractInternalLinks(text, validPageIds, file.path);
     file.meta.links = links;
   }
   
@@ -247,11 +244,11 @@ export function getAllNodeIds(): string[] {
   return Array.from(ids);
 }
 
-/** Get child and related nodes */
+/** Get linked nodes (automatically extracted from content) */
 export function getRelatedNodes(nodeId: string): string[] {
   const meta = getNodeMeta(nodeId);
   if (!meta) return [];
-  return [...(meta.children || []), ...(meta.related || [])];
+  return meta.links || [];
 }
 
 /** Register metadata (for tests) */

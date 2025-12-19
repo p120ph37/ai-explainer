@@ -6,7 +6,7 @@
  */
 
 export { EditorialLayer } from '@/editorial/client/components/EditorialLayer.tsx';
-export { isEditorialMode } from '@/editorial/client/state.ts';
+export { isEditorialMode } from '@/lib/build-mode.ts';
 export { editorialApi } from '@/editorial/client/api.ts';
 
 // Re-export types

@@ -2,14 +2,8 @@
 id: tokens
 title: "What are tokens?"
 summary: LLMs read tokens, not letters or words. Tokens are chunks of text that the model has learned to recognize.
-category: Foundations
-order: 1
 prerequisites:
   - intro
-children:
-  - context-window
-related:
-  - embeddings
 keywords:
   - tokenization
   - BPE
@@ -81,8 +75,6 @@ The most common approach is called **byte-pair encoding** (BPE). The algorithm s
 Starting with "the the the cat", it might first merge "t" and "h" into "th", then "th" and "e" into "the". Over many iterations across a massive text corpus, common patterns become single tokens while rare combinations stay split.
 
 The result: a vocabulary that efficiently compresses common language while remaining flexible enough to handle anything.
-
-→ [How BPE builds a vocabulary](/bpe-algorithm)
 
 </Question>
 

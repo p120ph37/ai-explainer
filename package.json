@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "dev": "bun --hot src/server.ts",
-    "dev:editorial": "bun --hot src/editorial/server.ts",
+    "dev:editorial": "EDITORIAL_MODE=true bun --hot src/server.ts",
     "dev:stop": "test -f .dev.pid && kill $(cat .dev.pid) 2>/dev/null; rm -f .dev.pid",
     "dev:restart": "bun run dev:stop; sleep 1; bun run dev",
     "build": "bun scripts/build.ts",
@@ -19,7 +19,6 @@
     "test:e2e:update": "bunx playwright test --update-snapshots",
     "test:all": "bun test && playwright test",
     "validate": "bun scripts/validate-content.ts",
-    "validate:graph": "bun scripts/validate-graph.ts",
     "show:links": "bun scripts/show-link-graph.ts",
     "editorial:validate": "bun src/editorial/validate-anchors.ts"
   },
@@ -30,6 +29,10 @@
     "@playwright/test": "^1.57.0",
     "@types/bun": "latest",
     "@types/d3-force": "^3.0.10",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-interpolate": "^3.0.4",
+    "@types/d3-selection": "^3.0.11",
+    "@types/d3-shape": "^3.1.7",
     "happy-dom": "^20.0.11"
   },
   "peerDependencies": {
@@ -41,6 +44,7 @@
     "@mdx-js/mdx": "^3.1.1",
     "@mdx-js/preact": "^3.1.1",
     "@preact/signals": "^2.5.1",
+    "@types/d3-array": "^3.2.2",
     "@visx/axis": "^3.12.0",
     "@visx/event": "^3.12.0",
     "@visx/group": "^3.12.0",
@@ -51,7 +55,12 @@
     "@visx/shape": "^3.12.0",
     "@visx/text": "^3.12.0",
     "@visx/tooltip": "^3.12.0",
+    "d3-array": "^3.2.4",
     "d3-force": "^3.0.0",
+    "d3-hierarchy": "^3.1.2",
+    "d3-interpolate": "^3.0.1",
+    "d3-selection": "^3.0.0",
+    "d3-shape": "^3.2.0",
     "gpt-tokenizer": "^3.4.0",
     "preact": "^10.28.0",
     "preact-render-to-string": "^6.6.3",

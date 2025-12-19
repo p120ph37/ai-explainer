@@ -11,7 +11,6 @@ declare module 'virtual:content-modules' {
       id: string;
       title: string;
       summary: string;
-      category?: string;
       order?: number;
       prerequisites?: string[];
       children?: string[];

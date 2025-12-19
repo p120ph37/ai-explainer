@@ -9,11 +9,11 @@
  */
 
 import { useEffect } from 'preact/hooks';
+import { isEditorialMode } from '@/lib/build-mode.ts' with { type: 'macro' };
 import { EditorialPanel } from '@/editorial/client/components/EditorialPanel.tsx';
 import { SelectionToolbar } from '@/editorial/client/components/SelectionToolbar.tsx';
 import { CreateNotePopover } from '@/editorial/client/components/CreateNotePopover.tsx';
 import {
-  isEditorialMode,
   loadPageData,
   togglePanel,
   openNotesCount,

@@ -7,6 +7,7 @@
 
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
+import { isEditorialMode } from '@/lib/build-mode.ts' with { type: 'macro' };
 import { currentRoute, initRouter, registerNodeId } from '@/app/router.ts';
 import { toggleTheme, getEffectiveTheme } from '@/app/theme.ts';
 import { markVisited } from '@/app/state.ts';
@@ -20,6 +21,10 @@ import { NavLinks } from '@/app/components/NavLinks.tsx';
 import { PrerequisitesBlock } from '@/app/components/PrerequisitesBlock.tsx';
 import { MDXProvider } from '@/app/components/MDXProvider.tsx';
 import { IndexPage } from '@/app/components/IndexPage.tsx';
+
+// Editorial imports (statically imported, pruned at build time if not in editorial mode)
+import { EditorialLayer } from '@/editorial/client/components/EditorialLayer.tsx';
+
 import type { ComponentType } from 'preact';
 import type { ContentMeta } from '@/lib/content.ts';
 
@@ -41,37 +46,11 @@ export interface AppProps {
 const isServer = typeof window === 'undefined';
 
 // ============================================
-// EDITORIAL MODE (client-only)
+// EDITORIAL MODE COMPONENTS
 // ============================================
-
-function isEditorialMode(): boolean {
-  return !isServer && (window as any).__EDITORIAL_MODE__ === true;
-}
 
 function getEditorialPageId(nodeId: string): string {
   return nodeId.split('/')[0] || 'intro';
-}
-
-/**
- * Lazy-loaded Editorial Layer - only loaded when editorial mode is active
- */
-function EditorialLayerLoader({ pageId }: { pageId: string }) {
-  const EditorialLayer = useSignal<ComponentType<{ pageId: string }> | null>(null);
-  
-  useEffect(() => {
-    if (isEditorialMode()) {
-      import('../editorial/client/index.ts').then((mod) => {
-        EditorialLayer.value = mod.EditorialLayer;
-      }).catch((err) => {
-        console.error('Failed to load editorial layer:', err);
-      });
-    }
-  }, []);
-  
-  if (!EditorialLayer.value) return null;
-  
-  const Component = EditorialLayer.value;
-  return <Component pageId={pageId} />;
 }
 
 function EditorialBadge({ nodeId }: { nodeId: string }) {
@@ -151,7 +130,7 @@ function ContentArticle({
         </MDXProvider>
       </div>
       
-      <NavLinks children={meta.children} related={meta.related} />
+      <NavLinks links={meta.links} />
     </article>
   );
 }
@@ -244,8 +223,8 @@ export function App({
   
   return (
     <div className="app-shell">
-      {/* Editorial badge - client-only, renders null on server */}
-      <EditorialBadge nodeId={nodeId} />
+      {/* Editorial badge (pruned at build time if not in editorial mode) */}
+      {isEditorialMode() && <EditorialBadge nodeId={nodeId} />}
       
       <AppHeader theme={theme.value} onThemeToggle={handleThemeToggle} />
       
@@ -260,8 +239,8 @@ export function App({
       {/* <ProgressSidebar /> */}
       {/* <DiscoveryAnimationLayer /> */}
       
-      {/* Editorial layer - client-only, lazy-loaded */}
-      {isEditorialMode() && <EditorialLayerLoader pageId={getEditorialPageId(nodeId)} />}
+      {/* Editorial layer (pruned at build time if not in editorial mode) */}
+      {isEditorialMode() && <EditorialLayer pageId={getEditorialPageId(nodeId)} />}
     </div>
   );
 }

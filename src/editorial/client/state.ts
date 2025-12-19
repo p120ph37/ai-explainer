@@ -15,13 +15,6 @@ import type {
 } from '@/editorial/_types.ts';
 import { editorialApi } from '@/editorial/client/api.ts';
 
-/**
- * Check if editorial mode is enabled
- */
-export function isEditorialMode(): boolean {
-  return typeof window !== 'undefined' && (window as any).__EDITORIAL_MODE__ === true;
-}
-
 // ============================================
 // STATE SIGNALS
 // ============================================

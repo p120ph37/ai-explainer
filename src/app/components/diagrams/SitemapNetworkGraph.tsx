@@ -18,11 +18,10 @@ import {
   forceLink, 
   forceManyBody,
   forceCollide,
+  type SimulationNodeDatum,
+  type SimulationLinkDatum,
 } from 'd3-force';
-
-// Type imports
 import type { ContentMeta } from '@/lib/content.ts';
-import type { SimulationNodeDatum, SimulationLinkDatum } from 'd3-force';
 
 // ============================================
 // TYPES
@@ -96,19 +95,6 @@ const useStyles = makeStyles({
     textAnchor: 'middle',
     dominantBaseline: 'central',
     fontWeight: 600,
-  },
-  
-  tooltip: {
-    ...defaultStyles,
-    backgroundColor: 'var(--color-surface-elevated)',
-    color: 'var(--color-text-body)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--space-sm) var(--space-md)',
-    fontSize: '14px',
-    fontFamily: 'var(--font-body)',
-    boxShadow: 'var(--shadow-md)',
-    maxWidth: '300px',
   },
   
   link: {
@@ -352,7 +338,18 @@ export function SitemapNetworkGraph({ allMeta }: SitemapNetworkGraphProps) {
           key={Math.random()}
           top={tooltipTop}
           left={tooltipLeft}
-          className={styles.tooltip}
+          style={{
+            ...defaultStyles,
+            backgroundColor: 'var(--color-surface-elevated)',
+            color: 'var(--color-text-body)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            padding: 'var(--space-sm) var(--space-md)',
+            fontSize: '14px',
+            fontFamily: 'var(--font-body)',
+            boxShadow: 'var(--shadow-md)',
+            maxWidth: '300px',
+          }}
         >
           <strong>{tooltipData.title}</strong>
         </TooltipWithBounds>

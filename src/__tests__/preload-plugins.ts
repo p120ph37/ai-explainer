@@ -77,11 +77,8 @@ function scanContent(): Array<{ id: string; meta: any }> {
       id,
       title: frontmatter.title || id,
       summary: frontmatter.summary || '',
-      category: frontmatter.category,
       order: frontmatter.order ? parseInt(frontmatter.order, 10) : undefined,
       prerequisites: frontmatter.prerequisites,
-      children: frontmatter.children,
-      related: frontmatter.related,
       keywords: frontmatter.keywords,
     };
     

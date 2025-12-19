@@ -47,36 +47,6 @@ describe('Content Structure', () => {
       }
     });
 
-    test('have valid category when specified', async () => {
-      const validCategories = [
-        'Getting Started',
-        'Foundations',
-        'Ecosystem',
-        'Safety & Alignment',
-      ];
-      
-      const allIds = getAllNodeIds();
-      
-      for (const nodeId of allIds) {
-        const meta = getNodeMeta(nodeId);
-        
-        // Skip test-specific nodes
-        if (nodeId.startsWith('test-') || 
-            nodeId.startsWith('get-test-') || 
-            nodeId.startsWith('all-test-') ||
-            nodeId.startsWith('full-meta-') ||
-            nodeId.startsWith('parent-') ||
-            nodeId.startsWith('isolated-') ||
-            nodeId.startsWith('alias-')) {
-          continue;
-        }
-        
-        if (meta?.category) {
-          expect(validCategories).toContain(meta.category);
-        }
-      }
-    });
-
     test('have numeric order when specified', async () => {
       const allIds = getAllNodeIds();
       
@@ -92,31 +62,16 @@ describe('Content Structure', () => {
   });
 
   describe('Links validation', () => {
-    test('children references are non-empty strings', async () => {
+    test('links references are non-empty strings', async () => {
       const allIds = getAllNodeIds();
       
       for (const nodeId of allIds) {
         const meta = getNodeMeta(nodeId);
         
-        if (meta?.children) {
-          for (const childId of meta.children) {
-            expect(typeof childId).toBe('string');
-            expect(childId.length).toBeGreaterThan(0);
-          }
-        }
-      }
-    });
-
-    test('related references are non-empty strings', async () => {
-      const allIds = getAllNodeIds();
-      
-      for (const nodeId of allIds) {
-        const meta = getNodeMeta(nodeId);
-        
-        if (meta?.related) {
-          for (const relatedId of meta.related) {
-            expect(typeof relatedId).toBe('string');
-            expect(relatedId.length).toBeGreaterThan(0);
+        if (meta?.links) {
+          for (const linkId of meta.links) {
+            expect(typeof linkId).toBe('string');
+            expect(linkId.length).toBeGreaterThan(0);
           }
         }
       }

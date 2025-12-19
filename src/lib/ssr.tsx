@@ -50,11 +50,8 @@ export async function loadMdxModule(nodeId: string, contentDir: string = 'src/co
       id: nodeId,
       title: module.meta?.title || nodeId,
       summary: module.meta?.summary || '',
-      category: module.meta?.category,
       order: module.meta?.order,
       prerequisites: module.meta?.prerequisites,
-      children: module.meta?.children,
-      related: module.meta?.related,
       keywords: module.meta?.keywords,
     };
     

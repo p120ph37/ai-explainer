@@ -183,40 +183,29 @@ export function escapeHtml(str: string): string {
 export function generateIndexHtml(options: Omit<HtmlTemplateOptions, 'meta'> & { nodes?: NodeMeta[] }): string {
   const { nodes = [], allContentMeta, allContentIds, ...rest } = options;
   
-  // Group nodes by category
-  const categories = new Map<string, NodeMeta[]>();
-  for (const node of nodes) {
-    const cat = node.category || 'Other';
-    if (!categories.has(cat)) categories.set(cat, []);
-    categories.get(cat)!.push(node);
-  }
-  
-  // Sort nodes within each category by order
-  for (const nodeList of categories.values()) {
-    nodeList.sort((a, b) => (a.order || 999) - (b.order || 999));
-  }
+  // Sort nodes by order, then by id
+  const sortedNodes = [...nodes].sort((a, b) => {
+    const orderA = a.order ?? 999;
+    const orderB = b.order ?? 999;
+    if (orderA !== orderB) return orderA - orderB;
+    return a.id.localeCompare(b.id);
+  });
   
   // Generate the index content
   let indexContent = '<div class="index-page">';
   
-  const categoryOrder = ['Getting Started', 'Foundations', 'Ecosystem', 'Safety & Alignment', 'Other'];
-  for (const catName of categoryOrder) {
-    const catNodes = categories.get(catName);
-    if (!catNodes || catNodes.length === 0) continue;
-    
-    indexContent += `
-      <section class="index-category">
-        <h2 class="index-category__title">${escapeHtml(catName)}</h2>
-        <ul class="index-list">
-          ${catNodes.map(n => `
-            <li class="index-list-item">
-              <a href="/${n.id}">${escapeHtml(n.title)}</a>
-              ${n.summary ? `<p>${escapeHtml(n.summary)}</p>` : ''}
-            </li>
-          `).join('')}
-        </ul>
-      </section>`;
-  }
+  indexContent += `
+    <section class="index-topics">
+      <h2 class="index-topics__title">All Topics</h2>
+      <ul class="index-list">
+        ${sortedNodes.map(n => `
+          <li class="index-list-item">
+            <a href="/${n.id}">${escapeHtml(n.title)}</a>
+            ${n.summary ? `<p>${escapeHtml(n.summary)}</p>` : ''}
+          </li>
+        `).join('')}
+      </ul>
+    </section>`;
   
   indexContent += '</div>';
   

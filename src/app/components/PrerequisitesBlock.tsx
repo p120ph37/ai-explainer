@@ -171,10 +171,7 @@ export function PrerequisitesBlock({ prerequisites }: PrerequisitesBlockProps) {
       
       for (const prereqId of prerequisites) {
         const meta = getNodeMeta(prereqId);
-        const linkedTopics = [
-          ...(meta?.children || []),
-          ...(meta?.related || []),
-        ];
+        const linkedTopics = meta?.links || [];
         
         info.push({
           id: prereqId,

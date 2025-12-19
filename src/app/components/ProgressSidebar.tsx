@@ -202,35 +202,13 @@ const useStyles = makeStyles({
   legendDiscovered: { color: 'var(--color-warning)' },
   legendInProgress: { color: 'var(--color-primary)' },
   legendComplete: { color: 'var(--color-success)' },
-  categories: {
+  nodeListContainer: {
     flex: 1,
     overflowY: 'auto',
     paddingTop: 'var(--space-md)',
     paddingBottom: 'var(--space-md)',
     paddingLeft: 'var(--space-md)',
     paddingRight: 'var(--space-md)',
-  },
-  category: { marginBottom: 'var(--space-md)' },
-  categoryHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 'var(--space-xs)',
-    paddingBottom: 'var(--space-xs)',
-    cursor: 'pointer',
-    listStyleType: 'none',
-    fontFamily: 'var(--font-heading)',
-    fontSize: 'var(--font-size-sm)',
-    fontWeight: 600,
-    color: 'var(--color-text-heading)',
-    borderBottom: '1px solid var(--color-border-subtle)',
-    '::-webkit-details-marker': { display: 'none' },
-  },
-  categoryName: { flex: 1 },
-  categoryCount: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: 'var(--font-size-xs)',
-    color: 'var(--color-text-muted)',
   },
   nodeList: {
     listStyleType: 'none',
@@ -393,14 +371,6 @@ interface NodeInfo {
   linkedTopics: string[]; // children + related
 }
 
-// Category order for display
-const categoryOrder = [
-  'Getting Started',
-  'Foundations',
-  'Ecosystem',
-  'Safety & Alignment',
-];
-
 export function ProgressSidebar() {
   const isOpen = useSignal(false);
   const nodes = useSignal<NodeInfo[]>([]);
@@ -424,10 +394,7 @@ export function ProgressSidebar() {
         // Skip draft pages
         if (!meta || meta.draft) continue;
         
-        const linkedTopics = [
-          ...(meta.children || []),
-          ...(meta.related || []),
-        ];
+        const linkedTopics = meta.links || [];
         
         loaded.push({
           id: nodeId,
@@ -476,23 +443,14 @@ export function ProgressSidebar() {
     );
   });
   
-  // Group by category
-  const groupedNodes = useComputed(() => {
-    const grouped = new Map<string, typeof nodesWithStatus.value>();
-    
-    for (const node of discoveredNodes.value) {
-      const category = node.meta.category || 'Other';
-      const existing = grouped.get(category) || [];
-      existing.push(node);
-      grouped.set(category, existing);
-    }
-    
-    // Sort within categories by order
-    for (const [, categoryNodes] of grouped) {
-      categoryNodes.sort((a, b) => (a.meta.order ?? 999) - (b.meta.order ?? 999));
-    }
-    
-    return grouped;
+  // Sort discovered nodes by order then id
+  const sortedDiscoveredNodes = useComputed(() => {
+    return [...discoveredNodes.value].sort((a, b) => {
+      const orderA = a.meta.order ?? 999;
+      const orderB = b.meta.order ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.id.localeCompare(b.id);
+    });
   });
   
   // Progress stats
@@ -599,11 +557,11 @@ export function ProgressSidebar() {
           </span>
         </div>
         
-        {/* Node list by category */}
-        <div className={styles.categories}>
+        {/* Node list */}
+        <div className={styles.nodeListContainer}>
           {loading.value ? (
             <div className={styles.loading}>Loading quests...</div>
-          ) : discoveredNodes.value.length === 0 ? (
+          ) : sortedDiscoveredNodes.value.length === 0 ? (
             <div className={styles.empty}>
               <p>No quests discovered yet!</p>
               <p className={styles.emptyHint}>
@@ -611,40 +569,17 @@ export function ProgressSidebar() {
               </p>
             </div>
           ) : (
-            categoryOrder.map(category => {
-              const categoryNodes = groupedNodes.value.get(category);
-              if (!categoryNodes || categoryNodes.length === 0) return null;
-              
-              const categoryComplete = categoryNodes.filter(n => n.status === 'complete').length;
-              const categoryTotal = categoryNodes.length;
-              
-              return (
-                <details 
-                  key={category} 
-                  className={styles.category}
-                  open
-                >
-                  <summary className={styles.categoryHeader}>
-                    <span className={styles.categoryName}>{category}</span>
-                    <span className={styles.categoryCount}>
-                      {categoryComplete}/{categoryTotal}
-                    </span>
-                  </summary>
-                  
-                  <ul className={styles.nodeList}>
-                    {categoryNodes.map(node => (
-                      <QuestItem 
-                        key={node.id} 
-                        node={node}
-                        styles={styles}
-                        onCycleStatus={cycleStatus}
-                        onClose={() => isOpen.value = false}
-                      />
-                    ))}
-                  </ul>
-                </details>
-              );
-            })
+            <ul className={styles.nodeList}>
+              {sortedDiscoveredNodes.value.map(node => (
+                <QuestItem 
+                  key={node.id} 
+                  node={node}
+                  styles={styles}
+                  onCycleStatus={cycleStatus}
+                  onClose={() => isOpen.value = false}
+                />
+              ))}
+            </ul>
           )}
         </div>
         

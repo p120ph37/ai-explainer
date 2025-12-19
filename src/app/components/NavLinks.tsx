@@ -1,7 +1,7 @@
 /**
  * Navigation links component
  * 
- * Shows links to child concepts (deeper) and related concepts (lateral).
+ * Shows links to related concepts (automatically extracted from content).
  * Uses DiscoverableLink to trigger discovery animation when links become visible.
  */
 
@@ -77,76 +77,43 @@ const useStyles = makeStyles({
 // ============================================
 
 interface NavLinksProps {
-  children?: string[];
-  related?: string[];
+  links?: string[];
 }
 
-export function NavLinks({ children, related }: NavLinksProps) {
+export function NavLinks({ links }: NavLinksProps) {
   const styles = useStyles();
-  const hasChildren = children && children.length > 0;
-  const hasRelated = related && related.length > 0;
   
-  if (!hasChildren && !hasRelated) {
+  if (!links || links.length === 0) {
     return null;
   }
   
   return (
     <nav className={styles.navLinks}>
-      {hasChildren && (
-        <div className={styles.section}>
-          <span className={styles.label}>↓ Go Deeper</span>
-          <ul className={styles.list}>
-            {children.map((nodeId) => {
-              const meta = getNodeMeta(nodeId);
-              return (
-                <li key={nodeId}>
-                  <DiscoverableLink nodeId={nodeId}>
-                    <a 
-                      href={`/${nodeId}`}
-                      className={styles.link}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        navigateTo(nodeId, { addToPath: true });
-                      }}
-                    >
-                      {meta?.title || nodeId}
-                    </a>
-                  </DiscoverableLink>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-      
-      {hasRelated && (
-        <div className={styles.section}>
-          <span className={styles.label}>↔ Related</span>
-          <ul className={styles.list}>
-            {related.map((nodeId) => {
-              const meta = getNodeMeta(nodeId);
-              return (
-                <li key={nodeId}>
-                  <DiscoverableLink nodeId={nodeId}>
-                    <a 
-                      href={`/${nodeId}`}
-                      className={styles.link}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        navigateTo(nodeId);
-                      }}
-                    >
-                      {meta?.title || nodeId}
-                    </a>
-                  </DiscoverableLink>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      <div className={styles.section}>
+        <span className={styles.label}>↔ Related Topics</span>
+        <ul className={styles.list}>
+          {links.map((nodeId) => {
+            const meta = getNodeMeta(nodeId);
+            return (
+              <li key={nodeId}>
+                <DiscoverableLink nodeId={nodeId}>
+                  <a 
+                    href={`/${nodeId}`}
+                    className={styles.link}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigateTo(nodeId, { addToPath: true });
+                    }}
+                  >
+                    {meta?.title || nodeId}
+                  </a>
+                </DiscoverableLink>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </nav>
   );
 }

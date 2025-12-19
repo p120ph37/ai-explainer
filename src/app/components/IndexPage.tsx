@@ -1,18 +1,49 @@
 /**
  * Index page - dynamically generated table of contents
  * 
- * Lists all registered content nodes grouped by category,
+ * Lists all registered content nodes sorted by order field,
  * providing an alternate navigation path to inline hyperlinks.
  * 
- * Category information is read from each node's frontmatter metadata.
+ * In production mode, content is discovered and optimized at bundle time via Bun macros.
+ * In development mode, content is loaded normally and optimization happens at runtime.
  */
 
-import { useEffect, useMemo } from 'preact/hooks';
-import { useSignal } from '@preact/signals';
+import { useMemo } from 'preact/hooks';
 import { makeStyles, mergeClasses } from '@griffel/react';
-import { getNodeMeta, getAllNodeIds, type ContentMeta } from '@/lib/content.ts';
 import { resetAllProgress, progressStats } from '@/app/progress.ts';
 import { SitemapNetworkGraph } from './diagrams/SitemapNetworkGraph.tsx';
+import { RadialSitemap } from './diagrams/RadialSitemap.tsx';
+
+// Bundle-time imports (Bun macros - evaluated at transpile time)
+import { discoverContent } from '@/lib/content.ts' with { type: 'macro' };
+import { runFullOptimization } from '@/lib/sitemap-optimization.ts' with { type: 'macro' };
+import { isProdMode } from '@/lib/build-mode.ts' with { type: 'macro' };
+
+import type { ContentMeta, ContentFile } from '@/lib/content.ts';
+import type { OptimizedContentFile } from '@/lib/sitemap-optimization.ts';
+
+// ============================================
+// BUNDLE-TIME DATA (computed by Bun macro)
+// ============================================
+
+/**
+ * Content is discovered at bundle time via macro.
+ * 
+ * In production: Also run optimization at bundle time (displayOrder is set).
+ * In development: Skip optimization so it runs at runtime with animation.
+ * 
+ * isProdMode() is a macro that returns a constant, allowing Bun's AST pruner
+ * to eliminate the dead branch and skip macro evaluation in that branch.
+ */
+let ALL_CONTENT: (ContentFile | OptimizedContentFile)[];
+
+if (isProdMode()) {
+  // Production: run full optimization at bundle time
+  ALL_CONTENT = await runFullOptimization(discoverContent());
+} else {
+  // Development: skip optimization, let it run at runtime with animation
+  ALL_CONTENT = await discoverContent();
+}
 
 // ============================================
 // STYLES (Griffel - AOT compiled)
@@ -47,22 +78,6 @@ const useStyles = makeStyles({
     lineHeight: 'var(--line-height-relaxed)',
   },
   
-  categories: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--space-xl)',
-  },
-  
-  categoryTitle: {
-    fontFamily: 'var(--font-heading)',
-    fontSize: 'var(--font-size-lg)',
-    fontWeight: 600,
-    color: 'var(--color-primary)',
-    marginBottom: 'var(--space-md)',
-    paddingBottom: 'var(--space-xs)',
-    borderBottom: '2px solid var(--color-primary)',
-  },
-  
   list: {
     listStyleType: 'none',
     paddingLeft: 0,
@@ -93,7 +108,10 @@ const useStyles = makeStyles({
     transitionTimingFunction: 'ease',
     ':hover': {
       backgroundColor: 'var(--color-bg-subtle)',
-      borderColor: 'var(--color-primary)',
+      borderTopColor: 'var(--color-primary)',
+      borderRightColor: 'var(--color-primary)',
+      borderBottomColor: 'var(--color-primary)',
+      borderLeftColor: 'var(--color-primary)',
       transform: 'translateX(4px)',
     },
   },
@@ -105,10 +123,6 @@ const useStyles = makeStyles({
     fontWeight: 600,
     color: 'var(--color-text-heading)',
     marginBottom: 'var(--space-2xs)',
-  },
-  
-  linkHoverTitle: {
-    // Applied on hover via parent
   },
   
   summary: {
@@ -174,24 +188,6 @@ const useStyles = makeStyles({
     },
   },
   
-  loading: {
-    paddingTop: 'var(--space-xl)',
-    paddingBottom: 'var(--space-xl)',
-    paddingLeft: 'var(--space-xl)',
-    paddingRight: 'var(--space-xl)',
-    textAlign: 'center',
-    color: 'var(--color-text-muted)',
-  },
-  
-  error: {
-    paddingTop: 'var(--space-xl)',
-    paddingBottom: 'var(--space-xl)',
-    paddingLeft: 'var(--space-xl)',
-    paddingRight: 'var(--space-xl)',
-    textAlign: 'center',
-    color: 'var(--color-text-muted)',
-  },
-  
   sitemapSection: {
     marginTop: 'var(--space-2xl)',
     marginBottom: 'var(--space-2xl)',
@@ -213,6 +209,20 @@ const useStyles = makeStyles({
     marginBottom: 'var(--space-lg)',
     lineHeight: 'var(--line-height-relaxed)',
   },
+  
+  topicsSection: {
+    marginTop: 'var(--space-2xl)',
+  },
+  
+  topicsTitle: {
+    fontFamily: 'var(--font-heading)',
+    fontSize: 'var(--font-size-lg)',
+    fontWeight: 600,
+    color: 'var(--color-primary)',
+    marginBottom: 'var(--space-md)',
+    paddingBottom: 'var(--space-xs)',
+    borderBottom: '2px solid var(--color-primary)',
+  },
 });
 
 // ============================================
@@ -221,123 +231,48 @@ const useStyles = makeStyles({
 
 interface NodeInfo {
   id: string;
-  meta: ContentMeta;
+  meta: ContentMeta & { displayOrder?: number };
 }
 
-// Category display order (categories not listed here will appear at the end)
-const categoryOrder = [
-  'Getting Started',
-  'Foundations',
-  'Ecosystem',
-  'Safety & Alignment',
-];
-
 export function IndexPage() {
-  const nodes = useSignal<NodeInfo[]>([]);
-  const loading = useSignal(true);
-  const error = useSignal<string | null>(null);
   const styles = useStyles();
   
-  useEffect(() => {
-    async function loadAllNodes() {
-      loading.value = true;
-      error.value = null;
+  // Process the bundle-time content into the format we need
+  const nodes = useMemo((): NodeInfo[] => {
+    const loadedNodes: NodeInfo[] = [];
+    
+    for (const file of ALL_CONTENT) {
+      // Skip variants (IDs with '/') - they're sub-pages
+      if (file.id.includes('/')) continue;
       
-      try {
-        const loadedNodes: NodeInfo[] = [];
-        
-        // Get all content IDs dynamically
-        const allIds = getAllNodeIds();
-        
-        for (const nodeId of allIds) {
-          // Skip variants (IDs with '/') - they're sub-pages
-          if (nodeId.includes('/')) continue;
-          
-          const meta = getNodeMeta(nodeId);
-          
-          // Skip draft pages
-          if (!meta || meta.draft) continue;
-          
-          loadedNodes.push({
-            id: nodeId,
-            meta,
-          });
-        }
-        
-        // Sort by order field
-        loadedNodes.sort((a, b) => {
-          const orderA = a.meta.order ?? 999;
-          const orderB = b.meta.order ?? 999;
-          return orderA - orderB;
-        });
-        
-        nodes.value = loadedNodes;
-      } catch (e) {
-        error.value = 'Failed to load content index';
-        console.error(e);
-      } finally {
-        loading.value = false;
-      }
+      // Skip draft pages
+      if (file.meta.draft) continue;
+      
+      loadedNodes.push({
+        id: file.id,
+        meta: file.meta,
+      });
     }
     
-    loadAllNodes();
+    // Already sorted by discoverContent (order first, then id)
+    return loadedNodes;
   }, []);
   
-  if (loading.value) {
-    return (
-      <div className={styles.indexPage}>
-        <div className={styles.loading}>Loading content index...</div>
-      </div>
-    );
-  }
-  
-  if (error.value) {
-    return (
-      <div className={styles.indexPage}>
-        <div className={styles.error}>{error.value}</div>
-      </div>
-    );
-  }
-  
-  // Group nodes by category from metadata
-  const grouped = new Map<string, NodeInfo[]>();
-  for (const node of nodes.value) {
-    const category = node.meta.category || 'Other';
-    const existing = grouped.get(category) || [];
-    existing.push(node);
-    grouped.set(category, existing);
-  }
-  
-  // Sort nodes within each category by order field
-  for (const [category, categoryNodes] of grouped) {
-    categoryNodes.sort((a, b) => {
-      const orderA = a.meta.order ?? 999;
-      const orderB = b.meta.order ?? 999;
-      return orderA - orderB;
-    });
-  }
-  
-  // Get sorted category list (known categories first, then any others)
-  const sortedCategories = [
-    ...categoryOrder.filter(c => grouped.has(c)),
-    ...[...grouped.keys()].filter(c => !categoryOrder.includes(c)),
-  ];
-  
-  // Build metadata map for sitemap diagram
+  // Build metadata map for sitemap diagram (includes displayOrder)
   const allMeta = useMemo(() => {
-    const metaMap: Record<string, ContentMeta> = {};
-    for (const node of nodes.value) {
+    const metaMap: Record<string, ContentMeta & { displayOrder?: number }> = {};
+    for (const node of nodes) {
       metaMap[node.id] = node.meta;
     }
     return metaMap;
-  }, [nodes.value]);
+  }, [nodes]);
   
   return (
     <article className={mergeClasses(styles.indexPage, 'content-node')}>
       <header className={styles.contentHeader}>
         <h1 className={styles.headerTitle}>Content Index</h1>
         <p className={styles.contentSummary}>
-          A complete listing of all topics in this explainer, organized by category.
+          A complete listing of all topics in this explainer.
         </p>
       </header>
       
@@ -357,34 +292,36 @@ export function IndexPage() {
           </p>
           <SitemapNetworkGraph allMeta={allMeta} />
         </section>
+
+        <section className={styles.sitemapSection}>
+          <h2 className={styles.sitemapTitle}>Radial Sitemap</h2>
+          <p className={styles.sitemapDescription}>
+            An alternative view of the content network as a radial layout. 
+            Hover over any page ID to see its incoming links (purple) and outgoing links (blue), 
+            and view the full page title. Click to navigate.
+          </p>
+          <RadialSitemap allMeta={allMeta} />
+        </section>
         
-        <nav className={styles.categories} aria-label="Content categories">
-          {sortedCategories.map(category => {
-            const categoryNodes = grouped.get(category);
-            if (!categoryNodes || categoryNodes.length === 0) return null;
-            
-            return (
-              <section key={category}>
-                <h2 className={styles.categoryTitle}>{category}</h2>
-                <ul className={styles.list}>
-                  {categoryNodes.map(node => (
-                    <li key={node.id} className={styles.item}>
-                      <a href={`/${node.id}`} className={styles.link}>
-                        <span className={styles.title}>{node.meta.title}</span>
-                        <span className={styles.summary}>{node.meta.summary}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
-        </nav>
+        <section className={styles.topicsSection}>
+          <h2 className={styles.topicsTitle}>All Topics</h2>
+          <nav aria-label="Content topics">
+            <ul className={styles.list}>
+              {nodes.map(node => (
+                <li key={node.id} className={styles.item}>
+                  <a href={`/${node.id}`} className={styles.link}>
+                    <span className={styles.title}>{node.meta.title}</span>
+                    <span className={styles.summary}>{node.meta.summary}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </section>
         
         <div className={styles.stats}>
           <p>
-            <strong>{nodes.value.length}</strong> topics across{' '}
-            <strong>{grouped.size}</strong> categories
+            <strong>{nodes.length}</strong> topics
           </p>
         </div>
         
